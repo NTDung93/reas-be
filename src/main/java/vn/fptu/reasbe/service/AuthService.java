@@ -1,0 +1,20 @@
+package vn.fptu.reasbe.service;
+
+import org.springframework.http.ResponseEntity;
+
+import vn.fptu.reasbe.model.dto.auth.JWTAuthResponse;
+import vn.fptu.reasbe.model.dto.auth.LoginDto;
+import vn.fptu.reasbe.model.dto.auth.SignupDto;
+import vn.fptu.reasbe.model.dto.user.UserResponse;
+
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+
+public interface AuthService {
+    JWTAuthResponse authenticateUser(LoginDto loginDto);
+    JWTAuthResponse signupUser(SignupDto signupDto);
+    JWTAuthResponse signupLocation(SignupDto signupDto);
+    UserResponse getUserInfo();
+    ResponseEntity<JWTAuthResponse> refreshToken(HttpServletRequest request, HttpServletResponse response);
+    void changePassword(String oldPassword, String newPassword);
+}
