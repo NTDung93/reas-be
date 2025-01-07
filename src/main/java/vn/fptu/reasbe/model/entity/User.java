@@ -1,9 +1,11 @@
 package vn.fptu.reasbe.model.entity;
 
+import java.util.HashSet;
 import java.util.Set;
 
 import org.hibernate.Length;
 
+import jakarta.persistence.CascadeType;
 import vn.fptu.reasbe.model.entity.core.AbstractAuditableEntity;
 
 import jakarta.persistence.AttributeOverride;
@@ -26,7 +28,7 @@ import lombok.Setter;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-@Table(name = "\"user\"")
+@Table(name = "\"USER\"")
 @AttributeOverride(name = "id", column = @Column(name = "USER_ID"))
 public class User extends AbstractAuditableEntity {
 
@@ -66,11 +68,14 @@ public class User extends AbstractAuditableEntity {
     @Column(name = "IMAGE", length = Length.LOB_DEFAULT)
     private String image;
 
-    @OneToMany(mappedBy = "user")
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<Token> tokens;
 
     @ManyToOne
     @JoinColumn(name = "ROLE_ID")
     private Role role;
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Set<UserLocation> userLocations = new HashSet<>();
 }
 

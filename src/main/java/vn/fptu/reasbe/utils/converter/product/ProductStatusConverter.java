@@ -1,6 +1,6 @@
 package vn.fptu.reasbe.utils.converter.product;
 
-import vn.fptu.reasbe.model.enums.product.ProductStatus;
+import vn.fptu.reasbe.model.enums.item.ItemStatus;
 import vn.fptu.reasbe.model.exception.ResourceNotFoundException;
 
 import jakarta.persistence.AttributeConverter;
@@ -11,10 +11,10 @@ import jakarta.persistence.Converter;
  * @author ntig
  */
 @Converter(autoApply = true)
-public class ProductStatusConverter implements AttributeConverter<ProductStatus, String> {
+public class ProductStatusConverter implements AttributeConverter<ItemStatus, String> {
 
     @Override
-    public String convertToDatabaseColumn(ProductStatus addressType) {
+    public String convertToDatabaseColumn(ItemStatus addressType) {
         if (addressType == null) {
             return null;
         }
@@ -22,12 +22,12 @@ public class ProductStatusConverter implements AttributeConverter<ProductStatus,
     }
 
     @Override
-    public ProductStatus convertToEntityAttribute(String data) {
+    public ItemStatus convertToEntityAttribute(String data) {
         if (data == null || data.trim().isEmpty()) {
             return null;
         }
         try {
-            return ProductStatus.toEnumConstant(data);
+            return ItemStatus.toEnumConstant(data);
         } catch (ResourceNotFoundException e) {
             return null;
         }

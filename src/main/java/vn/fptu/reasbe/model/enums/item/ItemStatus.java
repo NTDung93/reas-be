@@ -1,4 +1,4 @@
-package vn.fptu.reasbe.model.enums.product;
+package vn.fptu.reasbe.model.enums.item;
 
 import java.util.Arrays;
 
@@ -13,22 +13,22 @@ import lombok.RequiredArgsConstructor;
  */
 @Getter
 @RequiredArgsConstructor
-public enum ProductStatus {
-    IN_STOCK("INST"),
-    OUT_OF_STOCK("OOST"),
-    COMING_SOON("COMS"),
+public enum ItemStatus {
+    AVAILABLE("AVAI"),
+    SOLD_OUT("SOLD"),
+    EXPIRED("EXPI"),
     NO_LONGER_FOR_SALE("NLFS");
 
     private final String code;
 
-    public static ProductStatus toEnumConstant(String code) {
+    public static ItemStatus toEnumConstant(String code) {
         if (code == null || code.trim().isEmpty()) {
             return null;
         }
 
-        return Arrays.stream(ProductStatus.values())
+        return Arrays.stream(ItemStatus.values())
                 .filter(e -> e.getCode().equals(code))
                 .findFirst()
-                .orElseThrow(() -> new ResourceNotFoundException("ProductStatus", "code", code));
+                .orElseThrow(() -> new ResourceNotFoundException("ItemStatus", "code", code));
     }
 }

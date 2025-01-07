@@ -2,6 +2,7 @@ package vn.fptu.reasbe.model.entity;
 
 import java.util.Set;
 
+import jakarta.persistence.CascadeType;
 import vn.fptu.reasbe.model.entity.core.AbstractAuditableEntity;
 
 import jakarta.persistence.AttributeOverride;
@@ -30,6 +31,6 @@ public class Role extends AbstractAuditableEntity {
     @Column(name = "NAME")
     private String name;
 
-    @OneToMany(mappedBy = "role", orphanRemoval = true)
+    @OneToMany(mappedBy = "role", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<User> users;
 }
