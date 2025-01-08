@@ -31,6 +31,10 @@ public class Category extends AbstractAuditableEntity {
     @Column(name = "CATEGORY_NAME")
     private String categoryName;
 
+    @NotNull
+    @Column(name = "DESCRIPTION")
+    private String description;
+
     @OneToMany(mappedBy = "category", cascade = CascadeType.ALL, orphanRemoval = true)
-    private Set<Product> products;
+    private Set<Item> items;
 }

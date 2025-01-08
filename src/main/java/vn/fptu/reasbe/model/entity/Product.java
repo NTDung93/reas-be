@@ -5,7 +5,7 @@ import java.math.BigDecimal;
 import org.hibernate.Length;
 
 import vn.fptu.reasbe.model.entity.core.AbstractAuditableEntity;
-import vn.fptu.reasbe.model.enums.item.ItemStatus;
+import vn.fptu.reasbe.model.enums.item.StatusItem;
 
 import jakarta.persistence.AttributeOverride;
 import jakarta.persistence.Column;
@@ -47,7 +47,7 @@ public class Product extends AbstractAuditableEntity {
     private String image;
 
     @Column(name = "PRODUCT_STATUS", nullable = false, length = 6)
-    private ItemStatus productStatus;
+    private StatusItem productStatus;
 
     @ManyToOne
     @JoinColumn(name = "CATEGORY_ID")

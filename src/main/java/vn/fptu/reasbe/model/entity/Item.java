@@ -1,14 +1,18 @@
 package vn.fptu.reasbe.model.entity;
 
 import java.math.BigDecimal;
+import java.util.HashSet;
+import java.util.Set;
 
 import org.hibernate.Length;
 
 import jakarta.persistence.AttributeOverride;
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
@@ -17,7 +21,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import vn.fptu.reasbe.model.entity.core.AbstractAuditableEntity;
-import vn.fptu.reasbe.model.enums.item.ItemStatus;
+import vn.fptu.reasbe.model.enums.item.StatusItem;
 
 /**
  *
@@ -49,8 +53,9 @@ public class Item extends AbstractAuditableEntity {
     @Column(name = "IMAGE_URL", length = Length.LOB_DEFAULT)
     private String imageUrl;
 
-    @Column(name = "ITEM_STATUS", nullable = false, length = 4)
-    private ItemStatus itemStatus;
+    @NotNull
+    @Column(name = "ITEM_STATUS", length = 4)
+    private StatusItem statusItem;
 
     @ManyToOne
     @JoinColumn(name = "CATEGORY_ID")
@@ -67,4 +72,7 @@ public class Item extends AbstractAuditableEntity {
     @ManyToOne
     @JoinColumn(name = "USER_LOCATION_ID")
     private UserLocation userLocation;
+
+    @OneToMany(mappedBy = "item", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Set<ExchangeDetail> exchangeDetails = new HashSet<>();
 }

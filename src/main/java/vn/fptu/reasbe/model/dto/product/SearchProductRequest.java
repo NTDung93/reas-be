@@ -4,7 +4,7 @@ import java.math.BigDecimal;
 import java.util.List;
 
 import vn.fptu.reasbe.model.enums.EntityStatus;
-import vn.fptu.reasbe.model.enums.item.ItemStatus;
+import vn.fptu.reasbe.model.enums.item.StatusItem;
 
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -31,6 +31,6 @@ public class SearchProductRequest {
     String image;
     List<Integer> categoryIds;
     List<Integer> brandIds;
-    List<ItemStatus> productStatuses;
+    List<StatusItem> productStatuses;
     List<EntityStatus> entityStatuses;
 }

@@ -5,7 +5,7 @@ import java.math.BigDecimal;
 import vn.fptu.reasbe.model.dto.brand.BrandDto;
 import vn.fptu.reasbe.model.dto.category.CategoryDto;
 import vn.fptu.reasbe.model.enums.EntityStatus;
-import vn.fptu.reasbe.model.enums.item.ItemStatus;
+import vn.fptu.reasbe.model.enums.item.StatusItem;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -25,7 +25,7 @@ public class SearchProductResponse {
     private String description;
     private BigDecimal price;
     private String image;
-    private ItemStatus productStatus;
+    private StatusItem productStatus;
     private EntityStatus entityStatus;
     private CategoryDto category;
     private BrandDto brand;
