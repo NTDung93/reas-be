@@ -1,6 +1,6 @@
 package vn.fptu.reasbe.model.dto.user;
 
-import vn.fptu.reasbe.model.enums.EntityStatus;
+import vn.fptu.reasbe.model.enums.core.StatusEntity;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -18,7 +18,7 @@ public class UserResponse {
     private String email;
     private String phone;
     private String gender;
-    private EntityStatus status;
+    private StatusEntity status;
     private int point;
     private boolean isFirstLogin;
     private String image;

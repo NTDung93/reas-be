@@ -40,5 +40,5 @@ public class Brand extends AbstractAuditableEntity {
     private String description;
 
     @OneToMany(mappedBy = "brand", cascade = CascadeType.ALL, orphanRemoval = true)
-    private Set<Product> products;
+    private Set<Item> items;
 }

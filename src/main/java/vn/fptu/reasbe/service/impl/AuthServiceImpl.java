@@ -21,9 +21,9 @@ import vn.fptu.reasbe.model.dto.user.UserResponse;
 import vn.fptu.reasbe.model.entity.Role;
 import vn.fptu.reasbe.model.entity.Token;
 import vn.fptu.reasbe.model.entity.User;
-import vn.fptu.reasbe.model.enums.EntityStatus;
+import vn.fptu.reasbe.model.enums.core.StatusEntity;
+import vn.fptu.reasbe.model.exception.ReasApiException;
 import vn.fptu.reasbe.model.exception.ResourceNotFoundException;
-import vn.fptu.reasbe.model.exception.RestaurantBookingException;
 import vn.fptu.reasbe.repository.RoleRepository;
 import vn.fptu.reasbe.repository.TokenRepository;
 import vn.fptu.reasbe.repository.UserRepository;
@@ -70,7 +70,7 @@ public class AuthServiceImpl implements AuthService {
         User user = setUpUser(signupDto);
 
         Role userRole = roleRepository.findByName("USER")
-                .orElseThrow(() -> new RestaurantBookingException(HttpStatus.BAD_REQUEST, "User Role not set."));
+                .orElseThrow(() -> new ReasApiException(HttpStatus.BAD_REQUEST, "User Role not set."));
         user.setRole(userRole);
         user.setPassword(passwordEncoder.encode(signupDto.getPassword()));
         user = userRepository.save(user);
@@ -89,7 +89,7 @@ public class AuthServiceImpl implements AuthService {
         String randomPassword = AutomaticGeneratedPassword.generateRandomPassword();
 
         Role userRole = roleRepository.findByName("LOCATION_ADMIN")
-                .orElseThrow(() -> new RestaurantBookingException(HttpStatus.BAD_REQUEST, "User Role not set."));
+                .orElseThrow(() -> new ReasApiException(HttpStatus.BAD_REQUEST, "User Role not set."));
         user.setRole(userRole);
         user.setPassword(passwordEncoder.encode(randomPassword));
         user.setFirstLogin(true);
@@ -174,13 +174,13 @@ public class AuthServiceImpl implements AuthService {
     public void changePassword(String oldPassword, String newPassword) {
         String username = SecurityContextHolder.getContext().getAuthentication().getName();
         User user = userRepository.findByUserNameOrEmailOrPhone(username, username, username)
-                .orElseThrow(() -> new RestaurantBookingException(HttpStatus.NOT_FOUND, "User cannot found!"));
+                .orElseThrow(() -> new ReasApiException(HttpStatus.NOT_FOUND, "User cannot found!"));
 
         if (!passwordEncoder.matches(oldPassword, user.getPassword())) {
-            throw new RestaurantBookingException(HttpStatus.BAD_REQUEST, "Old password does not match!");
+            throw new ReasApiException(HttpStatus.BAD_REQUEST, "Old password does not match!");
         }
         if(!newPassword.matches(AppConstants.PASSWORD_REGEX))
-            throw new RestaurantBookingException(HttpStatus.BAD_REQUEST,
+            throw new ReasApiException(HttpStatus.BAD_REQUEST,
                     "Password must have at least 8 characters with at least one uppercase letter, one number, and one special character (!@#$%^&*).");
         user.setPassword(passwordEncoder.encode(newPassword));
         if(user.isFirstLogin()) user.setFirstLogin(false);
@@ -190,12 +190,12 @@ public class AuthServiceImpl implements AuthService {
     private User setUpUser(SignupDto signupDto) {
         // add check if username already exists
         if (userRepository.existsByUserName(signupDto.getUsername())) {
-            throw new RestaurantBookingException(HttpStatus.BAD_REQUEST, "Username is already exist!");
+            throw new ReasApiException(HttpStatus.BAD_REQUEST, "Username is already exist!");
         }
 
         // add check if email already exists
         if (userRepository.existsByEmail(signupDto.getEmail())) {
-            throw new RestaurantBookingException(HttpStatus.BAD_REQUEST, "Email is already exist!");
+            throw new ReasApiException(HttpStatus.BAD_REQUEST, "Email is already exist!");
         }
 
         User user = new User();
@@ -207,7 +207,7 @@ public class AuthServiceImpl implements AuthService {
         user.setGender(signupDto.getGender());
         user.setImage("https://res.cloudinary.com/dpysbryyk/image/upload/v1717827115/Milk/UserDefault/dfzhxjcbnixmp8aybnge.jpg");
         user.setFirstLogin(false);
-        user.setEntityStatus(EntityStatus.ACTIVE);
+        user.setStatusEntity(StatusEntity.ACTIVE);
         user.setPoint(0);
 
         return user;
@@ -231,9 +231,4 @@ public class AuthServiceImpl implements AuthService {
 
         tokenRepository.saveAll(validTokens);
     }
-
-//    private UserResponse mapToResponse(User user){
-//        UserResponse userResponse = mapper.map(user, UserResponse.class);
-//        return userResponse;
-//    }
 }

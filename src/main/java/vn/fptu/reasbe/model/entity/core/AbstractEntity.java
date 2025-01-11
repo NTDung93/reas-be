@@ -1,6 +1,6 @@
 package vn.fptu.reasbe.model.entity.core;
 
-import vn.fptu.reasbe.model.enums.EntityStatus;
+import vn.fptu.reasbe.model.enums.core.StatusEntity;
 
 import jakarta.persistence.Access;
 import jakarta.persistence.AccessType;
@@ -57,11 +57,11 @@ public class AbstractEntity {
     protected Integer id;
 
     @NotNull
-    @Column(name = "ENTITY_STATUS")
+    @Column(name = "STATUS_ENTITY")
     @Getter
     @Setter
     @Enumerated(EnumType.STRING)
-    protected EntityStatus entityStatus;
+    protected StatusEntity statusEntity;
 
     public boolean isPersisted() {
         return this.id != null;

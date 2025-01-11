@@ -21,9 +21,9 @@ import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExcep
 @ControllerAdvice
 public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 
-    @ExceptionHandler(MotherLoveApiException.class)
+    @ExceptionHandler(ReasApiException.class)
     public ResponseEntity<ErrorDetails> handleFAMSApiException(
-            MotherLoveApiException ex,
+            ReasApiException ex,
             WebRequest request
     ) {
         ErrorDetails errorDetails = new ErrorDetails(

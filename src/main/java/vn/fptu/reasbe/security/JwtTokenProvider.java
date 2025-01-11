@@ -12,7 +12,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
 import vn.fptu.reasbe.model.entity.User;
-import vn.fptu.reasbe.model.exception.RestaurantBookingException;
+import vn.fptu.reasbe.model.exception.ReasApiException;
 import vn.fptu.reasbe.repository.TokenRepository;
 
 import io.jsonwebtoken.Claims;
@@ -121,7 +121,7 @@ public class JwtTokenProvider {
 
     public boolean validateToken(String token) {
         if (token == null || token.isEmpty()) {
-            throw new RestaurantBookingException(HttpStatus.BAD_REQUEST, "JWT token is empty or null");
+            throw new ReasApiException(HttpStatus.BAD_REQUEST, "JWT token is empty or null");
         }else{
             try {
                 Jwts.parserBuilder()
@@ -130,13 +130,13 @@ public class JwtTokenProvider {
                         .parse(token);
                 return true;
             } catch (MalformedJwtException e) {
-                throw new RestaurantBookingException(HttpStatus.BAD_REQUEST, "Invalid JWT token");
+                throw new ReasApiException(HttpStatus.BAD_REQUEST, "Invalid JWT token");
             } catch (ExpiredJwtException e) {
-                throw new RestaurantBookingException(HttpStatus.BAD_REQUEST, "Expired JWT token");
+                throw new ReasApiException(HttpStatus.BAD_REQUEST, "Expired JWT token");
             } catch (UnsupportedJwtException e) {
-                throw new RestaurantBookingException(HttpStatus.BAD_REQUEST, "Unsupported JWT token");
+                throw new ReasApiException(HttpStatus.BAD_REQUEST, "Unsupported JWT token");
             } catch (IllegalArgumentException e) {
-                throw new RestaurantBookingException(HttpStatus.BAD_REQUEST, "JWT claims string is empty");
+                throw new ReasApiException(HttpStatus.BAD_REQUEST, "JWT claims string is empty");
             }
         }
     }

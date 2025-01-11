@@ -54,7 +54,7 @@ public class Item extends AbstractAuditableEntity {
     private String imageUrl;
 
     @NotNull
-    @Column(name = "ITEM_STATUS", length = 4)
+    @Column(name = "STATUS_ITEM", length = 4)
     private StatusItem statusItem;
 
     @ManyToOne
