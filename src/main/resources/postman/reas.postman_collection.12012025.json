@@ -1,0 +1,64 @@
+{
+	"info": {
+		"_postman_id": "012da222-1d07-4c0c-ba71-c5d50d337481",
+		"name": "reas",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "20104645",
+		"_collection_link": "https://dark-zodiac-76463.postman.co/workspace/TestApisAllProjects~641169b4-1a03-47c3-8f03-2bfb8d5f86b0/collection/20104645-012da222-1d07-4c0c-ba71-c5d50d337481?action=share&source=collection_link&creator=20104645"
+	},
+	"item": [
+		{
+			"name": "item",
+			"item": [
+				{
+					"name": "search-pagination",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"itemName\": \"a\",\r\n    \"description\": \"a\",\r\n    \"fromPrice\": 1000000,\r\n    \"toPrice\": null,\r\n    \"categoryIds\": [1, 2, 3],\r\n    \"brandIds\": [1, 2, 3, 4, 5]\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{API_LOCAL}}/item/search?pageNo=0&pageSize=5&sortBy=id&sortDir=asc",
+							"host": [
+								"{{API_LOCAL}}"
+							],
+							"path": [
+								"item",
+								"search"
+							],
+							"query": [
+								{
+									"key": "pageNo",
+									"value": "0"
+								},
+								{
+									"key": "pageSize",
+									"value": "5"
+								},
+								{
+									"key": "sortBy",
+									"value": "id"
+								},
+								{
+									"key": "sortDir",
+									"value": "asc"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	]
+}

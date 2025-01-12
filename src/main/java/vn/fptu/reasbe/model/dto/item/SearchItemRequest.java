@@ -27,7 +27,6 @@ public class SearchItemRequest {
     BigDecimal price;
     BigDecimal fromPrice;
     BigDecimal toPrice;
-    String imageUrl;
     List<Integer> categoryIds;
     List<Integer> brandIds;
     List<Integer> ownerIds;
