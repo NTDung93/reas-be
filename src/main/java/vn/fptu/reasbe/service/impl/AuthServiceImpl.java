@@ -80,7 +80,7 @@ public class AuthServiceImpl implements AuthService {
 
         saveUserToken(accessToken, refreshToken, user);
 
-        return new JWTAuthResponse(accessToken, refreshToken,"User registration was successful");
+        return new JWTAuthResponse(accessToken, refreshToken, "User registration was successful");
     }
 
     @Override
@@ -123,7 +123,7 @@ public class AuthServiceImpl implements AuthService {
                 "</html>";
         emailService.sendEmail(user.getEmail(), "[SkedEat] - Account Successfully Created", content);
 
-        return new JWTAuthResponse(accessToken, refreshToken,"User registration was successful");
+        return new JWTAuthResponse(accessToken, refreshToken, "User registration was successful");
     }
 
     @Override
@@ -142,7 +142,7 @@ public class AuthServiceImpl implements AuthService {
         // extract the token from authorization header
         String authHeader = request.getHeader(HttpHeaders.AUTHORIZATION);
 
-        if(authHeader == null || !authHeader.startsWith("Bearer ")) {
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
             return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
         }
 
@@ -153,10 +153,10 @@ public class AuthServiceImpl implements AuthService {
 
         // check if the user exist in database
         User user = userRepository.findByUserNameOrEmailOrPhone(username, username, username)
-                .orElseThrow(()->new RuntimeException("No user found"));
+                .orElseThrow(() -> new RuntimeException("No user found"));
 
         // check if the token is valid
-        if(jwtTokenProvider.isValidRefreshToken(token, user.getUserName())) {
+        if (jwtTokenProvider.isValidRefreshToken(token, user.getUserName())) {
             // generate access token
             String accessToken = jwtTokenProvider.generateAccessToken(user);
             String refreshToken = jwtTokenProvider.generateRefreshToken(user);
@@ -179,11 +179,11 @@ public class AuthServiceImpl implements AuthService {
         if (!passwordEncoder.matches(oldPassword, user.getPassword())) {
             throw new ReasApiException(HttpStatus.BAD_REQUEST, "Old password does not match!");
         }
-        if(!newPassword.matches(AppConstants.PASSWORD_REGEX))
+        if (!newPassword.matches(AppConstants.PASSWORD_REGEX))
             throw new ReasApiException(HttpStatus.BAD_REQUEST,
                     "Password must have at least 8 characters with at least one uppercase letter, one number, and one special character (!@#$%^&*).");
         user.setPassword(passwordEncoder.encode(newPassword));
-        if(user.isFirstLogin()) user.setFirstLogin(false);
+        if (user.isFirstLogin()) user.setFirstLogin(false);
         userRepository.save(user);
     }
 
@@ -219,15 +219,16 @@ public class AuthServiceImpl implements AuthService {
         token.setRefreshToken(refreshToken);
         token.setLoggedOut(false);
         token.setUser(user);
+        token.setStatusEntity(StatusEntity.ACTIVE);
         tokenRepository.save(token);
     }
 
     private void revokeAllTokenByUser(User user) {
         List<Token> validTokens = tokenRepository.findAllByUser_Id(user.getId());
-        if(validTokens.isEmpty()) {
+        if (validTokens.isEmpty()) {
             return;
         }
-        validTokens.forEach(t-> t.setLoggedOut(true));
+        validTokens.forEach(t -> t.setLoggedOut(true));
 
         tokenRepository.saveAll(validTokens);
     }
