@@ -16,6 +16,7 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import vn.fptu.reasbe.model.constant.AppConstants;
 
 @Component
 @RequiredArgsConstructor
@@ -48,8 +49,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     }
 
     private String getJwtFromRequest(HttpServletRequest request) {
-        String bearerToken = request.getHeader("Authorization");
-        if (StringUtils.hasText(bearerToken) && bearerToken.startsWith("Bearer ")) {
+        String bearerToken = request.getHeader(AppConstants.AUTH_ATTR_NAME);
+        if (StringUtils.hasText(bearerToken) && bearerToken.startsWith(AppConstants.AUTH_VALUE_PREFIX)) {
             return bearerToken.substring(7);
         }
         return null;

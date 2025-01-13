@@ -13,7 +13,6 @@ import jakarta.servlet.http.HttpServletResponse;
 public interface AuthService {
     JWTAuthResponse authenticateUser(LoginDto loginDto);
     JWTAuthResponse signupUser(SignupDto signupDto);
-    JWTAuthResponse signupLocation(SignupDto signupDto);
     UserResponse getUserInfo();
     ResponseEntity<JWTAuthResponse> refreshToken(HttpServletRequest request, HttpServletResponse response);
     void changePassword(String oldPassword, String newPassword);

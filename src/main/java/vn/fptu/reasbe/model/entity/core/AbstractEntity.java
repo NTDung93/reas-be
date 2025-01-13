@@ -1,5 +1,6 @@
 package vn.fptu.reasbe.model.entity.core;
 
+import jakarta.persistence.PrePersist;
 import vn.fptu.reasbe.model.enums.core.StatusEntity;
 
 import jakarta.persistence.Access;
@@ -15,6 +16,7 @@ import jakarta.persistence.Transient;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.Setter;
+import vn.fptu.reasbe.utils.common.DateUtils;
 
 /**
  *
@@ -23,6 +25,7 @@ import lombok.Setter;
 @MappedSuperclass
 @Access(AccessType.FIELD)
 public class AbstractEntity {
+
     protected static String getRawClassName(Class<?> baseClass) {
         Class<?> clazz = baseClass;
         while (isSyntheticClass(clazz)) {
@@ -62,6 +65,11 @@ public class AbstractEntity {
     @Setter
     @Enumerated(EnumType.STRING)
     protected StatusEntity statusEntity;
+
+    @PrePersist
+    protected void onCreate() {
+        setStatusEntity(StatusEntity.ACTIVE);
+    }
 
     public boolean isPersisted() {
         return this.id != null;

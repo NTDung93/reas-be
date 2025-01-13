@@ -6,6 +6,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.web.authentication.logout.LogoutHandler;
 
+import vn.fptu.reasbe.model.constant.AppConstants;
 import vn.fptu.reasbe.model.entity.Token;
 import vn.fptu.reasbe.repository.TokenRepository;
 
@@ -24,9 +25,9 @@ public class CustomLogoutHandler implements LogoutHandler {
     public void logout(HttpServletRequest request,
                        HttpServletResponse response,
                        Authentication authentication) {
-        String authHeader = request.getHeader("Authorization");
+        String authHeader = request.getHeader(AppConstants.AUTH_ATTR_NAME);
 
-        if(authHeader == null || !authHeader.startsWith("Bearer ")) {
+        if(authHeader == null || !authHeader.startsWith(AppConstants.AUTH_VALUE_PREFIX)) {
             return;
         }
 

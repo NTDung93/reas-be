@@ -2,6 +2,7 @@ package vn.fptu.reasbe.model.entity.core;
 
 import java.time.LocalDateTime;
 
+import lombok.Builder;
 import vn.fptu.reasbe.utils.common.DateUtils;
 
 import jakarta.persistence.Column;
@@ -39,8 +40,9 @@ public abstract class AbstractAuditableEntity extends AbstractEntity {
     @Column(name = "VERSION")
     private Integer version;
 
-    @PrePersist
+    @Override
     protected void onCreate() {
+        super.onCreate();
         setCreationDate(DateUtils.getCurrentDateTime());
         setLastModificationDate(DateUtils.getCurrentDateTime());
     }

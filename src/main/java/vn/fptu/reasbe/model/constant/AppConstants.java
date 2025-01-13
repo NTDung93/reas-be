@@ -12,8 +12,12 @@ public class AppConstants {
     public static final String PASSWORD_REGEX = "^(?=.*[A-Z])(?=.*\\d)(?=.*[!@#$%^&*])[A-Za-z\\d!@#$%^&*]{8,}$";
     public static final String PHONE_REGEX = "(84|0[35789])([0-9]{8})\\b";
     public static final String GENDER_REGEX = "^(Male|Female|Other)$";
-    public static final String NOTIFICATION_TYPE_REGEX = "^(ORDER|PROMOTION|OTHER)$";
-    public static final String ROLE_LOCATION = "LOCATION_ADMIN";
-    public static final String ROLE_USER = "USER";
-    public static final String ROLE_SYSTEM = "SYSTEM_ADMIN";
+
+    // auth
+    public static final String AUTH_ATTR_NAME = "Authorization";
+    public static final String AUTH_VALUE_PREFIX = "Bearer ";
+    public static final String SEC_REQ_NAME = "Bear Authentication";
+    public static final String ROLE_USER = "ROLE_USER";
+    public static final String ROLE_ADMIN = "ROLE_ADMIN";
+    public static final String ROLE_STAFF = "ROLE_STAFF";
 }

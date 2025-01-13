@@ -21,7 +21,6 @@ import vn.fptu.reasbe.model.dto.user.UserResponse;
 import vn.fptu.reasbe.model.entity.Role;
 import vn.fptu.reasbe.model.entity.Token;
 import vn.fptu.reasbe.model.entity.User;
-import vn.fptu.reasbe.model.enums.core.StatusEntity;
 import vn.fptu.reasbe.model.exception.ReasApiException;
 import vn.fptu.reasbe.model.exception.ResourceNotFoundException;
 import vn.fptu.reasbe.repository.RoleRepository;
@@ -30,11 +29,11 @@ import vn.fptu.reasbe.repository.UserRepository;
 import vn.fptu.reasbe.security.JwtTokenProvider;
 import vn.fptu.reasbe.service.AuthService;
 import vn.fptu.reasbe.service.EmailService;
-import vn.fptu.reasbe.utils.common.AutomaticGeneratedPassword;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import vn.fptu.reasbe.utils.mapper.UserMapper;
 
 @Service
 @Transactional
@@ -43,63 +42,45 @@ public class AuthServiceImpl implements AuthService {
 
     private final AuthenticationManager authenticationManager;
     private final UserRepository userRepository;
-    private final JwtTokenProvider jwtTokenProvider;
     private final RoleRepository roleRepository;
     private final TokenRepository tokenRepository;
     private final PasswordEncoder passwordEncoder;
     private final EmailService emailService;
+    private final UserMapper userMapper;
+    private final JwtTokenProvider jwtTokenProvider;
 
     @Override
     public JWTAuthResponse authenticateUser(LoginDto loginDto) {
-        Authentication authentication = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(loginDto.getUserNameOrEmailOrPhone(), loginDto.getPassword()));
+        Authentication authentication = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(loginDto.getUserNameOrEmailOrPhone(), loginDto.getPassword()));
         SecurityContextHolder.getContext().setAuthentication(authentication);
-        User user = userRepository.findByUserNameOrEmailOrPhone(loginDto.getUserNameOrEmailOrPhone(), loginDto.getUserNameOrEmailOrPhone(), loginDto.getUserNameOrEmailOrPhone()).orElseThrow(
-                () -> new ResourceNotFoundException("User")
-        );
+        User user = userRepository.findByUserNameOrEmailOrPhone(loginDto.getUserNameOrEmailOrPhone(), loginDto.getUserNameOrEmailOrPhone(), loginDto.getUserNameOrEmailOrPhone())
+                .orElseThrow(() -> new ResourceNotFoundException("User"));
         String accessToken = jwtTokenProvider.generateAccessToken(user);
         String refreshToken = jwtTokenProvider.generateRefreshToken(user);
 
         revokeAllTokenByUser(user);
         saveUserToken(accessToken, refreshToken, user);
-        return new JWTAuthResponse(accessToken, refreshToken, "User login was successful");
+        return new JWTAuthResponse(accessToken, refreshToken);
     }
 
     @Override
     public JWTAuthResponse signupUser(SignupDto signupDto) {
         User user = setUpUser(signupDto);
-
-        Role userRole = roleRepository.findByName("USER")
-                .orElseThrow(() -> new ReasApiException(HttpStatus.BAD_REQUEST, "User Role not set."));
+        Role userRole = roleRepository.findByName(AppConstants.ROLE_USER)
+                .orElseThrow(() -> new ReasApiException(HttpStatus.BAD_REQUEST, "Role does not exist"));
         user.setRole(userRole);
         user.setPassword(passwordEncoder.encode(signupDto.getPassword()));
         user = userRepository.save(user);
 
         String accessToken = jwtTokenProvider.generateAccessToken(user);
         String refreshToken = jwtTokenProvider.generateRefreshToken(user);
-
         saveUserToken(accessToken, refreshToken, user);
 
-        return new JWTAuthResponse(accessToken, refreshToken, "User registration was successful");
+        sendMailToUser(user);
+        return new JWTAuthResponse(accessToken, refreshToken);
     }
 
-    @Override
-    public JWTAuthResponse signupLocation(SignupDto signupDto) {
-        User user = setUpUser(signupDto);
-        String randomPassword = AutomaticGeneratedPassword.generateRandomPassword();
-
-        Role userRole = roleRepository.findByName("LOCATION_ADMIN")
-                .orElseThrow(() -> new ReasApiException(HttpStatus.BAD_REQUEST, "User Role not set."));
-        user.setRole(userRole);
-        user.setPassword(passwordEncoder.encode(randomPassword));
-        user.setFirstLogin(true);
-        user = userRepository.save(user);
-
-        String accessToken = jwtTokenProvider.generateAccessToken(user);
-        String refreshToken = jwtTokenProvider.generateRefreshToken(user);
-
-        saveUserToken(accessToken, refreshToken, user);
-
+    private void sendMailToUser(User user) {
         String content = "<html>" +
                 "<head>" +
                 "<style>" +
@@ -112,18 +93,14 @@ public class AuthServiceImpl implements AuthService {
                 "</head>" +
                 "<body>" +
                 "<p class='greeting'>Hi, " + user.getFullName() + ",</p>" +
-                "<p>Your SkedEat system account has been successfully created.</p>" +
+                "<p>Your REAS account has been successfully created.</p>" +
                 "<p>Please log into the system with the following information:</p>" +
                 "<table>" +
                 "<tr><th>Username</th><td>" + user.getEmail() + "</td></tr>" +
-                "<tr><th>Password</th><td class='highlight'>" + randomPassword + "</td></tr>" +
                 "</table>" +
-                "<p><strong>Note:</strong> Please change your password after logging in.</p>" +
                 "</body>" +
                 "</html>";
-        emailService.sendEmail(user.getEmail(), "[SkedEat] - Account Successfully Created", content);
-
-        return new JWTAuthResponse(accessToken, refreshToken, "User registration was successful");
+        emailService.sendEmail(user.getEmail(), "[REAS] - Account Successfully Created", content);
     }
 
     @Override
@@ -132,39 +109,32 @@ public class AuthServiceImpl implements AuthService {
         String userName = authentication.getName();
         User user = userRepository.findByUserNameOrEmailOrPhone(userName, userName, userName)
                 .orElseThrow(() -> new ResourceNotFoundException("User"));
-//        List<Location> location = locationRepository.getLocationsByUserId(user.getId());
-//        return mapToResponse(user , location.size() == 0 ? 0 : location.get(0).getId());
-        return null;
+        return userMapper.toUserResponse(user);
     }
 
     @Override
     public ResponseEntity<JWTAuthResponse> refreshToken(HttpServletRequest request, HttpServletResponse response) {
-        // extract the token from authorization header
         String authHeader = request.getHeader(HttpHeaders.AUTHORIZATION);
 
-        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+        if (authHeader == null || !authHeader.startsWith(AppConstants.AUTH_VALUE_PREFIX)) {
             return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
         }
 
+        // get user from token
         String token = authHeader.substring(7);
-
-        // extract username from token
         String username = jwtTokenProvider.getUsernameFromJwt(token);
-
-        // check if the user exist in database
         User user = userRepository.findByUserNameOrEmailOrPhone(username, username, username)
                 .orElseThrow(() -> new RuntimeException("No user found"));
 
-        // check if the token is valid
+        // check if the token is valid then generate new token
         if (jwtTokenProvider.isValidRefreshToken(token, user.getUserName())) {
-            // generate access token
             String accessToken = jwtTokenProvider.generateAccessToken(user);
             String refreshToken = jwtTokenProvider.generateRefreshToken(user);
 
             revokeAllTokenByUser(user);
             saveUserToken(accessToken, refreshToken, user);
 
-            return new ResponseEntity<>(new JWTAuthResponse(accessToken, refreshToken, "New token generated"), HttpStatus.OK);
+            return new ResponseEntity<>(new JWTAuthResponse(accessToken, refreshToken), HttpStatus.OK);
         }
 
         return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
@@ -175,7 +145,6 @@ public class AuthServiceImpl implements AuthService {
         String username = SecurityContextHolder.getContext().getAuthentication().getName();
         User user = userRepository.findByUserNameOrEmailOrPhone(username, username, username)
                 .orElseThrow(() -> new ReasApiException(HttpStatus.NOT_FOUND, "User cannot found!"));
-
         if (!passwordEncoder.matches(oldPassword, user.getPassword())) {
             throw new ReasApiException(HttpStatus.BAD_REQUEST, "Old password does not match!");
         }
@@ -188,48 +157,42 @@ public class AuthServiceImpl implements AuthService {
     }
 
     private User setUpUser(SignupDto signupDto) {
-        // add check if username already exists
-        if (userRepository.existsByUserName(signupDto.getUsername())) {
+        if (Boolean.TRUE.equals(userRepository.existsByUserName(signupDto.getUsername()))) {
             throw new ReasApiException(HttpStatus.BAD_REQUEST, "Username is already exist!");
         }
-
-        // add check if email already exists
-        if (userRepository.existsByEmail(signupDto.getEmail())) {
+        if (Boolean.TRUE.equals(userRepository.existsByEmail(signupDto.getEmail()))) {
             throw new ReasApiException(HttpStatus.BAD_REQUEST, "Email is already exist!");
         }
+        return getUser(signupDto);
+    }
 
-        User user = new User();
-        user.setUserName(signupDto.getUsername());
-        user.setEmail(signupDto.getEmail());
-        user.setFullName(signupDto.getFullName());
-        user.setPassword(signupDto.getPassword());
-        user.setPhone(signupDto.getPhone());
-        user.setGender(signupDto.getGender());
-        user.setImage("https://res.cloudinary.com/dpysbryyk/image/upload/v1717827115/Milk/UserDefault/dfzhxjcbnixmp8aybnge.jpg");
-        user.setFirstLogin(false);
-        user.setStatusEntity(StatusEntity.ACTIVE);
-        user.setPoint(0);
-
-        return user;
+    private static User getUser(SignupDto signupDto) {
+        return User.builder()
+                .userName(signupDto.getUsername())
+                .email(signupDto.getEmail())
+                .fullName(signupDto.getFullName())
+                .password(signupDto.getPassword())
+                .phone(signupDto.getPhone())
+                .gender(signupDto.getGender())
+                .image(null)
+                .isFirstLogin(false)
+                .point(0)
+                .build();
     }
 
     private void saveUserToken(String accessToken, String refreshToken, User user) {
-        Token token = new Token();
-        token.setAccessToken(accessToken);
-        token.setRefreshToken(refreshToken);
-        token.setLoggedOut(false);
-        token.setUser(user);
-        token.setStatusEntity(StatusEntity.ACTIVE);
+        Token token = Token.builder()
+                .accessToken(accessToken)
+                .refreshToken(refreshToken)
+                .loggedOut(false)
+                .user(user)
+                .build();
         tokenRepository.save(token);
     }
 
     private void revokeAllTokenByUser(User user) {
-        List<Token> validTokens = tokenRepository.findAllByUser_Id(user.getId());
-        if (validTokens.isEmpty()) {
-            return;
-        }
+        List<Token> validTokens = tokenRepository.findAllByUserId(user.getId());
         validTokens.forEach(t -> t.setLoggedOut(true));
-
         tokenRepository.saveAll(validTokens);
     }
 }

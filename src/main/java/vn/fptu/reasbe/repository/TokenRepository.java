@@ -11,5 +11,5 @@ import vn.fptu.reasbe.model.entity.Token;
 public interface TokenRepository extends JpaRepository<Token, Integer> {
     Optional<Token> findByAccessToken(String accessToken);
     Optional<Token> findByRefreshToken(String refreshToken);
-    List<Token> findAllByUser_Id(Integer userId);
+    List<Token> findAllByUserId(Integer userId);
 }

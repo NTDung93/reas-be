@@ -1,30 +1,18 @@
 package vn.fptu.reasbe.model.dto.auth;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
-import lombok.RequiredArgsConstructor;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
+import lombok.experimental.FieldDefaults;
 
 @Getter
 @Setter
-@RequiredArgsConstructor
+@AllArgsConstructor
+@NoArgsConstructor
+@FieldDefaults(level = AccessLevel.PRIVATE)
 public class JWTAuthResponse {
-    @JsonProperty("access_token")
-    private String accessToken;
-
-    @JsonProperty("refresh_token")
-    private String refreshToken;
-
-    @JsonProperty("message")
-    private String message;
-
-    private String tokenType = "Bearer";
-
-    public JWTAuthResponse(String accessToken, String refreshToken, String message) {
-        this.message = message;
-        this.accessToken = accessToken;
-        this.refreshToken = refreshToken;
-        this.tokenType = "Bearer";
-    }
+    String accessToken;
+    String refreshToken;
 }

@@ -43,14 +43,14 @@ public class JwtTokenProvider {
     }
 
     public String generateRefreshToken(User user) {
-        return generateToken(user, refreshTokenExpire );
+        return generateToken(user, refreshTokenExpire);
     }
 
     public String generateToken(User user, long expireTime) {
         return Jwts.builder()
                 .setSubject(user.getUserName())
                 .setIssuedAt(new Date(System.currentTimeMillis()))
-                .setExpiration(new Date(System.currentTimeMillis() + expireTime ))
+                .setExpiration(new Date(System.currentTimeMillis() + expireTime))
                 .signWith(key())
                 .compact();
     }
@@ -122,7 +122,7 @@ public class JwtTokenProvider {
     public boolean validateToken(String token) {
         if (token == null || token.isEmpty()) {
             throw new ReasApiException(HttpStatus.BAD_REQUEST, "JWT token is empty or null");
-        }else{
+        } else {
             try {
                 Jwts.parserBuilder()
                         .setSigningKey(key())
