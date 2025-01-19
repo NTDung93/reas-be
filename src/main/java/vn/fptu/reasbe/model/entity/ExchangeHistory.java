@@ -44,6 +44,12 @@ public class ExchangeHistory extends AbstractAuditableEntity {
     @JoinColumn(name = "BUYER_ID")
     private User buyer;
 
+    @Column(name = "BUYER_CONFIRMATION")
+    private Boolean buyerConfirmation;
+
+    @Column(name = "SELLER_CONFIRMATION")
+    private Boolean sellerConfirmation;
+
     @NotNull
     @Column(name = "STATUS_EXCHANGE")
     @Enumerated(EnumType.STRING)
