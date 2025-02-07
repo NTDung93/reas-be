@@ -57,10 +57,6 @@ public class User extends AbstractAuditableEntity {
     private String gender;
 
     @NotNull
-    @Column(name = "POINT")
-    private long point = 0L;
-
-    @NotNull
     @Column(name = "IS_FIRST_LOGIN")
     private boolean isFirstLogin;
 

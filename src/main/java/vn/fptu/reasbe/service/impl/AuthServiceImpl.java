@@ -176,7 +176,6 @@ public class AuthServiceImpl implements AuthService {
                 .gender(signupDto.getGender())
                 .image(null)
                 .isFirstLogin(false)
-                .point(0)
                 .build();
     }
 
