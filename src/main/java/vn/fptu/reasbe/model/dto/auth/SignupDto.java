@@ -10,6 +10,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import vn.fptu.reasbe.model.enums.user.Gender;
 
 @Getter
 @Setter
@@ -39,5 +40,5 @@ public class SignupDto {
 
     @NotBlank(message = "Gender cannot be blank")
     @Pattern(regexp = AppConstants.GENDER_REGEX, message = "Gender include: Male, Female, Other")
-    private String gender;
+    private Gender gender;
 }
