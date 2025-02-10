@@ -3,7 +3,6 @@ package vn.fptu.reasbe.utils.mapper;
 import org.mapstruct.CollectionMappingStrategy;
 import org.mapstruct.Mapper;
 import org.mapstruct.NullValueCheckStrategy;
-import org.mapstruct.factory.Mappers;
 
 import vn.fptu.reasbe.model.dto.item.SearchItemResponse;
 import vn.fptu.reasbe.model.entity.Item;
@@ -24,7 +23,5 @@ import vn.fptu.reasbe.model.entity.Item;
         }
 )
 public interface ItemMapper {
-    ItemMapper INSTANCE = Mappers.getMapper(ItemMapper.class);
-
     SearchItemResponse toSearchItemResponse(Item person);
 }

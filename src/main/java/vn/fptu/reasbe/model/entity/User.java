@@ -6,6 +6,8 @@ import java.util.Set;
 import org.hibernate.Length;
 
 import jakarta.persistence.CascadeType;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import vn.fptu.reasbe.model.entity.core.AbstractAuditableEntity;
 
 import jakarta.persistence.AttributeOverride;
@@ -21,6 +23,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import vn.fptu.reasbe.model.enums.user.Gender;
 
 @Getter
 @Setter
@@ -52,7 +55,11 @@ public class User extends AbstractAuditableEntity {
     private String phone;
 
     @Column(name = "GENDER")
-    private String gender;
+    @Enumerated(EnumType.STRING)
+    private Gender gender;
+
+    @Column(name = "GOOGLE_ACCOUNT_ID")
+    private String googleAccountId;
 
     @Column(name = "GOOGLE_ACCOUNT_ID")
     private String googleAccountId;

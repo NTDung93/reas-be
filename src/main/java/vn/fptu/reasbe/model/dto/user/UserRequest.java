@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import vn.fptu.reasbe.model.enums.user.Gender;
 
 @Getter
 @Setter
@@ -15,6 +16,6 @@ public class UserRequest {
     private String fullName;
     private String email;
     private String phone;
-    private String gender;
+    private Gender gender;
     private String image;
 }

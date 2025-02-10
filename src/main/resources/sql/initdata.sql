@@ -40,13 +40,13 @@ VALUES
 INSERT INTO public."USER"
 ("STATUS_ENTITY", "USR_LOG_I", "DTE_LOG_I", "DTE_LOG_U", "USR_LOG_U", "VERSION", "EMAIL", "FULL_NAME", "GENDER", "IMAGE", "IS_FIRST_LOGIN", "PASSWORD", "PHONE", "USER_NAME", "ROLE_ID")
 VALUES
-    ('ACTIVE', 'admin', NOW(), NULL, NULL, 0, 'ngoccuong@reas.vn', 'Ngoc Cuong', 'Male', 'abc', false, 'password123', '1234567890', 'ngoccuong', 1),
-    ('ACTIVE', 'admin', NOW(), NULL, NULL, 0, 'ducson@reas.vn', 'Duc Son', 'Male', 'abc', false, 'password123', '0987654321', 'ducson', 2),
-    ('ACTIVE', 'admin', NOW(), NULL, NULL, 0, 'tiendung@reas.vn', 'Tien Dung', 'Male', 'abc', false, 'password123', '0912345678', 'tiendung', 3),
-    ('ACTIVE', 'admin', NOW(), NULL, NULL, 0, 'ducanh@reas.vn', 'Duc Anh', 'Male', 'abc', false, 'password123', '0922334455', 'ducanh', 3),
-    ('ACTIVE', 'admin', NOW(), NULL, NULL, 0, 'trangthao@reas.vn', 'Trang Thao', 'Female', 'abc', false, 'password123', '0933445566', 'trangthao', 3),
-    ('ACTIVE', 'admin', NOW(), NULL, NULL, 0, 'minhquan@reas.vn', 'Minh Quan', 'Male', 'abc', false, 'password123', '0944556677', 'minhquan', 3),
-    ('ACTIVE', 'admin', NOW(), NULL, NULL, 0, 'hiennhu@reas.vn', 'Hien Nhu', 'Female', 'abc', false, 'password123', '0955667788', 'hiennhu', 3);
+    ('ACTIVE', 'admin', NOW(), NULL, NULL, 0, 'ngoccuong@reas.vn', 'Ngoc Cuong', 'MALE', 'abc', false, 'password123', '1234567890', 'ngoccuong', 1),
+    ('ACTIVE', 'admin', NOW(), NULL, NULL, 0, 'ducson@reas.vn', 'Duc Son', 'MALE', 'abc', false, 'password123', '0987654321', 'ducson', 2),
+    ('ACTIVE', 'admin', NOW(), NULL, NULL, 0, 'tiendung@reas.vn', 'Tien Dung', 'MALE', 'abc', false, 'password123', '0912345678', 'tiendung', 3),
+    ('ACTIVE', 'admin', NOW(), NULL, NULL, 0, 'ducanh@reas.vn', 'Duc Anh', 'MALE', 'abc', false, 'password123', '0922334455', 'ducanh', 3),
+    ('ACTIVE', 'admin', NOW(), NULL, NULL, 0, 'trangthao@reas.vn', 'Trang Thao', 'FEMALE', 'abc', false, 'password123', '0933445566', 'trangthao', 3),
+    ('ACTIVE', 'admin', NOW(), NULL, NULL, 0, 'minhquan@reas.vn', 'Minh Quan', 'FEMALE', 'abc', false, 'password123', '0944556677', 'minhquan', 3),
+    ('ACTIVE', 'admin', NOW(), NULL, NULL, 0, 'hiennhu@reas.vn', 'Hien Nhu', 'MALE', 'abc', false, 'password123', '0955667788', 'hiennhu', 3);
 
 -- Insert data into the LOCATION table
 INSERT INTO public."LOCATION"
