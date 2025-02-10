@@ -3,6 +3,8 @@ package vn.fptu.reasbe.model.entity;
 import java.util.Set;
 
 import jakarta.persistence.CascadeType;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import vn.fptu.reasbe.model.entity.core.AbstractAuditableEntity;
 
 import jakarta.persistence.AttributeOverride;
@@ -16,6 +18,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import vn.fptu.reasbe.model.enums.user.RoleName;
 
 @Getter
 @Setter
@@ -29,7 +32,8 @@ public class Role extends AbstractAuditableEntity {
 
     @NotNull
     @Column(name = "NAME")
-    private String name;
+    @Enumerated(EnumType.STRING)
+    private RoleName name;
 
     @OneToMany(mappedBy = "role", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<User> users;

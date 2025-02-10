@@ -16,13 +16,12 @@ import com.querydsl.jpa.impl.JPAQuery;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
-import vn.fptu.reasbe.repository.custom.ItemRepositoryCustom;
 
 /**
  *
  * @author ntig
  */
-public abstract class AbstractRepositoryCustom<T, Q extends EntityPathBase<T>>  implements ItemRepositoryCustom {
+public abstract class AbstractRepositoryCustom<T, Q extends EntityPathBase<T>>{
     @PersistenceContext
     protected EntityManager em;
 
@@ -31,9 +30,9 @@ public abstract class AbstractRepositoryCustom<T, Q extends EntityPathBase<T>>  
     protected abstract BooleanBuilder buildFilter(Object request, Q entityPath);
     protected abstract OrderSpecifier<?> mapSortPropertyToOrderSpecifier(String property, Sort.Direction direction, Q entityPath);
 
-    public Page<T> searchPagination(Object request, Pageable pageable) {
+    public Page<T> searchPagination(Object requestObj, Pageable pageable) {
         Q entityPath = getEntityPath();
-        BooleanBuilder builder = buildFilter(request, entityPath);
+        BooleanBuilder builder = buildFilter(requestObj, entityPath);
 
         JPAQuery<T> query = new JPAQuery<T>(em).from(entityPath).where(builder);
         Sort.Order sortOrder = pageable.getSort().iterator().next();

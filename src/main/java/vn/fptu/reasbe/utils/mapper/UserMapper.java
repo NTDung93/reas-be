@@ -20,8 +20,6 @@ import vn.fptu.reasbe.model.entity.User;
         }
 )
 public interface UserMapper {
-    UserMapper INSTANCE = org.mapstruct.factory.Mappers.getMapper(UserMapper.class);
-
     @Mapping(target = "roleName", source = "role.name")
     UserResponse toUserResponse(User user);
 }

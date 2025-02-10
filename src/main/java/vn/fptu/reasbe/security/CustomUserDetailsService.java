@@ -31,10 +31,10 @@ public class CustomUserDetailsService implements UserDetailsService {
         User user = userRepository.findByUserNameOrEmailOrPhone(userNameOrEmailOrPhone, userNameOrEmailOrPhone, userNameOrEmailOrPhone)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found with username or email: " + userNameOrEmailOrPhone));
 
-        GrantedAuthority authority = new SimpleGrantedAuthority(user.getRole().getName());
+        GrantedAuthority authority = new SimpleGrantedAuthority(String.valueOf(user.getRole().getName()));
 
         Set<GrantedAuthority> authorities = new HashSet<>();
-        authorities.add(new SimpleGrantedAuthority("ROLE_" + authority));
+        authorities.add(new SimpleGrantedAuthority(String.valueOf(authority)));
 
         return new org.springframework.security.core.userdetails.User(userNameOrEmailOrPhone, user.getPassword(), authorities);
     }

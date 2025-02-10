@@ -11,20 +11,19 @@ import com.querydsl.core.types.Expression;
 import com.querydsl.core.types.Order;
 import com.querydsl.core.types.OrderSpecifier;
 
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.PersistenceContext;
 import vn.fptu.reasbe.model.dto.item.SearchItemRequest;
 import vn.fptu.reasbe.model.entity.Item;
 import vn.fptu.reasbe.model.entity.QItem;
 import vn.fptu.reasbe.model.enums.core.StatusEntity;
+import vn.fptu.reasbe.repository.custom.ItemRepositoryCustom;
 import vn.fptu.reasbe.repository.custom.core.AbstractRepositoryCustom;
 
 /**
  *
  * @author ntig
  */
-public class ItemRepositoryCustomImpl extends AbstractRepositoryCustom<Item, QItem> {
-    private static Logger logger = Logger.getLogger(ItemRepositoryCustomImpl.class);
+public class ItemRepositoryCustomImpl extends AbstractRepositoryCustom<Item, QItem> implements ItemRepositoryCustom {
+    private static final Logger logger = Logger.getLogger(ItemRepositoryCustomImpl.class);
 
     @Override
     protected QItem getEntityPath() {
@@ -45,7 +44,7 @@ public class ItemRepositoryCustomImpl extends AbstractRepositoryCustom<Item, QIt
     protected BooleanBuilder buildFilter(Object requestObj, QItem entityPath) {
         QItem item = QItem.item;
         BooleanBuilder builder = new BooleanBuilder();
-        SearchItemRequest request = (SearchItemRequest) requestObj;
+        SearchItemRequest request = (SearchItemRequest) requestObj; // cast Object to SearchItemRequest
 
         if (request != null) {
             if (StringUtils.isNotBlank(request.getItemName())) {
