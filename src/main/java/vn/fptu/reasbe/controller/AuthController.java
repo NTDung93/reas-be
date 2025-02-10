@@ -3,17 +3,14 @@ package vn.fptu.reasbe.controller;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import vn.fptu.reasbe.model.constant.AppConstants;
 import vn.fptu.reasbe.model.dto.auth.JWTAuthResponse;
 import vn.fptu.reasbe.model.dto.auth.LoginDto;
 import vn.fptu.reasbe.model.dto.auth.PasswordChangeRequest;
 import vn.fptu.reasbe.model.dto.auth.SignupDto;
+import vn.fptu.reasbe.model.dto.otp.OtpVerificationRequest;
 import vn.fptu.reasbe.model.dto.user.UserResponse;
 import vn.fptu.reasbe.service.AuthService;
 
@@ -22,25 +19,55 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import vn.fptu.reasbe.service.OtpService;
+
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/v1/auth")
 @RequiredArgsConstructor
 public class AuthController {
     private final AuthService authService;
+    private final OtpService otpService;
+    private final HttpHeaders headers = new HttpHeaders();
 
     @PostMapping("/login")
     public ResponseEntity<JWTAuthResponse> authenticationUser(@RequestBody @Valid LoginDto loginDto){
         JWTAuthResponse jwtAuthResponse = authService.authenticateUser(loginDto);
-        HttpHeaders headers = new HttpHeaders();
         headers.add(AppConstants.AUTH_ATTR_NAME, AppConstants.AUTH_VALUE_PREFIX + jwtAuthResponse.getAccessToken());
         return new ResponseEntity<>(jwtAuthResponse, headers, HttpStatus.OK);
     }
 
     @PostMapping(value = "/register/user")
-    public ResponseEntity<JWTAuthResponse> signupUser(@Valid @RequestBody SignupDto signupDto){
-        JWTAuthResponse response = authService.signupUser(signupDto);
+    public ResponseEntity<Map<String, Object>> signupUser(@Valid @RequestBody SignupDto signupDto){
+        authService.prepareUserForOtp(signupDto);
+        return new ResponseEntity<>(Map.of("message", "Signup successfully, please verify OTP", "status", "success"), HttpStatus.OK);
+    }
+
+    @PostMapping(value = "/otp/verification")
+    public ResponseEntity<JWTAuthResponse> verifyOtpForSignup(@Valid @RequestBody OtpVerificationRequest request){
+        JWTAuthResponse response =  authService.signupVerifiedUser(request);
+        headers.add(AppConstants.AUTH_ATTR_NAME, AppConstants.AUTH_VALUE_PREFIX + response.getAccessToken());
         return new ResponseEntity<>(response, HttpStatus.CREATED);
+    }
+
+    @PostMapping(value = "/otp/resend")
+    public ResponseEntity<Map<String, Object>> resendOtp(@RequestParam String email){
+        otpService.resendOtp(email);
+        return new ResponseEntity<>(Map.of("message", "OTP resend successfully, please check your email", "status", "success"), HttpStatus.OK);
+    }
+
+    @PostMapping("/oauth2/login")
+    public ResponseEntity<Map<String, String>> handleGoogleLogin() {
+        String authUrl = authService.getGoogleLoginUrl();
+        return new ResponseEntity<>(Map.of("authUrl", authUrl, "status", "success"), HttpStatus.OK);
+    }
+
+    @GetMapping("/oauth2/callback")
+    public ResponseEntity<JWTAuthResponse> handleGoogleCallback(@RequestParam("code") String code) {
+        JWTAuthResponse tokenResponse = authService.authenticateGoogleUser(code);
+        headers.add(AppConstants.AUTH_ATTR_NAME, AppConstants.AUTH_VALUE_PREFIX + tokenResponse.getAccessToken());
+        return ResponseEntity.ok(tokenResponse);
     }
 
     @PostMapping("/change-password")

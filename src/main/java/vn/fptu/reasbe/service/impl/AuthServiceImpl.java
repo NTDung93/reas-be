@@ -1,10 +1,11 @@
 package vn.fptu.reasbe.service.impl;
 
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.*;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -13,10 +14,12 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import org.springframework.web.client.RestTemplate;
 import vn.fptu.reasbe.model.constant.AppConstants;
 import vn.fptu.reasbe.model.dto.auth.JWTAuthResponse;
 import vn.fptu.reasbe.model.dto.auth.LoginDto;
 import vn.fptu.reasbe.model.dto.auth.SignupDto;
+import vn.fptu.reasbe.model.dto.otp.OtpVerificationRequest;
 import vn.fptu.reasbe.model.dto.user.UserResponse;
 import vn.fptu.reasbe.model.entity.Role;
 import vn.fptu.reasbe.model.entity.Token;
@@ -33,6 +36,7 @@ import vn.fptu.reasbe.service.EmailService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import vn.fptu.reasbe.service.OtpService;
 import vn.fptu.reasbe.utils.mapper.UserMapper;
 
 @Service
@@ -46,8 +50,18 @@ public class AuthServiceImpl implements AuthService {
     private final TokenRepository tokenRepository;
     private final PasswordEncoder passwordEncoder;
     private final EmailService emailService;
+    private final OtpService otpService;
     private final UserMapper userMapper;
     private final JwtTokenProvider jwtTokenProvider;
+
+    @Value("${spring.security.oauth2.client.registration.google.client-id}")
+    private String googleClientId;
+
+    @Value("${spring.security.oauth2.client.registration.google.client-secret}")
+    private String googleClientSecret;
+
+    @Value("${spring.security.oauth2.client.registration.google.redirect-uri}")
+    private String redirectUri;
 
     @Override
     public JWTAuthResponse authenticateUser(LoginDto loginDto) {
@@ -64,12 +78,18 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
-    public JWTAuthResponse signupUser(SignupDto signupDto) {
-        User user = setUpUser(signupDto);
+    public void prepareUserForOtp(SignupDto dto) {
+        validateUser(dto);
+        if(Boolean.FALSE.equals(otpService.generateAndStoreOtp(dto)))
+            throw new ReasApiException(HttpStatus.INTERNAL_SERVER_ERROR, "Error generating and store OTP!");
+    }
+
+    @Override
+    public JWTAuthResponse signupVerifiedUser(OtpVerificationRequest request) {
+        User user = setUpUser(otpService.verifyOtp(request));
         Role userRole = roleRepository.findByName(AppConstants.ROLE_USER)
                 .orElseThrow(() -> new ReasApiException(HttpStatus.BAD_REQUEST, "Role does not exist"));
         user.setRole(userRole);
-        user.setPassword(passwordEncoder.encode(signupDto.getPassword()));
         user = userRepository.save(user);
 
         String accessToken = jwtTokenProvider.generateAccessToken(user);
@@ -78,6 +98,84 @@ public class AuthServiceImpl implements AuthService {
 
         sendMailToUser(user);
         return new JWTAuthResponse(accessToken, refreshToken);
+    }
+
+    @Override
+    public String getGoogleLoginUrl() {
+        return "https://accounts.google.com/o/oauth2/v2/auth" +
+                "?client_id=" + googleClientId +
+                "&redirect_uri=" + redirectUri +
+                "&response_type=code" +
+                "&scope=openid%20email%20profile";
+    }
+
+    @Override
+    @Transactional
+    // Exchange authorization code for tokens
+    public JWTAuthResponse authenticateGoogleUser(String authorizationCode) {
+        String tokenEndpoint = "https://oauth2.googleapis.com/token";
+        String accessToken;
+        Map<String, Object> userInfo;
+        Map<String, Object> jsonData;
+        RestTemplate restTemplate = new RestTemplate();
+        User user = new User();
+
+        Map<String, String> tokenRequest = Map.of(
+                "code", authorizationCode,
+                "client_id", googleClientId,
+                "client_secret", googleClientSecret,
+                "redirect_uri", redirectUri,
+                "grant_type", "authorization_code"
+        );
+
+        jsonData = restTemplate.postForObject(tokenEndpoint, tokenRequest, Map.class);
+
+        if(jsonData != null) {
+            accessToken = (String) jsonData.get("access_token");
+        }else throw new ReasApiException(HttpStatus.CONFLICT, "No access token retrieved from OAuth2");
+
+        String userInfoEndpoint = "https://www.googleapis.com/oauth2/v3/userinfo";
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("Authorization", "Bearer " + accessToken);
+        HttpEntity<String> entity = new HttpEntity<>(headers);
+
+        ResponseEntity<Map> userInfoResponse = restTemplate.exchange(
+                userInfoEndpoint, HttpMethod.GET, entity, Map.class);
+
+        if (userInfoResponse.getStatusCode() == HttpStatus.OK) {
+            userInfo =  userInfoResponse.getBody();
+        } else {
+            throw new ReasApiException(HttpStatus.BAD_REQUEST, "Failed to retrieve user info");
+        }
+        if (userInfo == null) throw new ReasApiException(HttpStatus.NOT_FOUND, "Failed to retrieve user info: userInfo is null");
+        String email = (String) userInfo.get("email");
+        String fullName = (String) userInfo.get("name");
+        String ggId = (String) userInfo.get("sub");
+        String password = "Google:" + ggId;
+        String username = email.substring(0, email.indexOf("@"));
+        String image = (String) userInfo.get("picture");
+        // Check if the user already exists in the database
+        Optional<User> existingUser = userRepository.findByEmail(email);
+        Role userRole = roleRepository.findByName(AppConstants.ROLE_USER)
+                .orElseThrow(() -> new ReasApiException(HttpStatus.BAD_REQUEST, "Role does not exist"));
+        if (existingUser.isEmpty()) {
+            // Save new user
+            user.setEmail(email);
+            user.setFullName(fullName);
+            user.setGoogleAccountId(ggId);
+            user.setUserName(username);
+            user.setPassword(passwordEncoder.encode(password));
+            user.setImage(image);
+            user.setFirstLogin(true);
+            user.setGoogleAccountId(ggId);
+            user.setRole(userRole);
+            user = userRepository.save(user);
+        } else {
+            user = existingUser.get();
+        }
+
+        return authenticateUser(new LoginDto(user.getEmail(), password));
     }
 
     private void sendMailToUser(User user) {
@@ -157,21 +255,25 @@ public class AuthServiceImpl implements AuthService {
     }
 
     private User setUpUser(SignupDto signupDto) {
-        if (Boolean.TRUE.equals(userRepository.existsByUserName(signupDto.getUsername()))) {
-            throw new ReasApiException(HttpStatus.BAD_REQUEST, "Username is already exist!");
-        }
-        if (Boolean.TRUE.equals(userRepository.existsByEmail(signupDto.getEmail()))) {
-            throw new ReasApiException(HttpStatus.BAD_REQUEST, "Email is already exist!");
-        }
+        validateUser(signupDto);
         return getUser(signupDto);
     }
 
-    private static User getUser(SignupDto signupDto) {
+    private void validateUser(SignupDto dto){
+        if (Boolean.TRUE.equals(userRepository.existsByUserName(dto.getUsername()))) {
+            throw new ReasApiException(HttpStatus.BAD_REQUEST, "Username is already exist!");
+        }
+        if (Boolean.TRUE.equals(userRepository.existsByEmail(dto.getEmail()))) {
+            throw new ReasApiException(HttpStatus.BAD_REQUEST, "Email is already exist!");
+        }
+    }
+
+    private User getUser(SignupDto signupDto) {
         return User.builder()
                 .userName(signupDto.getUsername())
                 .email(signupDto.getEmail())
                 .fullName(signupDto.getFullName())
-                .password(signupDto.getPassword())
+                .password(passwordEncoder.encode(signupDto.getPassword()))
                 .phone(signupDto.getPhone())
                 .gender(signupDto.getGender())
                 .image(null)

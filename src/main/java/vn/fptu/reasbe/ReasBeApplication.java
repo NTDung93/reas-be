@@ -5,8 +5,12 @@ import java.util.List;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.cache.annotation.EnableCaching;
+import org.springframework.cache.concurrent.ConcurrentMapCacheManager;
 import org.springframework.context.annotation.Bean;
 import org.springframework.data.domain.AuditorAware;
+import org.springframework.scheduling.annotation.EnableAsync;
+import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.filter.CorsFilter;
@@ -14,6 +18,9 @@ import org.springframework.web.filter.CorsFilter;
 import vn.fptu.reasbe.auditing.ApplicationAuditAware;
 
 @SpringBootApplication
+@EnableScheduling
+@EnableCaching
+@EnableAsync
 public class ReasBeApplication {
 
 	private static final String ACCESS_CONTROL_ALLOW_ORIGIN = "Access-Control-Allow-Origin";
@@ -38,6 +45,11 @@ public class ReasBeApplication {
 	@Bean
 	public AuditorAware<String> auditorAware(){
 		return new ApplicationAuditAware();
+	}
+
+	@Bean
+	public ConcurrentMapCacheManager cacheManager() {
+		return new ConcurrentMapCacheManager("otpCache");
 	}
 
 	public static void main(String[] args) {

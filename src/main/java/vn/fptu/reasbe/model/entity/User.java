@@ -48,19 +48,19 @@ public class User extends AbstractAuditableEntity {
     @Column(name = "EMAIL", unique = true)
     private String email;
 
-    @NotNull
     @Column(name = "PHONE")
     private String phone;
 
-    @NotNull
     @Column(name = "GENDER")
     private String gender;
+
+    @Column(name = "GOOGLE_ACCOUNT_ID")
+    private String googleAccountId;
 
     @NotNull
     @Column(name = "IS_FIRST_LOGIN")
     private boolean isFirstLogin;
 
-    @NotNull
     @Column(name = "IMAGE", length = Length.LOB_DEFAULT)
     private String image;
 

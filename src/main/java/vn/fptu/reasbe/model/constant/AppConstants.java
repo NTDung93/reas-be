@@ -1,5 +1,7 @@
 package vn.fptu.reasbe.model.constant;
 
+import java.util.concurrent.TimeUnit;
+
 public class AppConstants {
     // pagination
     public static final String DEFAULT_PAGE_NUMBER = "0";
@@ -20,4 +22,7 @@ public class AppConstants {
     public static final String ROLE_USER = "ROLE_USER";
     public static final String ROLE_ADMIN = "ROLE_ADMIN";
     public static final String ROLE_STAFF = "ROLE_STAFF";
+    public static final long OTP_EXPIRATION_MILLIS = TimeUnit.MINUTES.toMillis(5);
+    public static final int OTP_LENGTH = 6;
+
 }
