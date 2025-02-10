@@ -1,6 +1,7 @@
 package vn.fptu.reasbe.service.impl;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -8,6 +9,7 @@ import static org.mockito.Mockito.when;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -18,32 +20,44 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 import vn.fptu.reasbe.model.dto.core.BaseSearchPaginationResponse;
+import vn.fptu.reasbe.model.dto.user.CreateStaffRequest;
 import vn.fptu.reasbe.model.dto.user.SearchUserRequest;
 import vn.fptu.reasbe.model.dto.user.UserResponse;
+import vn.fptu.reasbe.model.entity.Role;
 import vn.fptu.reasbe.model.entity.User;
+import vn.fptu.reasbe.model.enums.user.Gender;
+import vn.fptu.reasbe.model.enums.user.RoleName;
+import vn.fptu.reasbe.model.exception.ReasApiException;
+import vn.fptu.reasbe.repository.RoleRepository;
 import vn.fptu.reasbe.repository.UserRepository;
 import vn.fptu.reasbe.utils.mapper.UserMapper;
 
-/**
- *
- * @author ntig
- */
 @ExtendWith(MockitoExtension.class)
 public class UserServiceImplTest {
     @Mock
     private UserRepository userRepository;
 
     @Mock
+    private RoleRepository roleRepository;
+
+    @Mock
     private UserMapper userMapper;
+
+    @Mock
+    private PasswordEncoder passwordEncoder;
 
     @InjectMocks
     private UserServiceImpl userServiceImpl;
 
     private SearchUserRequest searchUserRequest;
+    private CreateStaffRequest createStaffRequest;
     private UserResponse userResponse;
     private User user;
+    private Role role;
 
     @BeforeEach
     public void setUp() {
@@ -52,17 +66,33 @@ public class UserServiceImplTest {
         searchUserRequest.setFullName("John Doe");
         searchUserRequest.setEmail("john.doe@example.com");
 
+        createStaffRequest = new CreateStaffRequest();
+        createStaffRequest.setUserName("john_doe");
+        createStaffRequest.setFullName("John Doe");
+        createStaffRequest.setEmail("john.doe@example.com");
+        createStaffRequest.setPhone("1234567890");
+        createStaffRequest.setGender(Gender.MALE);
+        createStaffRequest.setPassword("Password@123");
+        createStaffRequest.setConfirmPassword("Password@123");
+
         userResponse = new UserResponse();
         userResponse.setId(1);
         userResponse.setUserName("john_doe");
         userResponse.setFullName("John Doe");
         userResponse.setEmail("john.doe@example.com");
+        userResponse.setPhone("1234567890");
 
         user = new User();
         user.setId(1);
         user.setUserName("john_doe");
         user.setFullName("John Doe");
         user.setEmail("john.doe@example.com");
+        user.setPassword("hashedPassword");
+        user.setPhone("1234567890");
+
+        role = new Role();
+        role.setId(1);
+        role.setName(RoleName.ROLE_STAFF);
     }
 
     @Test
@@ -90,5 +120,81 @@ public class UserServiceImplTest {
 
         verify(userRepository, times(1)).searchUserPagination(any(SearchUserRequest.class), any(Pageable.class));
         verify(userMapper, times(1)).toUserResponse(any(User.class));
+    }
+
+    @Test
+    public void testCreateNewStaff() {
+        // Arrange
+        when(userRepository.existsByUserName(createStaffRequest.getUserName())).thenReturn(false);
+        when(userRepository.existsByEmail(createStaffRequest.getEmail())).thenReturn(false);
+        when(passwordEncoder.encode(createStaffRequest.getPassword())).thenReturn("hashedPassword");
+        when(roleRepository.findByName(RoleName.ROLE_STAFF)).thenReturn(Optional.of(role));
+        when(userMapper.toUser(any(CreateStaffRequest.class))).thenReturn(user);
+        when(userRepository.save(any(User.class))).thenReturn(user);
+        when(userMapper.toUserResponse(any(User.class))).thenReturn(userResponse);
+
+        // Act
+        UserResponse response = userServiceImpl.createNewStaff(createStaffRequest);
+
+        // Assert
+        assertEquals("john_doe", response.getUserName());
+        assertEquals("John Doe", response.getFullName());
+        assertEquals("john.doe@example.com", response.getEmail());
+        assertEquals("1234567890", response.getPhone());
+
+        verify(userRepository, times(1)).existsByUserName(createStaffRequest.getUserName());
+        verify(userRepository, times(1)).existsByEmail(createStaffRequest.getEmail());
+        verify(passwordEncoder, times(1)).encode(createStaffRequest.getPassword());
+        verify(roleRepository, times(1)).findByName(RoleName.ROLE_STAFF);
+        verify(userRepository, times(1)).save(any(User.class));
+        verify(userMapper, times(1)).toUserResponse(any(User.class));
+    }
+
+    @Test
+    public void testCreateNewStaff_UserNameExists() {
+        // Arrange
+        when(userRepository.existsByUserName(createStaffRequest.getUserName())).thenReturn(true);
+
+        // Act & Assert
+        ReasApiException exception = assertThrows(ReasApiException.class, () -> {
+            userServiceImpl.createNewStaff(createStaffRequest);
+        });
+
+        assertEquals(HttpStatus.BAD_REQUEST, exception.getStatus());
+        assertEquals("error.usernameExist", exception.getMessage());
+
+        verify(userRepository, times(1)).existsByUserName(createStaffRequest.getUserName());
+    }
+
+    @Test
+    public void testCreateNewStaff_EmailExists() {
+        // Arrange
+        when(userRepository.existsByUserName(createStaffRequest.getUserName())).thenReturn(false);
+        when(userRepository.existsByEmail(createStaffRequest.getEmail())).thenReturn(true);
+
+        // Act & Assert
+        ReasApiException exception = assertThrows(ReasApiException.class, () -> {
+            userServiceImpl.createNewStaff(createStaffRequest);
+        });
+
+        assertEquals(HttpStatus.BAD_REQUEST, exception.getStatus());
+        assertEquals("error.emailExist", exception.getMessage());
+
+        verify(userRepository, times(1)).existsByUserName(createStaffRequest.getUserName());
+        verify(userRepository, times(1)).existsByEmail(createStaffRequest.getEmail());
+    }
+
+    @Test
+    public void testCreateNewStaff_PasswordsDoNotMatch() {
+        // Arrange
+        createStaffRequest.setConfirmPassword("DifferentPassword");
+
+        // Act & Assert
+        ReasApiException exception = assertThrows(ReasApiException.class, () -> {
+            userServiceImpl.createNewStaff(createStaffRequest);
+        });
+
+        assertEquals(HttpStatus.BAD_REQUEST, exception.getStatus());
+        assertEquals("error.passwordNotMatch", exception.getMessage());
     }
 }

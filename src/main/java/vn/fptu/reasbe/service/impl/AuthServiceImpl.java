@@ -21,6 +21,7 @@ import vn.fptu.reasbe.model.dto.user.UserResponse;
 import vn.fptu.reasbe.model.entity.Role;
 import vn.fptu.reasbe.model.entity.Token;
 import vn.fptu.reasbe.model.entity.User;
+import vn.fptu.reasbe.model.enums.user.RoleName;
 import vn.fptu.reasbe.model.exception.ReasApiException;
 import vn.fptu.reasbe.model.exception.ResourceNotFoundException;
 import vn.fptu.reasbe.repository.RoleRepository;
@@ -66,7 +67,7 @@ public class AuthServiceImpl implements AuthService {
     @Override
     public JWTAuthResponse signupUser(SignupDto signupDto) {
         User user = setUpUser(signupDto);
-        Role userRole = roleRepository.findByName(AppConstants.ROLE_USER)
+        Role userRole = roleRepository.findByName(RoleName.ROLE_USER)
                 .orElseThrow(() -> new ReasApiException(HttpStatus.BAD_REQUEST, "Role does not exist"));
         user.setRole(userRole);
         user.setPassword(passwordEncoder.encode(signupDto.getPassword()));
