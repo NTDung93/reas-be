@@ -5,6 +5,7 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.NullValueCheckStrategy;
 
+import vn.fptu.reasbe.model.dto.user.CreateStaffRequest;
 import vn.fptu.reasbe.model.dto.user.UserResponse;
 import vn.fptu.reasbe.model.entity.User;
 
@@ -22,4 +23,7 @@ import vn.fptu.reasbe.model.entity.User;
 public interface UserMapper {
     @Mapping(target = "roleName", source = "role.name")
     UserResponse toUserResponse(User user);
+
+    @Mapping(target = "password", ignore = true)
+    User toUser(CreateStaffRequest request);
 }
