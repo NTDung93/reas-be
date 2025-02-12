@@ -7,5 +7,5 @@ package vn.fptu.reasbe.model.enums.user;
 public enum RoleName {
     ROLE_ADMIN,
     ROLE_STAFF,
-    ROLE_USER
+    ROLE_CUSTOMER
 }

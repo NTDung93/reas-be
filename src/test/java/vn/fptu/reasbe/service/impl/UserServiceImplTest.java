@@ -3,6 +3,7 @@ package vn.fptu.reasbe.service.impl;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -26,6 +27,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import vn.fptu.reasbe.model.dto.core.BaseSearchPaginationResponse;
 import vn.fptu.reasbe.model.dto.user.CreateStaffRequest;
 import vn.fptu.reasbe.model.dto.user.SearchUserRequest;
+import vn.fptu.reasbe.model.dto.user.UpdateStaffRequest;
 import vn.fptu.reasbe.model.dto.user.UserResponse;
 import vn.fptu.reasbe.model.entity.Role;
 import vn.fptu.reasbe.model.entity.User;
@@ -34,6 +36,7 @@ import vn.fptu.reasbe.model.enums.user.RoleName;
 import vn.fptu.reasbe.model.exception.ReasApiException;
 import vn.fptu.reasbe.repository.RoleRepository;
 import vn.fptu.reasbe.repository.UserRepository;
+import vn.fptu.reasbe.service.EmailService;
 import vn.fptu.reasbe.utils.mapper.UserMapper;
 
 @ExtendWith(MockitoExtension.class)
@@ -50,11 +53,15 @@ public class UserServiceImplTest {
     @Mock
     private PasswordEncoder passwordEncoder;
 
+    @Mock
+    private EmailService emailService;
+
     @InjectMocks
     private UserServiceImpl userServiceImpl;
 
     private SearchUserRequest searchUserRequest;
     private CreateStaffRequest createStaffRequest;
+    private UpdateStaffRequest updateStaffRequest;
     private UserResponse userResponse;
     private User user;
     private Role role;
@@ -75,9 +82,19 @@ public class UserServiceImplTest {
         createStaffRequest.setPassword("Password@123");
         createStaffRequest.setConfirmPassword("Password@123");
 
+        updateStaffRequest = new UpdateStaffRequest();
+        updateStaffRequest.setId(1);
+        updateStaffRequest.setUserName("john_doe_updated");
+        updateStaffRequest.setFullName("John Doe Updated");
+        updateStaffRequest.setEmail("john.doe.updated@example.com");
+        updateStaffRequest.setPhone("0987654321");
+        updateStaffRequest.setGender(Gender.FEMALE);
+        updateStaffRequest.setPassword("NewPassword@123");
+        updateStaffRequest.setConfirmPassword("NewPassword@123");
+
         userResponse = new UserResponse();
         userResponse.setId(1);
-        userResponse.setUserName("john_doe");
+        userResponse.setUserName("john_doe"); // Ensure this matches the expected value
         userResponse.setFullName("John Doe");
         userResponse.setEmail("john.doe@example.com");
         userResponse.setPhone("1234567890");
@@ -137,7 +154,7 @@ public class UserServiceImplTest {
         UserResponse response = userServiceImpl.createNewStaff(createStaffRequest);
 
         // Assert
-        assertEquals("john_doe", response.getUserName());
+        assertEquals("john_doe", response.getUserName()); // Ensure this matches the expected value
         assertEquals("John Doe", response.getFullName());
         assertEquals("john.doe@example.com", response.getEmail());
         assertEquals("1234567890", response.getPhone());
@@ -148,6 +165,7 @@ public class UserServiceImplTest {
         verify(roleRepository, times(1)).findByName(RoleName.ROLE_STAFF);
         verify(userRepository, times(1)).save(any(User.class));
         verify(userMapper, times(1)).toUserResponse(any(User.class));
+        verify(emailService, times(1)).sendEmail(anyString(), anyString(), anyString());
     }
 
     @Test
@@ -192,6 +210,120 @@ public class UserServiceImplTest {
         // Act & Assert
         ReasApiException exception = assertThrows(ReasApiException.class, () -> {
             userServiceImpl.createNewStaff(createStaffRequest);
+        });
+
+        assertEquals(HttpStatus.BAD_REQUEST, exception.getStatus());
+        assertEquals("error.passwordNotMatch", exception.getMessage());
+    }
+
+    @Test
+    public void testUpdateStaff() {
+        // Arrange
+        when(userRepository.findById(updateStaffRequest.getId())).thenReturn(Optional.of(user));
+        when(userRepository.existsByUserNameAndIdIsNot(updateStaffRequest.getUserName(), updateStaffRequest.getId())).thenReturn(false);
+        when(userRepository.existsByEmailAndIdIsNot(updateStaffRequest.getEmail(), updateStaffRequest.getId())).thenReturn(false);
+        when(passwordEncoder.encode(updateStaffRequest.getPassword())).thenReturn("newHashedPassword");
+
+        // Create an updated user object
+        User updatedUser = new User();
+        updatedUser.setId(1);
+        updatedUser.setUserName("john_doe_updated");
+        updatedUser.setFullName("John Doe Updated");
+        updatedUser.setEmail("john.doe.updated@example.com");
+        updatedUser.setPassword("newHashedPassword");
+        updatedUser.setPhone("0987654321");
+
+        when(userRepository.save(any(User.class))).thenReturn(updatedUser);
+
+        // Create an updated user response object
+        UserResponse updatedUserResponse = new UserResponse();
+        updatedUserResponse.setId(1);
+        updatedUserResponse.setUserName("john_doe_updated");
+        updatedUserResponse.setFullName("John Doe Updated");
+        updatedUserResponse.setEmail("john.doe.updated@example.com");
+        updatedUserResponse.setPhone("0987654321");
+
+        when(userMapper.toUserResponse(any(User.class))).thenReturn(updatedUserResponse);
+
+        // Act
+        UserResponse response = userServiceImpl.updateStaff(updateStaffRequest);
+
+        // Assert
+        assertEquals("john_doe_updated", response.getUserName());
+        assertEquals("John Doe Updated", response.getFullName());
+        assertEquals("john.doe.updated@example.com", response.getEmail());
+        assertEquals("0987654321", response.getPhone());
+
+        verify(userRepository, times(1)).findById(updateStaffRequest.getId());
+        verify(userRepository, times(1)).existsByUserNameAndIdIsNot(updateStaffRequest.getUserName(), updateStaffRequest.getId());
+        verify(userRepository, times(1)).existsByEmailAndIdIsNot(updateStaffRequest.getEmail(), updateStaffRequest.getId());
+        verify(passwordEncoder, times(1)).encode(updateStaffRequest.getPassword());
+        verify(userRepository, times(1)).save(any(User.class));
+        verify(userMapper, times(1)).toUserResponse(any(User.class));
+        verify(emailService, times(1)).sendEmail(anyString(), anyString(), anyString());
+    }
+
+    @Test
+    public void testUpdateStaff_UserNotFound() {
+        // Arrange
+        when(userRepository.findById(updateStaffRequest.getId())).thenReturn(Optional.empty());
+
+        // Act & Assert
+        ReasApiException exception = assertThrows(ReasApiException.class, () -> {
+            userServiceImpl.updateStaff(updateStaffRequest);
+        });
+
+        assertEquals(HttpStatus.BAD_REQUEST, exception.getStatus());
+        assertEquals("error.userNotFound", exception.getMessage());
+
+        verify(userRepository, times(1)).findById(updateStaffRequest.getId());
+    }
+
+    @Test
+    public void testUpdateStaff_UserNameExists() {
+        // Arrange
+        when(userRepository.findById(updateStaffRequest.getId())).thenReturn(Optional.of(user));
+        when(userRepository.existsByUserNameAndIdIsNot(updateStaffRequest.getUserName(), updateStaffRequest.getId())).thenReturn(true);
+
+        // Act & Assert
+        ReasApiException exception = assertThrows(ReasApiException.class, () -> {
+            userServiceImpl.updateStaff(updateStaffRequest);
+        });
+
+        assertEquals(HttpStatus.BAD_REQUEST, exception.getStatus());
+        assertEquals("error.usernameExist", exception.getMessage());
+
+        verify(userRepository, times(1)).findById(updateStaffRequest.getId());
+        verify(userRepository, times(1)).existsByUserNameAndIdIsNot(updateStaffRequest.getUserName(), updateStaffRequest.getId());
+    }
+
+    @Test
+    public void testUpdateStaff_EmailExists() {
+        // Arrange
+        when(userRepository.findById(updateStaffRequest.getId())).thenReturn(Optional.of(user));
+        when(userRepository.existsByEmailAndIdIsNot(updateStaffRequest.getEmail(), updateStaffRequest.getId())).thenReturn(true);
+
+        // Act & Assert
+        ReasApiException exception = assertThrows(ReasApiException.class, () -> {
+            userServiceImpl.updateStaff(updateStaffRequest);
+        });
+
+        assertEquals(HttpStatus.BAD_REQUEST, exception.getStatus());
+        assertEquals("error.emailExist", exception.getMessage());
+
+        verify(userRepository, times(1)).findById(updateStaffRequest.getId());
+        verify(userRepository, times(1)).existsByEmailAndIdIsNot(updateStaffRequest.getEmail(), updateStaffRequest.getId());
+    }
+
+    @Test
+    public void testUpdateStaff_PasswordsDoNotMatch() {
+        // Arrange
+        when(userRepository.findById(updateStaffRequest.getId())).thenReturn(Optional.of(user));
+        updateStaffRequest.setConfirmPassword("DifferentPassword");
+
+        // Act & Assert
+        ReasApiException exception = assertThrows(ReasApiException.class, () -> {
+            userServiceImpl.updateStaff(updateStaffRequest);
         });
 
         assertEquals(HttpStatus.BAD_REQUEST, exception.getStatus());

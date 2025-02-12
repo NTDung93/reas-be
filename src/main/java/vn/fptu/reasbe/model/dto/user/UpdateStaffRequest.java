@@ -14,12 +14,19 @@ import lombok.experimental.FieldDefaults;
 import vn.fptu.reasbe.model.constant.AppConstants;
 import vn.fptu.reasbe.model.enums.user.Gender;
 
+/**
+ *
+ * @author ntig
+ */
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class CreateStaffRequest {
+public class UpdateStaffRequest {
+
+    @NotNull(message = "Id cannot be null")
+    Integer id;
 
     @NotBlank(message = "Username cannot be blank")
     @Size(min = 8, message = "Username must have at least 8 characters")

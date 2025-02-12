@@ -67,7 +67,7 @@ public class AuthServiceImpl implements AuthService {
     @Override
     public JWTAuthResponse signupUser(SignupDto signupDto) {
         User user = setUpUser(signupDto);
-        Role userRole = roleRepository.findByName(RoleName.ROLE_USER)
+        Role userRole = roleRepository.findByName(RoleName.ROLE_CUSTOMER)
                 .orElseThrow(() -> new ReasApiException(HttpStatus.BAD_REQUEST, "Role does not exist"));
         user.setRole(userRole);
         user.setPassword(passwordEncoder.encode(signupDto.getPassword()));

@@ -25,7 +25,7 @@ public class EmailServiceImpl implements EmailService {
         MimeMessageHelper helper;
         try {
             helper = new MimeMessageHelper(message, true, "UTF-8");
-            helper.setFrom("\"SkedEat\" <skedeat@gmail.com>");
+            helper.setFrom("reasvietnam@gmail.com");
             helper.setTo(to);
             helper.setSubject(subject);
             helper.setText(content, true);
@@ -43,7 +43,7 @@ public class EmailServiceImpl implements EmailService {
         try {
             helper = new MimeMessageHelper(message, true, "UTF-8");
             // Trong hàm sendEmailWithQR, thêm các dòng sau trước khi gửi message
-            helper.setFrom("\"SkedEat\" <skedeat@gmail.com>");
+            helper.setFrom("reasvietnam@gmail.com");
             helper.setTo(to);
             helper.setSubject(subject);
             // Thêm attachment như bình thường
