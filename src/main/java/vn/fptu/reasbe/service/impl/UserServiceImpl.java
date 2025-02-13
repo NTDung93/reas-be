@@ -16,6 +16,7 @@ import vn.fptu.reasbe.model.dto.user.UpdateStaffRequest;
 import vn.fptu.reasbe.model.dto.user.UserResponse;
 import vn.fptu.reasbe.model.entity.Role;
 import vn.fptu.reasbe.model.entity.User;
+import vn.fptu.reasbe.model.enums.core.StatusEntity;
 import vn.fptu.reasbe.model.enums.user.RoleName;
 import vn.fptu.reasbe.model.exception.ReasApiException;
 import vn.fptu.reasbe.repository.RoleRepository;
@@ -66,6 +67,15 @@ public class UserServiceImpl implements UserService {
         User savedUser = userRepository.save(user);
         sendAccountCreationEmail(savedUser, request.getPassword(), true);
         return userMapper.toUserResponse(savedUser);
+    }
+
+    @Override
+    public Boolean deactivateStaff(Integer userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ReasApiException(HttpStatus.BAD_REQUEST, "error.userNotFound"));
+        user.setStatusEntity(StatusEntity.INACTIVE);
+        userRepository.save(user);
+        return true;
     }
 
     private Role getStaffRole() {

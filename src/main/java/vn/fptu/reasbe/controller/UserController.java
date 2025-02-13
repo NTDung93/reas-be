@@ -2,7 +2,9 @@ package vn.fptu.reasbe.controller;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -54,5 +56,11 @@ public class UserController {
     @PutMapping("/update-staff")
     public ResponseEntity<UserResponse> updateStaff(@RequestBody @Valid UpdateStaffRequest request) {
         return ResponseEntity.ok(userService.updateStaff(request));
+    }
+
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    @DeleteMapping("/deactivate-staff/{userId}")
+    public ResponseEntity<Boolean> deactivateStaff(@PathVariable Integer userId) {
+        return ResponseEntity.ok(userService.deactivateStaff(userId));
     }
 }
