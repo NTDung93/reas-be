@@ -14,4 +14,5 @@ public interface UserService {
     BaseSearchPaginationResponse<UserResponse> searchUserPagination(int pageNo, int pageSize, String sortBy, String sortDir, SearchUserRequest request);
     UserResponse createNewStaff(CreateStaffRequest request);
     UserResponse updateStaff(UpdateStaffRequest request);
+    Boolean deactivateStaff(Integer userId);
 }

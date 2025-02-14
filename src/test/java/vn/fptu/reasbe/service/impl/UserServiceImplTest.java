@@ -329,4 +329,35 @@ public class UserServiceImplTest {
         assertEquals(HttpStatus.BAD_REQUEST, exception.getStatus());
         assertEquals("error.passwordNotMatch", exception.getMessage());
     }
+
+    @Test
+    public void testDeactivateStaff() {
+        // Arrange
+        when(userRepository.findById(user.getId())).thenReturn(Optional.of(user));
+
+        // Act
+        Boolean result = userServiceImpl.deactivateStaff(user.getId());
+
+        // Assert
+        assertEquals(true, result);
+
+        verify(userRepository, times(1)).findById(user.getId());
+        verify(userRepository, times(1)).save(any(User.class));
+    }
+
+    @Test
+    public void testDeactivateStaff_UserNotFound() {
+        // Arrange
+        when(userRepository.findById(user.getId())).thenReturn(Optional.empty());
+
+        // Act & Assert
+        ReasApiException exception = assertThrows(ReasApiException.class, () -> {
+            userServiceImpl.deactivateStaff(user.getId());
+        });
+
+        assertEquals(HttpStatus.BAD_REQUEST, exception.getStatus());
+        assertEquals("error.userNotFound", exception.getMessage());
+
+        verify(userRepository, times(1)).findById(user.getId());
+    }
 }
