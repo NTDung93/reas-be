@@ -5,8 +5,9 @@ import java.math.BigDecimal;
 import jakarta.persistence.AttributeOverride;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
@@ -15,6 +16,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import vn.fptu.reasbe.model.entity.core.AbstractAuditableEntity;
+import vn.fptu.reasbe.model.enums.payment.MethodPayment;
+import vn.fptu.reasbe.model.enums.payment.StatusPayment;
 
 /**
  *
@@ -36,13 +39,12 @@ public class PaymentHistory extends AbstractAuditableEntity {
 
     @NotNull
     @Column(name = "STATUS_PAYMENT")
-    private String statusPayment; // TODO: ntig change to enum StatusPayment later
+    @Enumerated(EnumType.STRING)
+    private StatusPayment statusPayment;
 
-    @ManyToOne
-    @JoinColumn(name = "PAYMENT_METHOD_ID")
-    private PaymentMethod paymentMethod;
+    @Column(name = "METHOD_PAYMENT")
+    private MethodPayment methodPayment;
 
-    @ManyToOne
-    @JoinColumn(name = "EXCHANGE_HISTORY_ID")
-    private ExchangeHistory exchangeHistory;
+    @OneToOne(mappedBy = "paymentHistory")
+    private UserSubscription userSubscription;
 }

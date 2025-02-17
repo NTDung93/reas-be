@@ -4,10 +4,8 @@ package vn.fptu.reasbe.model.enums.exchange;
  *
  * @author ntig
  */
-public enum StatusExchange {
-    FAILED,
+public enum StatusExchangeRequest {
     PENDING,
-    CONFIRMED,
-    CANCELLED,
-    SUCCESSFUL
+    APPROVED,
+    REJECTED
 }
