@@ -7,10 +7,6 @@ import jakarta.persistence.AttributeOverride;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotNull;
@@ -20,7 +16,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import vn.fptu.reasbe.model.entity.core.AbstractAuditableEntity;
-import vn.fptu.reasbe.model.enums.exchange.StatusExchange;
 
 /**
  *
@@ -35,29 +30,17 @@ import vn.fptu.reasbe.model.enums.exchange.StatusExchange;
 @Table(name = "EXCHANGE_HISTORY")
 @AttributeOverride(name = "id", column = @Column(name = "EXCHANGE_HISTORY_ID"))
 public class ExchangeHistory extends AbstractAuditableEntity {
-
-    @ManyToOne
-    @JoinColumn(name = "SELLER_ID")
-    private User seller;
-
-    @ManyToOne
-    @JoinColumn(name = "BUYER_ID")
-    private User buyer;
-
+    @NotNull
     @Column(name = "BUYER_CONFIRMATION")
     private Boolean buyerConfirmation;
 
+    @NotNull
     @Column(name = "SELLER_CONFIRMATION")
     private Boolean sellerConfirmation;
 
-    @NotNull
-    @Column(name = "STATUS_EXCHANGE")
-    @Enumerated(EnumType.STRING)
-    private StatusExchange statusExchange;
+    @Column(name = "ADDITIONAL_NOTES")
+    private String additionalNotes;
 
     @OneToMany(mappedBy = "exchangeHistory", cascade = CascadeType.ALL, orphanRemoval = true)
-    private Set<PaymentHistory> paymentHistories = new HashSet<>();
-
-    @OneToMany(mappedBy = "exchangeHistory", cascade = CascadeType.ALL, orphanRemoval = true)
-    private Set<ExchangeDetail> exchangeDetails = new HashSet<>();
+    private Set<Feedback> feedbacks = new HashSet<>();
 }

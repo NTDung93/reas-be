@@ -1,8 +1,7 @@
 package vn.fptu.reasbe.model.entity;
 
 import java.math.BigDecimal;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.List;
 
 import org.hibernate.Length;
 
@@ -12,7 +11,7 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
-import jakarta.persistence.OneToMany;
+import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
@@ -21,7 +20,10 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import vn.fptu.reasbe.model.entity.core.AbstractAuditableEntity;
+import vn.fptu.reasbe.model.enums.item.ConditionItem;
+import vn.fptu.reasbe.model.enums.item.MethodExchange;
 import vn.fptu.reasbe.model.enums.item.StatusItem;
+import vn.fptu.reasbe.model.enums.item.TypeExchange;
 
 /**
  *
@@ -54,8 +56,20 @@ public class Item extends AbstractAuditableEntity {
     private String imageUrl;
 
     @NotNull
+    @Column(name = "CONDITION_ITEM", length = 4)
+    private ConditionItem conditionItem;
+
+    @NotNull
     @Column(name = "STATUS_ITEM", length = 4)
     private StatusItem statusItem;
+
+    @NotNull
+    @Column(name = "METHOD_EXCHANGE")
+    private List<MethodExchange> methodExchanges;
+
+    @NotNull
+    @Column(name = "TYPE_EXCHANGE", length = 4)
+    private TypeExchange typeExchange;
 
     @ManyToOne
     @JoinColumn(name = "CATEGORY_ID")
@@ -73,6 +87,7 @@ public class Item extends AbstractAuditableEntity {
     @JoinColumn(name = "USER_LOCATION_ID")
     private UserLocation userLocation;
 
-    @OneToMany(mappedBy = "item", cascade = CascadeType.ALL, orphanRemoval = true)
-    private Set<ExchangeDetail> exchangeDetails = new HashSet<>();
+    @OneToOne(cascade = CascadeType.ALL)
+    @JoinColumn(name = "DESIRED_ITEM_ID")
+    private DesiredItem desiredItem;
 }
