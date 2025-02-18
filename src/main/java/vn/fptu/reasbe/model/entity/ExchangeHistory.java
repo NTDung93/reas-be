@@ -8,6 +8,7 @@ import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.OneToMany;
+import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
@@ -43,4 +44,7 @@ public class ExchangeHistory extends AbstractAuditableEntity {
 
     @OneToMany(mappedBy = "exchangeHistory", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<Feedback> feedbacks = new HashSet<>();
+
+    @OneToOne(mappedBy = "exchangeHistory", cascade = CascadeType.ALL, orphanRemoval = true)
+    private ExchangeRequest exchangeRequest;
 }

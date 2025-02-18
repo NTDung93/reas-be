@@ -79,4 +79,8 @@ public class ExchangeRequest extends AbstractAuditableEntity {
 
     @Column(name = "ADDITIONAL_NOTES")
     private String additionalNotes;
+
+    @OneToOne
+    @JoinColumn(name = "EXCHANGE_HISTORY_ID")
+    private ExchangeHistory exchangeHistory;
 }
