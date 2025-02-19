@@ -15,7 +15,9 @@ public interface UserRepository extends JpaRepository<User, Integer>, QuerydslPr
     Optional<User> findByUserNameOrEmailOrPhone(String email, String userName, String phone);
     List<User> findByRoleName(String name);
     Boolean existsByUserName(String userName);
+    Boolean existsByUserNameAndIdIsNot(String userName, Integer id);
     Boolean existsByEmail(String email);
+    Boolean existsByEmailAndIdIsNot(String email, Integer id);
     Optional<User> findByUserName(String username);
     List<User> findAllByRoleName(String roleName);
     int countUsersByStatusEntityEqualsAndRoleNameEquals(StatusEntity status, String roleName);

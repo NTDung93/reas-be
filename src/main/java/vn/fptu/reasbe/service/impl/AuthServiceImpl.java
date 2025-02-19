@@ -24,6 +24,7 @@ import vn.fptu.reasbe.model.dto.user.UserResponse;
 import vn.fptu.reasbe.model.entity.Role;
 import vn.fptu.reasbe.model.entity.Token;
 import vn.fptu.reasbe.model.entity.User;
+import vn.fptu.reasbe.model.enums.user.RoleName;
 import vn.fptu.reasbe.model.exception.ReasApiException;
 import vn.fptu.reasbe.model.exception.ResourceNotFoundException;
 import vn.fptu.reasbe.repository.RoleRepository;
@@ -87,9 +88,10 @@ public class AuthServiceImpl implements AuthService {
     @Override
     public JWTAuthResponse signupVerifiedUser(OtpVerificationRequest request) {
         User user = setUpUser(otpService.verifyOtp(request));
-        Role userRole = roleRepository.findByName(AppConstants.ROLE_USER)
+        Role userRole = roleRepository.findByName(AppConstants.ROLE_CUSTOMER)
                 .orElseThrow(() -> new ReasApiException(HttpStatus.BAD_REQUEST, "Role does not exist"));
         user.setRole(userRole);
+        user.setPassword(passwordEncoder.encode(signupDto.getPassword()));
         user = userRepository.save(user);
 
         String accessToken = jwtTokenProvider.generateAccessToken(user);
@@ -157,7 +159,7 @@ public class AuthServiceImpl implements AuthService {
         String image = (String) userInfo.get("picture");
         // Check if the user already exists in the database
         Optional<User> existingUser = userRepository.findByEmail(email);
-        Role userRole = roleRepository.findByName(AppConstants.ROLE_USER)
+        Role userRole = roleRepository.findByName(AppConstants.ROLE_CUSTOMER)
                 .orElseThrow(() -> new ReasApiException(HttpStatus.BAD_REQUEST, "Role does not exist"));
         if (existingUser.isEmpty()) {
             // Save new user

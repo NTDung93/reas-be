@@ -1,21 +1,9 @@
 package vn.fptu.reasbe;
 
-import java.util.Arrays;
-import java.util.List;
-
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.cache.concurrent.ConcurrentMapCacheManager;
 import org.springframework.context.annotation.Bean;
-import org.springframework.data.domain.AuditorAware;
-import org.springframework.scheduling.annotation.EnableAsync;
-import org.springframework.scheduling.annotation.EnableScheduling;
-import org.springframework.web.cors.CorsConfiguration;
-import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
-import org.springframework.web.filter.CorsFilter;
-
-import vn.fptu.reasbe.auditing.ApplicationAuditAware;
 
 @SpringBootApplication
 @EnableScheduling
@@ -23,37 +11,13 @@ import vn.fptu.reasbe.auditing.ApplicationAuditAware;
 @EnableAsync
 public class ReasBeApplication {
 
-	private static final String ACCESS_CONTROL_ALLOW_ORIGIN = "Access-Control-Allow-Origin";
 
-	@Bean
-	public CorsFilter corsFilter() {
-		CorsConfiguration corsConfiguration = new CorsConfiguration();
-		corsConfiguration.setAllowCredentials(true);
-		corsConfiguration.setAllowedOrigins(
-				List.of("http://localhost:5173", "http://localhost:5174", "https://restaurant-booking-api-f979.onrender.com", "https://skedeat.site", "https://admin.skedeat.site"));
-		corsConfiguration.setAllowedHeaders(Arrays.asList("Origin", ACCESS_CONTROL_ALLOW_ORIGIN, "Content-Type",
-				"Accept", "Authorization", "Origin, Accept", "X-Requested-With",
-				"Access-Control-Request-Method", "Access-Control-Request-Headers"));
-		corsConfiguration.setExposedHeaders(Arrays.asList("Origin", "Content-Type", "Accept", "Authorization",
-				ACCESS_CONTROL_ALLOW_ORIGIN, ACCESS_CONTROL_ALLOW_ORIGIN, "Access-Control-Allow-Credentials"));
-		corsConfiguration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-		UrlBasedCorsConfigurationSource urlBasedCorsConfigurationSource = new UrlBasedCorsConfigurationSource();
-		urlBasedCorsConfigurationSource.registerCorsConfiguration("/**", corsConfiguration);
-		return new CorsFilter(urlBasedCorsConfigurationSource);
-	}
-
-	@Bean
-	public AuditorAware<String> auditorAware(){
-		return new ApplicationAuditAware();
-	}
-
-	@Bean
-	public ConcurrentMapCacheManager cacheManager() {
-		return new ConcurrentMapCacheManager("otpCache");
-	}
+    @Bean
+    public ConcurrentMapCacheManager cacheManager() {
+        return new ConcurrentMapCacheManager("otpCache");
+    }
 
 	public static void main(String[] args) {
 		SpringApplication.run(ReasBeApplication.class, args);
 	}
-
 }

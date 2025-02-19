@@ -13,9 +13,12 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public enum StatusItem implements BaseEnum.CodeAccessible {
     AVAILABLE("AVAI"),
-    SOLD_OUT("SOLD"),
-    EXPIRED("EXPI"), // expired because owner not extend display time of item on app
-    NO_LONGER_FOR_SALE("NLFS"); // owner does not want to sale that item any more
+    UNAVAILABLE("UNAV"),
+    EXPIRED("EXPI"),
+    NO_LONGER_FOR_EXCHANGE("NLFE"),
+    PENDING("PEND"),
+    APPROVED("APPR"),
+    REJECTED("REJE");
 
     private final String code;
 
