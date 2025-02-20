@@ -15,18 +15,18 @@ VALUES
 
 -- Insert data into the CATEGORY table
 INSERT INTO public."CATEGORY"
-("STATUS_ENTITY", "USR_LOG_I", "DTE_LOG_I", "DTE_LOG_U", "USR_LOG_U", "VERSION", "CATEGORY_NAME", "DESCRIPTION")
+("STATUS_ENTITY", "USR_LOG_I", "DTE_LOG_I", "DTE_LOG_U", "USR_LOG_U", "VERSION", "CATEGORY_NAME", "DESCRIPTION", "TYPE_ITEM")
 VALUES
-    ('ACTIVE', 'admin', NOW(), NULL, NULL, 0, 'Electronics', 'Devices like phones, TVs, and appliances.'),
-    ('ACTIVE', 'admin', NOW(), NULL, NULL, 0, 'Clothing', 'Apparel for men, women, and children.'),
-    ('ACTIVE', 'admin', NOW(), NULL, NULL, 0, 'Shoes', 'Footwear for sports, casual, and formal occasions.'),
-    ('ACTIVE', 'admin', NOW(), NULL, NULL, 0, 'Furniture', 'Household items like tables, chairs, and cabinets.'),
-    ('ACTIVE', 'admin', NOW(), NULL, NULL, 0, 'Kitchenware', 'Items like cookware, utensils, and appliances for cooking.'),
-    ('ACTIVE', 'admin', NOW(), NULL, NULL, 0, 'Books', 'Second-hand books across various genres.'),
-    ('ACTIVE', 'admin', NOW(), NULL, NULL, 0, 'Toys', 'Items for children, including games and playsets.'),
-    ('ACTIVE', 'admin', NOW(), NULL, NULL, 0, 'Sports Equipment', 'Gear for fitness, sports, and outdoor activities.'),
-    ('ACTIVE', 'admin', NOW(), NULL, NULL, 0, 'Accessories', 'Items like bags, belts, and jewelry.'),
-    ('ACTIVE', 'admin', NOW(), NULL, NULL, 0, 'Home Decor', 'Decorative items for living spaces.');
+    ('ACTIVE', 'admin', NOW(), NULL, NULL, 0, 'Knife', 'Kitchen tools and utensils.', 'KITC'),
+    ('ACTIVE', 'admin', NOW(), NULL, NULL, 0, 'Stove', 'Cooking appliances for the kitchen.', 'KITC'),
+    ('ACTIVE', 'admin', NOW(), NULL, NULL, 0, 'Washing Machine', 'Appliances for cleaning and laundry.', 'CLLA'),
+    ('ACTIVE', 'admin', NOW(), NULL, NULL, 0, 'Air Conditioner', 'Appliances for cooling and heating.', 'COHE'),
+    ('ACTIVE', 'admin', NOW(), NULL, NULL, 0, 'Television', 'Electronics and entertainment devices.', 'ELEC'),
+    ('ACTIVE', 'admin', NOW(), NULL, NULL, 0, 'Security Camera', 'Lighting and security devices.', 'LISE'),
+    ('ACTIVE', 'admin', NOW(), NULL, NULL, 0, 'Bedside Lamp', 'Appliances for the bedroom.', 'BEDR'),
+    ('ACTIVE', 'admin', NOW(), NULL, NULL, 0, 'Sofa', 'Furniture for the living room.', 'LIVI'),
+    ('ACTIVE', 'admin', NOW(), NULL, NULL, 0, 'Shower', 'Appliances for the bathroom.', 'BATH'),
+    ('ACTIVE', 'admin', NOW(), NULL, NULL, 0, 'Decorative Lamp', 'Decorative items for living spaces.', 'LISE');
 
 -- Insert data into the ROLE table
 INSERT INTO public."ROLE"
