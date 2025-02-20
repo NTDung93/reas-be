@@ -61,9 +61,6 @@ public class User extends AbstractAuditableEntity {
     @Column(name = "GOOGLE_ACCOUNT_ID")
     private String googleAccountId;
 
-    @Column(name = "GOOGLE_ACCOUNT_ID")
-    private String googleAccountId;
-
     @NotNull
     @Column(name = "IS_FIRST_LOGIN")
     private boolean isFirstLogin;

@@ -19,7 +19,6 @@ import vn.fptu.reasbe.model.constant.AppConstants;
 import vn.fptu.reasbe.model.dto.auth.JWTAuthResponse;
 import vn.fptu.reasbe.model.dto.auth.LoginDto;
 import vn.fptu.reasbe.model.dto.auth.SignupDto;
-import vn.fptu.reasbe.model.dto.otp.OtpVerificationRequest;
 import vn.fptu.reasbe.model.dto.user.UserResponse;
 import vn.fptu.reasbe.model.entity.Role;
 import vn.fptu.reasbe.model.entity.Token;
@@ -79,19 +78,17 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
-    public void prepareUserForOtp(SignupDto dto) {
+    public String validateAndSendOtp(SignupDto dto) {
         validateUser(dto);
-        if(Boolean.FALSE.equals(otpService.generateAndStoreOtp(dto)))
-            throw new ReasApiException(HttpStatus.INTERNAL_SERVER_ERROR, "Error generating and store OTP!");
+        return otpService.generateAndSendOtp(dto.getEmail(), dto.getFullName());
     }
 
     @Override
-    public JWTAuthResponse signupVerifiedUser(OtpVerificationRequest request) {
-        User user = setUpUser(otpService.verifyOtp(request));
-        Role userRole = roleRepository.findByName(AppConstants.ROLE_CUSTOMER)
+    public JWTAuthResponse signupVerifiedUser(SignupDto request) {
+        Role userRole = roleRepository.findByName(RoleName.ROLE_CUSTOMER)
                 .orElseThrow(() -> new ReasApiException(HttpStatus.BAD_REQUEST, "Role does not exist"));
+        User user = getUser(request);
         user.setRole(userRole);
-        user.setPassword(passwordEncoder.encode(signupDto.getPassword()));
         user = userRepository.save(user);
 
         String accessToken = jwtTokenProvider.generateAccessToken(user);
@@ -113,7 +110,6 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     @Transactional
-    // Exchange authorization code for tokens
     public JWTAuthResponse authenticateGoogleUser(String authorizationCode) {
         String tokenEndpoint = "https://oauth2.googleapis.com/token";
         String accessToken;
@@ -159,7 +155,7 @@ public class AuthServiceImpl implements AuthService {
         String image = (String) userInfo.get("picture");
         // Check if the user already exists in the database
         Optional<User> existingUser = userRepository.findByEmail(email);
-        Role userRole = roleRepository.findByName(AppConstants.ROLE_CUSTOMER)
+        Role userRole = roleRepository.findByName(RoleName.ROLE_CUSTOMER)
                 .orElseThrow(() -> new ReasApiException(HttpStatus.BAD_REQUEST, "Role does not exist"));
         if (existingUser.isEmpty()) {
             // Save new user
@@ -256,15 +252,7 @@ public class AuthServiceImpl implements AuthService {
         userRepository.save(user);
     }
 
-    private User setUpUser(SignupDto signupDto) {
-        validateUser(signupDto);
-        return getUser(signupDto);
-    }
-
     private void validateUser(SignupDto dto){
-        if (Boolean.TRUE.equals(userRepository.existsByUserName(dto.getUsername()))) {
-            throw new ReasApiException(HttpStatus.BAD_REQUEST, "Username is already exist!");
-        }
         if (Boolean.TRUE.equals(userRepository.existsByEmail(dto.getEmail()))) {
             throw new ReasApiException(HttpStatus.BAD_REQUEST, "Email is already exist!");
         }
@@ -272,12 +260,10 @@ public class AuthServiceImpl implements AuthService {
 
     private User getUser(SignupDto signupDto) {
         return User.builder()
-                .userName(signupDto.getUsername())
                 .email(signupDto.getEmail())
+                .userName(signupDto.getEmail().substring(0, signupDto.getEmail().indexOf("@")))
                 .fullName(signupDto.getFullName())
                 .password(passwordEncoder.encode(signupDto.getPassword()))
-                .phone(signupDto.getPhone())
-                .gender(signupDto.getGender())
                 .image(null)
                 .isFirstLogin(false)
                 .build();

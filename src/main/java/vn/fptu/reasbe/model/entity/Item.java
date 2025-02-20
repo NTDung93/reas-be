@@ -3,16 +3,9 @@ package vn.fptu.reasbe.model.entity;
 import java.math.BigDecimal;
 import java.util.List;
 
+import jakarta.persistence.*;
 import org.hibernate.Length;
 
-import jakarta.persistence.AttributeOverride;
-import jakarta.persistence.CascadeType;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.OneToOne;
-import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -64,6 +57,7 @@ public class Item extends AbstractAuditableEntity {
     private StatusItem statusItem;
 
     @NotNull
+    @ElementCollection
     @Column(name = "METHOD_EXCHANGE")
     private List<MethodExchange> methodExchanges;
 

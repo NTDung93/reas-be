@@ -10,7 +10,6 @@ import vn.fptu.reasbe.model.dto.auth.JWTAuthResponse;
 import vn.fptu.reasbe.model.dto.auth.LoginDto;
 import vn.fptu.reasbe.model.dto.auth.PasswordChangeRequest;
 import vn.fptu.reasbe.model.dto.auth.SignupDto;
-import vn.fptu.reasbe.model.dto.otp.OtpVerificationRequest;
 import vn.fptu.reasbe.model.dto.user.UserResponse;
 import vn.fptu.reasbe.service.AuthService;
 
@@ -19,7 +18,6 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import vn.fptu.reasbe.service.OtpService;
 
 import java.util.Map;
 
@@ -28,7 +26,6 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class AuthController {
     private final AuthService authService;
-    private final OtpService otpService;
     private final HttpHeaders headers = new HttpHeaders();
 
     @PostMapping("/login")
@@ -38,23 +35,17 @@ public class AuthController {
         return new ResponseEntity<>(jwtAuthResponse, headers, HttpStatus.OK);
     }
 
-    @PostMapping(value = "/register/user")
-    public ResponseEntity<Map<String, Object>> signupUser(@Valid @RequestBody SignupDto signupDto){
-        authService.prepareUserForOtp(signupDto);
-        return new ResponseEntity<>(Map.of("message", "Signup successfully, please verify OTP", "status", "success"), HttpStatus.OK);
+    @PostMapping("/register/user")
+    public ResponseEntity<JWTAuthResponse> signupUser(@Valid @RequestBody SignupDto signupDto){
+        JWTAuthResponse jwtAuthResponse = authService.signupVerifiedUser(signupDto);
+        headers.add(AppConstants.AUTH_ATTR_NAME, AppConstants.AUTH_VALUE_PREFIX + jwtAuthResponse.getAccessToken());
+        return new ResponseEntity<>(jwtAuthResponse, headers, HttpStatus.OK);
     }
 
-    @PostMapping(value = "/otp/verification")
-    public ResponseEntity<JWTAuthResponse> verifyOtpForSignup(@Valid @RequestBody OtpVerificationRequest request){
-        JWTAuthResponse response =  authService.signupVerifiedUser(request);
-        headers.add(AppConstants.AUTH_ATTR_NAME, AppConstants.AUTH_VALUE_PREFIX + response.getAccessToken());
-        return new ResponseEntity<>(response, HttpStatus.CREATED);
-    }
-
-    @PostMapping(value = "/otp/resend")
-    public ResponseEntity<Map<String, Object>> resendOtp(@RequestParam String email){
-        otpService.resendOtp(email);
-        return new ResponseEntity<>(Map.of("message", "OTP resend successfully, please check your email", "status", "success"), HttpStatus.OK);
+    @PostMapping("/otp")
+    public ResponseEntity<Map<String, Object>> sendOtp(@Valid @RequestBody SignupDto signupDto){
+       String otp = authService.validateAndSendOtp(signupDto);
+        return new ResponseEntity<>(Map.of("message", "OTP send successfully, please check your email", "status", "success", "otp", otp), HttpStatus.OK);
     }
 
     @PostMapping("/oauth2/login")
