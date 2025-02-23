@@ -17,16 +17,106 @@ VALUES
 INSERT INTO public."CATEGORY"
 ("STATUS_ENTITY", "USR_LOG_I", "DTE_LOG_I", "DTE_LOG_U", "USR_LOG_U", "VERSION", "CATEGORY_NAME", "DESCRIPTION", "TYPE_ITEM")
 VALUES
-    ('ACTIVE', 'admin', NOW(), NULL, NULL, 0, 'Knife', 'Kitchen tools and utensils.', 'KITC'),
-    ('ACTIVE', 'admin', NOW(), NULL, NULL, 0, 'Stove', 'Cooking appliances for the kitchen.', 'KITC'),
-    ('ACTIVE', 'admin', NOW(), NULL, NULL, 0, 'Washing Machine', 'Appliances for cleaning and laundry.', 'CLLA'),
-    ('ACTIVE', 'admin', NOW(), NULL, NULL, 0, 'Air Conditioner', 'Appliances for cooling and heating.', 'COHE'),
-    ('ACTIVE', 'admin', NOW(), NULL, NULL, 0, 'Television', 'Electronics and entertainment devices.', 'ELEC'),
-    ('ACTIVE', 'admin', NOW(), NULL, NULL, 0, 'Security Camera', 'Lighting and security devices.', 'LISE'),
-    ('ACTIVE', 'admin', NOW(), NULL, NULL, 0, 'Bedside Lamp', 'Appliances for the bedroom.', 'BEDR'),
-    ('ACTIVE', 'admin', NOW(), NULL, NULL, 0, 'Sofa', 'Furniture for the living room.', 'LIVI'),
-    ('ACTIVE', 'admin', NOW(), NULL, NULL, 0, 'Shower', 'Appliances for the bathroom.', 'BATH'),
-    ('ACTIVE', 'admin', NOW(), NULL, NULL, 0, 'Decorative Lamp', 'Decorative items for living spaces.', 'LISE');
+    -- KITCHEN_APPLIANCES ("KITC")
+    ('ACTIVE', 'admin', NOW(), NULL, NULL, 0, 'Refrigerators', 'Including compact and multi-door models.', 'KITC'),
+    ('ACTIVE', 'admin', NOW(), NULL, NULL, 0, 'Rice Cookers', 'Essential for daily cooking.', 'KITC'),
+    ('ACTIVE', 'admin', NOW(), NULL, NULL, 0, 'Induction Cookers', 'Popular for fast and efficient cooking.', 'KITC'),
+    ('ACTIVE', 'admin', NOW(), NULL, NULL, 0, 'Microwave Ovens', 'Widely used for reheating and quick meals.', 'KITC'),
+    ('ACTIVE', 'admin', NOW(), NULL, NULL, 0, 'Electric Kettles', 'For boiling water for tea and coffee.', 'KITC'),
+    ('ACTIVE', 'admin', NOW(), NULL, NULL, 0, 'Water Purifiers', 'Important for ensuring safe drinking water.', 'KITC'),
+    ('ACTIVE', 'admin', NOW(), NULL, NULL, 0, 'Blenders & Food Processors', 'For preparing smoothies, sauces, and traditional recipes.', 'KITC'),
+    ('ACTIVE', 'admin', NOW(), NULL, NULL, 0, 'Dishwashers', 'Increasingly popular in urban apartments.', 'KITC'),
+    ('ACTIVE', 'admin', NOW(), NULL, NULL, 0, 'Coffee Makers', 'Catering to both local and international coffee trends.', 'KITC'),
+    ('ACTIVE', 'admin', NOW(), NULL, NULL, 0, 'Air Fryers', 'Gaining traction as a healthier cooking option.', 'KITC'),
+    ('ACTIVE', 'admin', NOW(), NULL, NULL, 0, 'Others', 'Other appliances', 'KITC'),
+
+    -- CLEANING_LAUNDRY_APPLIANCES ("CLLA")
+    ('ACTIVE', 'admin', NOW(), NULL, NULL, 0, 'Washing Machines', 'Both front-load and top-load types.', 'CLLA'),
+    ('ACTIVE', 'admin', NOW(), NULL, NULL, 0, 'Washer-Dryer Combos', 'Useful in limited urban spaces.', 'CLLA'),
+    ('ACTIVE', 'admin', NOW(), NULL, NULL, 0, 'Clothes Dryers', 'For apartment dwellers without outdoor drying space.', 'CLLA'),
+    ('ACTIVE', 'admin', NOW(), NULL, NULL, 0, 'Steam Irons', 'For quick and effective wrinkle removal.', 'CLLA'),
+    ('ACTIVE', 'admin', NOW(), NULL, NULL, 0, 'Robotic Vacuum Cleaners', 'An emerging trend in high-end urban homes.', 'CLLA'),
+    ('ACTIVE', 'admin', NOW(), NULL, NULL, 0, 'Upright/Handheld Vacuum Cleaners', 'For everyday cleaning tasks.', 'CLLA'),
+    ('ACTIVE', 'admin', NOW(), NULL, NULL, 0, 'Steam Mops', 'A modern approach to floor cleaning.', 'CLLA'),
+    ('ACTIVE', 'admin', NOW(), NULL, NULL, 0, 'Portable Washing Machines', 'Ideal for smaller households or dorms.', 'CLLA'),
+    ('ACTIVE', 'admin', NOW(), NULL, NULL, 0, 'Carpet Cleaners', 'For homes with area rugs or carpets.', 'CLLA'),
+    ('ACTIVE', 'admin', NOW(), NULL, NULL, 0, 'Lint Removers/Fabric Shavers', 'To maintain clothing and upholstery quality.', 'CLLA'),
+    ('ACTIVE', 'admin', NOW(), NULL, NULL, 0, 'Others', 'Other appliances', 'CLLA'),
+
+    -- COOLING_HEATING_APPLIANCES ("COHE")
+    ('ACTIVE', 'admin', NOW(), NULL, NULL, 0, 'Split Air Conditioners', 'Standard for most urban homes.', 'COHE'),
+    ('ACTIVE', 'admin', NOW(), NULL, NULL, 0, 'Window Air Conditioners', 'A cost-effective cooling option.', 'COHE'),
+    ('ACTIVE', 'admin', NOW(), NULL, NULL, 0, 'Portable Air Conditioners', 'For added flexibility in cooling.', 'COHE'),
+    ('ACTIVE', 'admin', NOW(), NULL, NULL, 0, 'Ceiling Fans', 'Popular and energy-efficient.', 'COHE'),
+    ('ACTIVE', 'admin', NOW(), NULL, NULL, 0, 'Table & Floor Fans', 'Common in many households.', 'COHE'),
+    ('ACTIVE', 'admin', NOW(), NULL, NULL, 0, 'Air Coolers/Evaporative Coolers', 'Suited for certain regions.', 'COHE'),
+    ('ACTIVE', 'admin', NOW(), NULL, NULL, 0, 'Smart Air Conditioners', 'With remote and app control features.', 'COHE'),
+    ('ACTIVE', 'admin', NOW(), NULL, NULL, 0, 'Air Purifiers', 'Improving sleep quality by filtering air.', 'BEDR'),
+    ('ACTIVE', 'admin', NOW(), NULL, NULL, 0, 'Humidifiers', 'Depending on the local microclimate.', 'BEDR'),
+    ('ACTIVE', 'admin', NOW(), NULL, NULL, 0, 'Dehumidifiers', 'Depending on the local microclimate.', 'BEDR'),
+    ('ACTIVE', 'admin', NOW(), NULL, NULL, 0, 'Energy-Efficient Cooling Solutions', 'Models designed to lower electricity bills.', 'COHE'),
+    ('ACTIVE', 'admin', NOW(), NULL, NULL, 0, 'Others', 'Other appliances', 'COHE'),
+
+    -- ELECTRONICS_ENTERTAINMENT_DEVICES ("ELEC")
+    ('ACTIVE', 'admin', NOW(), NULL, NULL, 0, 'Smart TVs', 'A centerpiece for modern living rooms.', 'ELEC'),
+    ('ACTIVE', 'admin', NOW(), NULL, NULL, 0, 'Home Theater Systems', 'For immersive audio-visual experiences.', 'ELEC'),
+    ('ACTIVE', 'admin', NOW(), NULL, NULL, 0, 'Soundbars', 'To enhance TV audio in compact spaces.', 'ELEC'),
+    ('ACTIVE', 'admin', NOW(), NULL, NULL, 0, 'Streaming Devices', 'Devices like Roku, Apple TV, or local alternatives.', 'ELEC'),
+    ('ACTIVE', 'admin', NOW(), NULL, NULL, 0, 'Gaming Consoles', 'Popular among youth and tech-savvy consumers.', 'ELEC'),
+    ('ACTIVE', 'admin', NOW(), NULL, NULL, 0, 'Digital Cameras', 'Although smartphones are often preferred.', 'ELEC'),
+    ('ACTIVE', 'admin', NOW(), NULL, NULL, 0, 'Portable Bluetooth Speakers', 'For on-the-go or outdoor use.', 'ELEC'),
+    ('ACTIVE', 'admin', NOW(), NULL, NULL, 0, 'Set-Top Boxes', 'For cable and satellite TV integration.', 'ELEC'),
+    ('ACTIVE', 'admin', NOW(), NULL, NULL, 0, 'Blu-ray/DVD Players', 'Still in use for certain content.', 'ELEC'),
+    ('ACTIVE', 'admin', NOW(), NULL, NULL, 0, 'Virtual Reality Headsets', 'A niche but growing interest.', 'ELEC'),
+    ('ACTIVE', 'admin', NOW(), NULL, NULL, 0, 'Others', 'Other appliances', 'ELEC'),
+
+    -- LIGHTING_SECURITY_DEVICES ("LISE")
+    ('ACTIVE', 'admin', NOW(), NULL, NULL, 0, 'Smart LED Bulbs', 'Energy-efficient with app control.', 'LISE'),
+    ('ACTIVE', 'admin', NOW(), NULL, NULL, 0, 'LED Light Strips & Panels', 'For decorative and ambient lighting.', 'LISE'),
+    ('ACTIVE', 'admin', NOW(), NULL, NULL, 0, 'Security Cameras', 'Essential for modern home security.', 'LISE'),
+    ('ACTIVE', 'admin', NOW(), NULL, NULL, 0, 'Video Doorbells', 'For added safety and convenience.', 'LISE'),
+    ('ACTIVE', 'admin', NOW(), NULL, NULL, 0, 'Motion Sensors', 'Integrated into smart home setups.', 'LISE'),
+    ('ACTIVE', 'admin', NOW(), NULL, NULL, 0, 'Alarm Systems', 'Ranging from basic to advanced.', 'LISE'),
+    ('ACTIVE', 'admin', NOW(), NULL, NULL, 0, 'Smart Locks', 'Enhancing door security.', 'LISE'),
+    ('ACTIVE', 'admin', NOW(), NULL, NULL, 0, 'Outdoor Floodlights', 'For well-lit surroundings.', 'LISE'),
+    ('ACTIVE', 'admin', NOW(), NULL, NULL, 0, 'Wireless Security Sensors', 'For windows and doors.', 'LISE'),
+    ('ACTIVE', 'admin', NOW(), NULL, NULL, 0, 'Home Automation Hubs', 'Centralizing control of multiple devices.', 'LISE'),
+    ('ACTIVE', 'admin', NOW(), NULL, NULL, 0, 'Others', 'Other appliances', 'LISE'),
+
+    -- BEDROOM_APPLIANCES ("BEDR")
+    ('ACTIVE', 'admin', NOW(), NULL, NULL, 0, 'Bedside Lamps', 'With adjustable brightness.', 'BEDR'),
+    ('ACTIVE', 'admin', NOW(), NULL, NULL, 0, 'Bed', 'Comfortable thing to sleep on.', 'BEDR'),
+    ('ACTIVE', 'admin', NOW(), NULL, NULL, 0, 'Matress', 'The part of a bed, made of a strong cloth cover filled with firm material, that makes the bed comfortable to lie on.', 'BEDR'),
+    ('ACTIVE', 'admin', NOW(), NULL, NULL, 0, 'Personal/Mini Fans', 'For personal cooling.', 'BEDR'),
+    ('ACTIVE', 'admin', NOW(), NULL, NULL, 0, 'Smart Alarm Clocks', 'With gentle wake-up features.', 'BEDR'),
+    ('ACTIVE', 'admin', NOW(), NULL, NULL, 0, 'Sleep Trackers', 'For monitoring sleep quality.', 'BEDR'),
+    ('ACTIVE', 'admin', NOW(), NULL, NULL, 0, 'LED Reading Lights', 'For night-time reading.', 'BEDR'),
+    ('ACTIVE', 'admin', NOW(), NULL, NULL, 0, 'Aroma Diffusers', 'To create a relaxing environment.', 'BEDR'),
+    ('ACTIVE', 'admin', NOW(), NULL, NULL, 0, 'Electric Mosquito Repellers', 'Essential in tropical regions.', 'BEDR'),
+    ('ACTIVE', 'admin', NOW(), NULL, NULL, 0, 'White Noise Machines', 'For blocking out disruptive sounds.', 'BEDR'),
+    ('ACTIVE', 'admin', NOW(), NULL, NULL, 0, 'Others', 'Other appliances', 'BEDR'),
+
+    -- LIVING_ROOM_APPLIANCES ("LIVI")
+    ('ACTIVE', 'admin', NOW(), NULL, NULL, 0, 'Sofa Set', 'A comfortable and stylish sofa set perfect for a cozy living room.', 'LIVI'),
+    ('ACTIVE', 'admin', NOW(), NULL, NULL, 0, 'Armchair', 'Elegant armchairs that add both comfort and charm to your living space.', 'LIVI'),
+    ('ACTIVE', 'admin', NOW(), NULL, NULL, 0, 'Coffee Table', 'A versatile coffee table ideal for holding drinks, magazines, and decor.', 'LIVI'),
+    ('ACTIVE', 'admin', NOW(), NULL, NULL, 0, 'Side Table', 'Convenient side tables to complement seating areas and provide extra surface space.', 'LIVI'),
+    ('ACTIVE', 'admin', NOW(), NULL, NULL, 0, 'Ottoman', 'A multifunctional ottoman that can serve as a footrest or additional seating.', 'LIVI'),
+    ('ACTIVE', 'admin', NOW(), NULL, NULL, 0, 'Others', 'Other appliances', 'LIVI'),
+
+    -- BATHROOM_APPLIANCES ("BATH")
+    ('ACTIVE', 'admin', NOW(), NULL, NULL, 0, 'Electric Toothbrushes', 'For improved oral hygiene.', 'BATH'),
+    ('ACTIVE', 'admin', NOW(), NULL, NULL, 0, 'Instant/Tankless Water Heaters', 'Providing hot water on demand.', 'BATH'),
+    ('ACTIVE', 'admin', NOW(), NULL, NULL, 0, 'Hair Dryers', 'A common necessity.', 'BATH'),
+    ('ACTIVE', 'admin', NOW(), NULL, NULL, 0, 'Electric Shavers/Hair Trimmers', 'For personal grooming.', 'BATH'),
+    ('ACTIVE', 'admin', NOW(), NULL, NULL, 0, 'Bathroom Ventilation Fans', 'To reduce humidity and mold.', 'BATH'),
+    ('ACTIVE', 'admin', NOW(), NULL, NULL, 0, 'Bidet Toilet Seats', 'Gaining popularity in modern bathrooms.', 'BATH'),
+    ('ACTIVE', 'admin', NOW(), NULL, NULL, 0, 'Heated Towel Racks', 'More common in upscale settings.', 'BATH'),
+    ('ACTIVE', 'admin', NOW(), NULL, NULL, 0, 'Electric Faucets', 'For water efficiency and hygiene.', 'BATH'),
+    ('ACTIVE', 'admin', NOW(), NULL, NULL, 0, 'Smart Mirrors', 'Offering integrated lighting and information.', 'BATH'),
+    ('ACTIVE', 'admin', NOW(), NULL, NULL, 0, 'Digital Bathroom Scales', 'For personal health tracking.', 'BATH'),
+    ('ACTIVE', 'admin', NOW(), NULL, NULL, 0, 'Others', 'Other appliances', 'BATH');
+
 
 -- Insert data into the ROLE table
 INSERT INTO public."ROLE"
@@ -75,21 +165,4 @@ VALUES
     ('ACTIVE', 'admin', NOW(), NULL, NULL, 0, true, 'Room 302, Building B', 4, 7),  -- Hien Nhu - The Ascent
     ('ACTIVE', 'admin', NOW(), NULL, NULL, 0, false, 'Room 1206, Building D', 5, 7);  -- Hien Nhu - Saigon Pearl
 
--- Insert data into the ITEM table
--- Insert data into the ITEM table with corrected BRAND_ID and CATEGORY_ID
-INSERT INTO public."ITEM"
-("STATUS_ENTITY", "USR_LOG_I", "DTE_LOG_I", "DTE_LOG_U", "USR_LOG_U", "VERSION", "DESCRIPTION", "IMAGE_URL", "ITEM_NAME", "PRICE", "STATUS_ITEM", "BRAND_ID", "CATEGORY_ID", "OWNER_ID", "USER_LOCATION_ID")
-VALUES
-    ('ACTIVE', 'admin', NOW(), NULL, NULL, 0, 'Second-hand Nike shoes', 'abc', 'Nike Air Max', 1500000, 'AVAI', 3, 3, 3, 1),  -- Ti Dung - Location 1
-    ('ACTIVE', 'admin', NOW(), NULL, NULL, 0, 'Used Samsung Galaxy phone', 'abc', 'Samsung Galaxy S21', 12000000, 'AVAI', 2, 1, 3, 2),  -- Ti Dung - Location 2
-    ('ACTIVE', 'admin', NOW(), NULL, NULL, 0, 'Pre-owned LG refrigerator', 'abc', 'LG Double Door Refrigerator', 8000000, 'AVAI', 3, 5, 4, 3),  -- Duc Anh - Location 3
-    ('ACTIVE', 'admin', NOW(), NULL, NULL, 0, 'Gently used Nike T-shirt', 'abc', 'Nike Sportswear T-shirt', 400000, 'AVAI', 3, 2, 5, 4),  -- Trang Thao - Location 4
-    ('ACTIVE', 'admin', NOW(), NULL, NULL, 0, 'Slightly used Sony headphones', 'abc', 'Sony WH-1000XM4', 6000000, 'AVAI', 10, 1, 6, 5),  -- Minh Quan - Location 5
-    ('ACTIVE', 'admin', NOW(), NULL, NULL, 0, 'Used Samsung refrigerator', 'abc', 'Samsung Refrigerator', 7000000, 'AVAI', 2, 5, 3, 6),  -- Ti Dung - Location 6
-    ('ACTIVE', 'admin', NOW(), NULL, NULL, 0, 'Used Adidas sneakers', 'abc', 'Adidas Ultraboost', 2000000, 'AVAI', 4, 3, 4, 7),  -- Duc Anh - Location 7
-    ('ACTIVE', 'admin', NOW(), NULL, NULL, 0, 'Used iPhone 12', 'abc', 'iPhone 12', 13000000, 'AVAI', 6, 1, 5, 8),  -- Trang Thao - Location 8
-    ('ACTIVE', 'admin', NOW(), NULL, NULL, 0, 'Pre-owned LG TV', 'abc', 'LG 55" LED TV', 10000000, 'AVAI', 3, 1, 6, 9),  -- Minh Quan - Location 9
-    ('ACTIVE', 'admin', NOW(), NULL, NULL, 0, 'Used Sony PlayStation 5', 'abc', 'PS5', 15000000, 'AVAI', 10, 1, 7, 10),  -- Hien Nhu - Location 10
-    ('ACTIVE', 'admin', NOW(), NULL, NULL, 0, 'Used Samsung washing machine', 'abc', 'Samsung 8kg Washer', 5000000, 'AVAI', 2, 5, 1, 11),  -- Ti Dung - Location 11
-    ('ACTIVE', 'admin', NOW(), NULL, NULL, 0, 'Pre-owned Bose speakers', 'abc', 'Bose SoundLink', 3500000, 'AVAI', 7, 1, 7, 12);  -- Hien Nhu - Location 12
 

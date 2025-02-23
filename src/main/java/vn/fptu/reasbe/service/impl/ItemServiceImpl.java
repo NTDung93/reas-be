@@ -8,6 +8,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import lombok.RequiredArgsConstructor;
 import vn.fptu.reasbe.model.dto.core.BaseSearchPaginationResponse;
+import vn.fptu.reasbe.model.dto.item.CreateItemRequest;
+import vn.fptu.reasbe.model.dto.item.ItemResponse;
 import vn.fptu.reasbe.model.dto.item.SearchItemRequest;
 import vn.fptu.reasbe.model.dto.item.SearchItemResponse;
 import vn.fptu.reasbe.repository.ItemRepository;
@@ -30,5 +32,10 @@ public class ItemServiceImpl implements ItemService {
         Sort sort = sortDir.equalsIgnoreCase(Sort.Direction.ASC.name()) ? Sort.by(sortBy).ascending() : Sort.by(sortBy).descending();
         Pageable pageable = PageRequest.of(pageNo, pageSize, sort);
         return BaseSearchPaginationResponse.of(itemRepository.searchItemPagination(request, pageable).map(itemMapper::toSearchItemResponse));
+    }
+
+    @Override
+    public ItemResponse createItem(CreateItemRequest request) {
+        return null;
     }
 }
