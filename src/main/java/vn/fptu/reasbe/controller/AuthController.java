@@ -43,15 +43,13 @@ public class AuthController {
     }
 
     @PostMapping("/otp")
-    public ResponseEntity<Map<String, Object>> sendOtp(@Valid @RequestBody SignupDto signupDto){
-       String otp = authService.validateAndSendOtp(signupDto);
-        return new ResponseEntity<>(Map.of("message", "OTP send successfully, please check your email", "status", "success", "otp", otp), HttpStatus.OK);
+    public ResponseEntity<String> sendOtp(@Valid @RequestBody SignupDto signupDto){
+        return ResponseEntity.ok(authService.validateAndSendOtp(signupDto));
     }
 
     @PostMapping("/oauth2/login")
-    public ResponseEntity<Map<String, String>> handleGoogleLogin() {
-        String authUrl = authService.getGoogleLoginUrl();
-        return new ResponseEntity<>(Map.of("authUrl", authUrl, "status", "success"), HttpStatus.OK);
+    public ResponseEntity<String> handleGoogleLogin() {
+        return ResponseEntity.ok(authService.getGoogleLoginUrl());
     }
 
     @GetMapping("/oauth2/callback")

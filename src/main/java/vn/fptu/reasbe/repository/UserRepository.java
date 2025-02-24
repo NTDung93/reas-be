@@ -3,7 +3,6 @@ package vn.fptu.reasbe.repository;
 import java.util.List;
 import java.util.Optional;
 
-import jakarta.validation.constraints.NotNull;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.querydsl.QuerydslPredicateExecutor;
 
@@ -21,6 +20,5 @@ public interface UserRepository extends JpaRepository<User, Integer>, QuerydslPr
     Optional<User> findByUserName(String username);
     List<User> findAllByRoleName(String roleName);
     int countUsersByStatusEntityEqualsAndRoleNameEquals(StatusEntity status, String roleName);
-
-    Optional<User> findByEmail(@NotNull String email);
+    Optional<User> findByEmail(String email);
 }

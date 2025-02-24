@@ -7,8 +7,6 @@ import vn.fptu.reasbe.service.EmailService;
 import vn.fptu.reasbe.service.OtpService;
 import java.security.SecureRandom;
 
-import static vn.fptu.reasbe.model.constant.AppConstants.OTP_LENGTH;
-
 @Service
 @RequiredArgsConstructor
 @Transactional
@@ -32,10 +30,7 @@ public class OtpServiceImpl implements OtpService {
     }
 
     private String generateOtp() {
-        StringBuilder otp = new StringBuilder();
-        for (int i = 0; i < OTP_LENGTH; i++) {
-            otp.append(secureRandom.nextInt(10));
-        }
-        return otp.toString();
+        int otp = 100000 + secureRandom.nextInt(900000); // Random số từ 100000 đến 999999
+        return String.valueOf(otp);
     }
 }

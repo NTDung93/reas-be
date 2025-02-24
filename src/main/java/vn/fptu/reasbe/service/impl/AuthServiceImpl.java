@@ -54,6 +54,8 @@ public class AuthServiceImpl implements AuthService {
     private final UserMapper userMapper;
     private final JwtTokenProvider jwtTokenProvider;
 
+    RestTemplate restTemplate = new RestTemplate();
+
     @Value("${spring.security.oauth2.client.registration.google.client-id}")
     private String googleClientId;
 
@@ -62,6 +64,15 @@ public class AuthServiceImpl implements AuthService {
 
     @Value("${spring.security.oauth2.client.registration.google.redirect-uri}")
     private String redirectUri;
+
+    @Value("oauth2.google.token-uri")
+    private String googleTokenUri;
+
+    @Value("oauth2.google.user-info-uri")
+    private String googleUserInfoUri;
+
+    @Value("oauth2.google.auth-uri")
+    private String googleAuthUri;
 
     @Override
     public JWTAuthResponse authenticateUser(LoginDto loginDto) {
@@ -85,7 +96,7 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public JWTAuthResponse signupVerifiedUser(SignupDto request) {
-        Role userRole = roleRepository.findByName(RoleName.ROLE_CUSTOMER)
+        Role userRole = roleRepository.findByName(RoleName.ROLE_RESIDENT)
                 .orElseThrow(() -> new ReasApiException(HttpStatus.BAD_REQUEST, "Role does not exist"));
         User user = getUser(request);
         user.setRole(userRole);
@@ -101,7 +112,7 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public String getGoogleLoginUrl() {
-        return "https://accounts.google.com/o/oauth2/v2/auth" +
+        return googleAuthUri +
                 "?client_id=" + googleClientId +
                 "&redirect_uri=" + redirectUri +
                 "&response_type=code" +
@@ -111,69 +122,17 @@ public class AuthServiceImpl implements AuthService {
     @Override
     @Transactional
     public JWTAuthResponse authenticateGoogleUser(String authorizationCode) {
-        String tokenEndpoint = "https://oauth2.googleapis.com/token";
-        String accessToken;
+        String googleAccessToken;
         Map<String, Object> userInfo;
         Map<String, Object> jsonData;
-        RestTemplate restTemplate = new RestTemplate();
-        User user = new User();
 
-        Map<String, String> tokenRequest = Map.of(
-                "code", authorizationCode,
-                "client_id", googleClientId,
-                "client_secret", googleClientSecret,
-                "redirect_uri", redirectUri,
-                "grant_type", "authorization_code"
-        );
+        jsonData = getGoogleJsonData(authorizationCode);
 
-        jsonData = restTemplate.postForObject(tokenEndpoint, tokenRequest, Map.class);
+        googleAccessToken = getGoogleAccessToken(jsonData);
 
-        if(jsonData != null) {
-            accessToken = (String) jsonData.get("access_token");
-        }else throw new ReasApiException(HttpStatus.CONFLICT, "No access token retrieved from OAuth2");
+        userInfo = getGoogleUserData(googleAccessToken);
 
-        String userInfoEndpoint = "https://www.googleapis.com/oauth2/v3/userinfo";
-
-        HttpHeaders headers = new HttpHeaders();
-        headers.set("Authorization", "Bearer " + accessToken);
-        HttpEntity<String> entity = new HttpEntity<>(headers);
-
-        ResponseEntity<Map> userInfoResponse = restTemplate.exchange(
-                userInfoEndpoint, HttpMethod.GET, entity, Map.class);
-
-        if (userInfoResponse.getStatusCode() == HttpStatus.OK) {
-            userInfo =  userInfoResponse.getBody();
-        } else {
-            throw new ReasApiException(HttpStatus.BAD_REQUEST, "Failed to retrieve user info");
-        }
-        if (userInfo == null) throw new ReasApiException(HttpStatus.NOT_FOUND, "Failed to retrieve user info: userInfo is null");
-        String email = (String) userInfo.get("email");
-        String fullName = (String) userInfo.get("name");
-        String ggId = (String) userInfo.get("sub");
-        String password = "Google:" + ggId;
-        String username = email.substring(0, email.indexOf("@"));
-        String image = (String) userInfo.get("picture");
-        // Check if the user already exists in the database
-        Optional<User> existingUser = userRepository.findByEmail(email);
-        Role userRole = roleRepository.findByName(RoleName.ROLE_CUSTOMER)
-                .orElseThrow(() -> new ReasApiException(HttpStatus.BAD_REQUEST, "Role does not exist"));
-        if (existingUser.isEmpty()) {
-            // Save new user
-            user.setEmail(email);
-            user.setFullName(fullName);
-            user.setGoogleAccountId(ggId);
-            user.setUserName(username);
-            user.setPassword(passwordEncoder.encode(password));
-            user.setImage(image);
-            user.setFirstLogin(true);
-            user.setGoogleAccountId(ggId);
-            user.setRole(userRole);
-            user = userRepository.save(user);
-        } else {
-            user = existingUser.get();
-        }
-
-        return authenticateUser(new LoginDto(user.getEmail(), password));
+        return prepareUserInfoForAuthentication(userInfo);
     }
 
     private void sendMailToUser(User user) {
@@ -250,6 +209,74 @@ public class AuthServiceImpl implements AuthService {
         user.setPassword(passwordEncoder.encode(newPassword));
         if (user.isFirstLogin()) user.setFirstLogin(false);
         userRepository.save(user);
+    }
+
+    private JWTAuthResponse prepareUserInfoForAuthentication(Map<String, Object> userInfo){
+        User user = new User();
+        String email = (String) userInfo.get("email");
+        String fullName = (String) userInfo.get("name");
+        String ggId = (String) userInfo.get("sub");
+        String password = "Google:" + ggId;
+        String username = email.substring(0, email.indexOf("@"));
+        String image = (String) userInfo.get("picture");
+        // Check if the user already exists in the database
+        Optional<User> existingUser = userRepository.findByEmail(email);
+        Role userRole = roleRepository.findByName(RoleName.ROLE_RESIDENT)
+                .orElseThrow(() -> new ReasApiException(HttpStatus.BAD_REQUEST, "Role does not exist"));
+        if (existingUser.isEmpty()) {
+            // Save new user
+            user.setEmail(email);
+            user.setFullName(fullName);
+            user.setGoogleAccountId(ggId);
+            user.setUserName(username);
+            user.setPassword(passwordEncoder.encode(password));
+            user.setImage(image);
+            user.setFirstLogin(true);
+            user.setGoogleAccountId(ggId);
+            user.setRole(userRole);
+            user = userRepository.save(user);
+        } else {
+            user = existingUser.get();
+        }
+        return authenticateUser(new LoginDto(user.getEmail(), password));
+    }
+
+    private Map<String, Object> getGoogleUserData(String accessToken){
+        Map<String, Object> userInfo;
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("Authorization", "Bearer " + accessToken);
+        HttpEntity<String> entity = new HttpEntity<>(headers);
+
+        ResponseEntity<Map> userInfoResponse = restTemplate.exchange(googleUserInfoUri, HttpMethod.GET, entity, Map.class);
+
+        if (userInfoResponse.getStatusCode() == HttpStatus.OK) {
+            userInfo =  userInfoResponse.getBody();
+        } else {
+            throw new ReasApiException(HttpStatus.BAD_REQUEST, "Failed to retrieve user info");
+        }
+        if (userInfo == null){
+            throw new ReasApiException(HttpStatus.NOT_FOUND, "Failed to retrieve user info: userInfo is null");
+        } else return userInfo;
+    }
+
+    private String getGoogleAccessToken(Map<String, Object> jsonData){
+        if (jsonData != null) {
+            return (String) jsonData.get("access_token");
+        } else {
+            throw new ReasApiException(HttpStatus.CONFLICT, "No access token retrieved from OAuth2");
+        }
+    }
+
+    private Map<String, Object> getGoogleJsonData(String authorizationCode){
+        Map<String, String> tokenRequest = Map.of(
+                "code", authorizationCode,
+                "client_id", googleClientId,
+                "client_secret", googleClientSecret,
+                "redirect_uri", redirectUri,
+                "grant_type", "authorization_code"
+        );
+
+        return restTemplate.postForObject(googleTokenUri, tokenRequest, Map.class);
     }
 
     private void validateUser(SignupDto dto){

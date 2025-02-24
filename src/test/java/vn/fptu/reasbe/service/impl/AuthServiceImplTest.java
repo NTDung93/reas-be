@@ -88,7 +88,7 @@ class AuthServiceImplTest {
         user.setPassword("encodedPassword");
 
         role = new Role();
-        role.setName(RoleName.ROLE_CUSTOMER);
+        role.setName(RoleName.ROLE_RESIDENT);
 
         // IMPORTANT: The expected constructor order is (email, fullName, password)
         signupDto = new SignupDto("test@example.com", "Test User", "password123");
@@ -145,7 +145,7 @@ class AuthServiceImplTest {
     // --- Tests for signupVerifiedUser() ---
     @Test
     void signupVerifiedUser_Success() {
-        when(roleRepository.findByName(RoleName.ROLE_CUSTOMER)).thenReturn(Optional.of(role));
+        when(roleRepository.findByName(RoleName.ROLE_RESIDENT)).thenReturn(Optional.of(role));
         // Simulate creation of a new user from signupDto
         User newUser = new User();
         newUser.setEmail(signupDto.getEmail());
@@ -170,7 +170,7 @@ class AuthServiceImplTest {
 
     @Test
     void signupVerifiedUser_RoleNotFound() {
-        when(roleRepository.findByName(RoleName.ROLE_CUSTOMER)).thenReturn(Optional.empty());
+        when(roleRepository.findByName(RoleName.ROLE_RESIDENT)).thenReturn(Optional.empty());
         ReasApiException exception = assertThrows(ReasApiException.class, () ->
                 authService.signupVerifiedUser(signupDto));
         assertEquals(HttpStatus.BAD_REQUEST, exception.getStatus());
@@ -264,7 +264,7 @@ class AuthServiceImplTest {
         })) {
             // Simulate that the user does not exist yet
             when(userRepository.findByEmail("google@example.com")).thenReturn(Optional.empty());
-            when(roleRepository.findByName(RoleName.ROLE_CUSTOMER)).thenReturn(Optional.of(role));
+            when(roleRepository.findByName(RoleName.ROLE_RESIDENT)).thenReturn(Optional.of(role));
             when(passwordEncoder.encode("Google:" + "12345")).thenReturn("encoded-google-pass");
             when(userRepository.save(any(User.class))).thenReturn(googleUser);
 
@@ -310,7 +310,7 @@ class AuthServiceImplTest {
             // Simulate that the user already exists
             when(userRepository.findByEmail("google@example.com")).thenReturn(Optional.of(existingUser));
             // IMPORTANT: Stub role lookup so that the role exists
-            when(roleRepository.findByName(RoleName.ROLE_CUSTOMER)).thenReturn(Optional.of(role));
+            when(roleRepository.findByName(RoleName.ROLE_RESIDENT)).thenReturn(Optional.of(role));
             // For the inner call to authenticateUser, stub dependencies:
             Authentication auth = mock(Authentication.class);
             when(authenticationManager.authenticate(any(UsernamePasswordAuthenticationToken.class))).thenReturn(auth);

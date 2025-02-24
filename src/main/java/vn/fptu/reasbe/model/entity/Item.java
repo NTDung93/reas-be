@@ -1,6 +1,7 @@
 package vn.fptu.reasbe.model.entity;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.List;
 
 import jakarta.persistence.*;
@@ -62,8 +63,18 @@ public class Item extends AbstractAuditableEntity {
     private List<MethodExchange> methodExchanges;
 
     @NotNull
+    @Column(name = "IS_MONEY_ACCEPTED")
+    private boolean isMoneyAccepted;
+
+    @NotNull
     @Column(name = "TYPE_EXCHANGE", length = 4)
     private TypeExchange typeExchange;
+
+    @Column(name = "TERMS_AND_CONDITIONS_EXCHANGE")
+    private String termsAndConditionsExchange;
+
+    @Column(name = "EXPIRED_TIME")
+    private LocalDateTime expiredTime;
 
     @ManyToOne
     @JoinColumn(name = "CATEGORY_ID")
