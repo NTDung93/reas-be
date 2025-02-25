@@ -29,7 +29,7 @@ public class UploadItemRequest {
     String itemName;
 
     @NotBlank(message = "Description cannot be blank")
-    @Size(min = 20, message = "Username must have at least 20 characters")
+    @Size(min = 20, message = "Description must have at least 20 characters")
     String description;
 
     BigDecimal price;
@@ -41,7 +41,7 @@ public class UploadItemRequest {
     String imageUrl;
 
     @NotEmpty(message = "Method of exchange cannot be empty")
-    @Size(min = 8, message = "Username must have at least 8 characters")
+    @Size(min = 1, message = "Method of exchanges must have at least 1 method")
     List<MethodExchange> methodExchanges;
 
     @NotNull(message = "Exchanging with money option cannot be null")

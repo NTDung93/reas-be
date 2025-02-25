@@ -5,6 +5,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import vn.fptu.reasbe.service.EmailService;
 import vn.fptu.reasbe.service.OtpService;
+
 import java.security.SecureRandom;
 
 @Service
@@ -23,7 +24,7 @@ public class OtpServiceImpl implements OtpService {
         return otp;
     }
 
-    private void sendOtpMail(String fullName, String email, String otp){
+    private void sendOtpMail(String fullName, String email, String otp) {
         String subject = "Your OTP for Account Verification";
         String content = "Dear " + fullName + ",<br><br>Your OTP for verification is <b>" + otp + "</b>.<br><br>Regards,<br>REAS Team";
         emailService.sendEmail(email, subject, content);

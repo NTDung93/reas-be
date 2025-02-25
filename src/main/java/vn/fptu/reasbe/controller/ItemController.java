@@ -1,9 +1,10 @@
 package vn.fptu.reasbe.controller;
 
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
-import lombok.Getter;
 import org.springframework.http.ResponseEntity;
 import org.springframework.lang.Nullable;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import lombok.RequiredArgsConstructor;
@@ -14,7 +15,6 @@ import vn.fptu.reasbe.model.enums.item.StatusItem;
 import vn.fptu.reasbe.service.ItemService;
 
 /**
- *
  * @author ntig
  */
 @RestController
@@ -36,24 +36,28 @@ public class ItemController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<ItemResponse> getItemDetail(@PathVariable("id") Integer id){
+    public ResponseEntity<ItemResponse> getItemDetail(@PathVariable("id") Integer id) {
         return ResponseEntity.ok(itemService.getItemDetail(id));
     }
 
+    @SecurityRequirement(name = AppConstants.SEC_REQ_NAME)
+    @PreAuthorize("hasRole('ROLE_RESIDENT')")
     @PostMapping()
-    public ResponseEntity<ItemResponse> uploadItem(@Valid @RequestBody UploadItemRequest request){
+    public ResponseEntity<ItemResponse> uploadItem(@Valid @RequestBody UploadItemRequest request) {
         return ResponseEntity.ok(itemService.uploadItem(request));
     }
 
+    @SecurityRequirement(name = AppConstants.SEC_REQ_NAME)
+    @PreAuthorize("hasRole('ROLE_RESIDENT')")
     @PutMapping()
-    public ResponseEntity<ItemResponse> updateItem(@Valid @RequestBody UpdateItemRequest request){
+    public ResponseEntity<ItemResponse> updateItem(@Valid @RequestBody UpdateItemRequest request) {
         return ResponseEntity.ok(itemService.updateItem(request));
     }
 
+    @SecurityRequirement(name = AppConstants.SEC_REQ_NAME)
+    @PreAuthorize("hasRole('ROLE_STAFF')")
     @PutMapping("/review")
-    public ResponseEntity<ItemResponse> reviewItem(@RequestParam("id") Integer id, @RequestParam("statusItem")StatusItem statusItem){
+    public ResponseEntity<ItemResponse> reviewItem(@RequestParam("id") Integer id, @RequestParam("statusItem") StatusItem statusItem) {
         return ResponseEntity.ok(itemService.reviewItem(id, statusItem));
     }
-
-
 }

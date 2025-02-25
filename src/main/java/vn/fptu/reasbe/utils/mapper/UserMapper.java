@@ -6,6 +6,7 @@ import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
 import org.mapstruct.NullValueCheckStrategy;
 
+import org.springframework.stereotype.Component;
 import vn.fptu.reasbe.model.dto.user.CreateStaffRequest;
 import vn.fptu.reasbe.model.dto.user.UpdateStaffRequest;
 import vn.fptu.reasbe.model.dto.user.UserResponse;
@@ -22,6 +23,7 @@ import vn.fptu.reasbe.model.entity.User;
                 LocationMapper.class
         }
 )
+@Component
 public interface UserMapper {
     @Mapping(target = "roleName", source = "role.name")
     UserResponse toUserResponse(User user);

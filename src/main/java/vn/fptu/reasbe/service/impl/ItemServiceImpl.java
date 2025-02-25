@@ -32,7 +32,6 @@ import vn.fptu.reasbe.utils.mapper.ItemMapper;
 import java.time.LocalDateTime;
 
 /**
- *
  * @author ntig
  */
 @Service
@@ -88,19 +87,29 @@ public class ItemServiceImpl implements ItemService {
         DesiredItem existedDesiredItem = existedItem.getDesiredItem();
         DesiredItemDto desiredItemDto = request.getDesiredItem();
 
-        if (existedDesiredItem != null && desiredItemDto == null) {
-            // Case 1: Remove the existing desired item
-            desiredItemRepository.delete(existedDesiredItem);
-            existedItem.setDesiredItem(null);
-        } else if (existedDesiredItem != null && desiredItemDto != null) {
-            // Case 2: Update the existing desired item
-            desiredItemMapper.updateDesiredItem(existedDesiredItem, desiredItemDto);
-            desiredItemRepository.save(existedDesiredItem);
-        } else if (existedDesiredItem == null && desiredItemDto != null) {
-            // Case 3: Add a new desired item
-            DesiredItem newDesiredItem = desiredItemMapper.toDesiredItem(desiredItemDto);
-            existedItem.setDesiredItem(desiredItemRepository.save(newDesiredItem));
+        if (desiredItemDto == null) {
+            // If there's an existing item, remove it
+            if (existedDesiredItem != null) {
+                desiredItemRepository.delete(existedDesiredItem);
+                existedItem.setDesiredItem(null);
+            }
+        } else {
+            // desiredItemDto is not null
+            validateDesiredItem(desiredItemDto);
+
+            if (existedDesiredItem != null) {
+                // Update existing desired item
+                desiredItemMapper.updateDesiredItem(existedDesiredItem, desiredItemDto);
+                updateDesiredItem(existedDesiredItem, desiredItemDto);
+                desiredItemRepository.save(existedDesiredItem);
+            } else {
+                // Create new desired item
+                DesiredItem newDesiredItem = desiredItemMapper.toDesiredItem(desiredItemDto);
+                updateDesiredItem(newDesiredItem, desiredItemDto);
+                existedItem.setDesiredItem(desiredItemRepository.save(newDesiredItem));
+            }
         }
+
 
         return itemMapper.toItemResponse(itemRepository.save(existedItem));
     }
@@ -109,19 +118,31 @@ public class ItemServiceImpl implements ItemService {
     public ItemResponse reviewItem(Integer id, StatusItem status) {
         Item pendingItem = getItemById(id);
 
+        if (!pendingItem.getStatusItem().equals(StatusItem.PENDING))
+            throw new ReasApiException(HttpStatus.BAD_REQUEST, "Only item with PENDING status allows to be reviewed.");
+
         if (status.equals(StatusItem.APPROVED)) {
             pendingItem.setStatusItem(StatusItem.APPROVED);
             pendingItem.setExpiredTime(LocalDateTime.now().plusWeeks(AppConstants.EXPIRED_TIME_WEEKS));
         } else if (status.equals(StatusItem.REJECTED)) {
             pendingItem.setStatusItem(StatusItem.REJECTED);
-        } else {
-            throw new ReasApiException(HttpStatus.BAD_REQUEST, "Invalid status for reviewing item");
         }
 
         return itemMapper.toItemResponse(itemRepository.save(pendingItem));
     }
 
-    private Item getItemById(Integer id){
+    private void updateDesiredItem(DesiredItem desiredItem, DesiredItemDto desiredItemDto) {
+        desiredItem.setBrand(brandService.getBrandById(desiredItemDto.getBrandId()));
+        desiredItem.setCategory(categoryService.getCategoryById(desiredItemDto.getCategoryId()));
+    }
+
+    private void validateDesiredItem(DesiredItemDto dto) {
+        if (dto.getMinPrice().compareTo(dto.getMaxPrice()) > 0) {
+            throw new ReasApiException(HttpStatus.BAD_REQUEST, "Min price must not be greater than max price.");
+        }
+    }
+
+    private Item getItemById(Integer id) {
         return itemRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Item", "id", id));
     }
@@ -134,9 +155,9 @@ public class ItemServiceImpl implements ItemService {
                 .orElse(null);
     }
 
-    private User getCurrentUser(){
-        String email = SecurityContextHolder.getContext().getAuthentication().getName();
-        return userRepository.findByEmail(email)
-                .orElseThrow(() -> new ResourceNotFoundException("User", "email", email));
+    private User getCurrentUser() {
+        String username = SecurityContextHolder.getContext().getAuthentication().getName();
+        return userRepository.findByUserName(username)
+                .orElseThrow(() -> new ResourceNotFoundException("User", "username", username));
     }
 }

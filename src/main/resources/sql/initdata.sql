@@ -124,7 +124,7 @@ INSERT INTO public."ROLE"
 VALUES
     ('ACTIVE', 'admin', NOW(), NULL, NULL, 0, 'ROLE_ADMIN'),
     ('ACTIVE', 'admin', NOW(), NULL, NULL, 0, 'ROLE_STAFF'),
-    ('ACTIVE', 'admin', NOW(), NULL, NULL, 0, 'ROLE_CUSTOMER');
+    ('ACTIVE', 'admin', NOW(), NULL, NULL, 0, 'ROLE_RESIDENT');
 
 -- Insert data into the USER table
 INSERT INTO public."USER"

@@ -19,8 +19,6 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
-import java.util.Map;
-
 @RestController
 @RequestMapping("/api/v1/auth")
 @RequiredArgsConstructor
@@ -29,21 +27,21 @@ public class AuthController {
     private final HttpHeaders headers = new HttpHeaders();
 
     @PostMapping("/login")
-    public ResponseEntity<JWTAuthResponse> authenticationUser(@RequestBody @Valid LoginDto loginDto){
+    public ResponseEntity<JWTAuthResponse> authenticationUser(@RequestBody @Valid LoginDto loginDto) {
         JWTAuthResponse jwtAuthResponse = authService.authenticateUser(loginDto);
         headers.add(AppConstants.AUTH_ATTR_NAME, AppConstants.AUTH_VALUE_PREFIX + jwtAuthResponse.getAccessToken());
         return new ResponseEntity<>(jwtAuthResponse, headers, HttpStatus.OK);
     }
 
     @PostMapping("/register/user")
-    public ResponseEntity<JWTAuthResponse> signupUser(@Valid @RequestBody SignupDto signupDto){
+    public ResponseEntity<JWTAuthResponse> signupUser(@Valid @RequestBody SignupDto signupDto) {
         JWTAuthResponse jwtAuthResponse = authService.signupVerifiedUser(signupDto);
         headers.add(AppConstants.AUTH_ATTR_NAME, AppConstants.AUTH_VALUE_PREFIX + jwtAuthResponse.getAccessToken());
         return new ResponseEntity<>(jwtAuthResponse, headers, HttpStatus.OK);
     }
 
     @PostMapping("/otp")
-    public ResponseEntity<String> sendOtp(@Valid @RequestBody SignupDto signupDto){
+    public ResponseEntity<String> sendOtp(@Valid @RequestBody SignupDto signupDto) {
         return ResponseEntity.ok(authService.validateAndSendOtp(signupDto));
     }
 
