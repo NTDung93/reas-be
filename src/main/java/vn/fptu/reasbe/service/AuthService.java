@@ -12,8 +12,18 @@ import jakarta.servlet.http.HttpServletResponse;
 
 public interface AuthService {
     JWTAuthResponse authenticateUser(LoginDto loginDto);
-    JWTAuthResponse signupUser(SignupDto signupDto);
+
+    String validateAndSendOtp(SignupDto dto);
+
+    JWTAuthResponse signupVerifiedUser(SignupDto signupDto);
+
+    String getGoogleLoginUrl();
+
+    JWTAuthResponse authenticateGoogleUser(String code);
+
     UserResponse getUserInfo();
+
     ResponseEntity<JWTAuthResponse> refreshToken(HttpServletRequest request, HttpServletResponse response);
+
     void changePassword(String oldPassword, String newPassword);
 }

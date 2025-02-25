@@ -20,4 +20,5 @@ public interface UserRepository extends JpaRepository<User, Integer>, QuerydslPr
     Optional<User> findByUserName(String username);
     List<User> findAllByRoleName(String roleName);
     int countUsersByStatusEntityEqualsAndRoleNameEquals(StatusEntity status, String roleName);
+    Optional<User> findByEmail(String email);
 }

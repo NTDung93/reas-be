@@ -1,22 +1,20 @@
 package vn.fptu.reasbe.controller;
 
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.lang.Nullable;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.*;
 
 import lombok.RequiredArgsConstructor;
 import vn.fptu.reasbe.model.constant.AppConstants;
 import vn.fptu.reasbe.model.dto.core.BaseSearchPaginationResponse;
-import vn.fptu.reasbe.model.dto.item.SearchItemRequest;
-import vn.fptu.reasbe.model.dto.item.SearchItemResponse;
+import vn.fptu.reasbe.model.dto.item.*;
+import vn.fptu.reasbe.model.enums.item.StatusItem;
 import vn.fptu.reasbe.service.ItemService;
 
 /**
- *
  * @author ntig
  */
 @RestController
@@ -35,5 +33,31 @@ public class ItemController {
             @RequestBody @Nullable SearchItemRequest request
     ) {
         return ResponseEntity.ok(itemService.searchItemPagination(pageNo, pageSize, sortBy, sortDir, request));
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<ItemResponse> getItemDetail(@PathVariable("id") Integer id) {
+        return ResponseEntity.ok(itemService.getItemDetail(id));
+    }
+
+    @SecurityRequirement(name = AppConstants.SEC_REQ_NAME)
+    @PreAuthorize("hasRole('ROLE_RESIDENT')")
+    @PostMapping()
+    public ResponseEntity<ItemResponse> uploadItem(@Valid @RequestBody UploadItemRequest request) {
+        return ResponseEntity.ok(itemService.uploadItem(request));
+    }
+
+    @SecurityRequirement(name = AppConstants.SEC_REQ_NAME)
+    @PreAuthorize("hasRole('ROLE_RESIDENT')")
+    @PutMapping()
+    public ResponseEntity<ItemResponse> updateItem(@Valid @RequestBody UpdateItemRequest request) {
+        return ResponseEntity.ok(itemService.updateItem(request));
+    }
+
+    @SecurityRequirement(name = AppConstants.SEC_REQ_NAME)
+    @PreAuthorize("hasRole('ROLE_STAFF')")
+    @PutMapping("/review")
+    public ResponseEntity<ItemResponse> reviewItem(@RequestParam("id") Integer id, @RequestParam("statusItem") StatusItem statusItem) {
+        return ResponseEntity.ok(itemService.reviewItem(id, statusItem));
     }
 }

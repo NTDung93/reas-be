@@ -37,6 +37,10 @@ public class DesiredItem extends AbstractAuditableEntity {
     @Column(name = "TYPE_ITEM", length = 4)
     private TypeItem typeItem;
 
+    @ManyToOne
+    @JoinColumn(name = "CATEGORY_ID")
+    private Category category;
+
     @NotNull
     @Column(name = "CONDITION_ITEM", length = 4)
     private ConditionItem conditionItem;

@@ -1,18 +1,12 @@
 package vn.fptu.reasbe.model.entity;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.List;
 
+import jakarta.persistence.*;
 import org.hibernate.Length;
 
-import jakarta.persistence.AttributeOverride;
-import jakarta.persistence.CascadeType;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.OneToOne;
-import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -64,12 +58,23 @@ public class Item extends AbstractAuditableEntity {
     private StatusItem statusItem;
 
     @NotNull
+    @ElementCollection
     @Column(name = "METHOD_EXCHANGE")
     private List<MethodExchange> methodExchanges;
 
     @NotNull
+    @Column(name = "IS_MONEY_ACCEPTED")
+    private boolean isMoneyAccepted;
+
+    @NotNull
     @Column(name = "TYPE_EXCHANGE", length = 4)
     private TypeExchange typeExchange;
+
+    @Column(name = "TERMS_AND_CONDITIONS_EXCHANGE")
+    private String termsAndConditionsExchange;
+
+    @Column(name = "EXPIRED_TIME")
+    private LocalDateTime expiredTime;
 
     @ManyToOne
     @JoinColumn(name = "CATEGORY_ID")

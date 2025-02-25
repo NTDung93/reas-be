@@ -3,11 +3,7 @@ package vn.fptu.reasbe.controller;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import vn.fptu.reasbe.model.constant.AppConstants;
 import vn.fptu.reasbe.model.dto.auth.JWTAuthResponse;
@@ -28,19 +24,37 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class AuthController {
     private final AuthService authService;
+    private final HttpHeaders headers = new HttpHeaders();
 
     @PostMapping("/login")
-    public ResponseEntity<JWTAuthResponse> authenticationUser(@RequestBody @Valid LoginDto loginDto){
+    public ResponseEntity<JWTAuthResponse> authenticationUser(@RequestBody @Valid LoginDto loginDto) {
         JWTAuthResponse jwtAuthResponse = authService.authenticateUser(loginDto);
-        HttpHeaders headers = new HttpHeaders();
         headers.add(AppConstants.AUTH_ATTR_NAME, AppConstants.AUTH_VALUE_PREFIX + jwtAuthResponse.getAccessToken());
         return new ResponseEntity<>(jwtAuthResponse, headers, HttpStatus.OK);
     }
 
-    @PostMapping(value = "/register/user")
-    public ResponseEntity<JWTAuthResponse> signupUser(@Valid @RequestBody SignupDto signupDto){
-        JWTAuthResponse response = authService.signupUser(signupDto);
-        return new ResponseEntity<>(response, HttpStatus.CREATED);
+    @PostMapping("/register/user")
+    public ResponseEntity<JWTAuthResponse> signupUser(@Valid @RequestBody SignupDto signupDto) {
+        JWTAuthResponse jwtAuthResponse = authService.signupVerifiedUser(signupDto);
+        headers.add(AppConstants.AUTH_ATTR_NAME, AppConstants.AUTH_VALUE_PREFIX + jwtAuthResponse.getAccessToken());
+        return new ResponseEntity<>(jwtAuthResponse, headers, HttpStatus.OK);
+    }
+
+    @PostMapping("/otp")
+    public ResponseEntity<String> sendOtp(@Valid @RequestBody SignupDto signupDto) {
+        return ResponseEntity.ok(authService.validateAndSendOtp(signupDto));
+    }
+
+    @PostMapping("/oauth2/login")
+    public ResponseEntity<String> handleGoogleLogin() {
+        return ResponseEntity.ok(authService.getGoogleLoginUrl());
+    }
+
+    @GetMapping("/oauth2/callback")
+    public ResponseEntity<JWTAuthResponse> handleGoogleCallback(@RequestParam("code") String code) {
+        JWTAuthResponse tokenResponse = authService.authenticateGoogleUser(code);
+        headers.add(AppConstants.AUTH_ATTR_NAME, AppConstants.AUTH_VALUE_PREFIX + tokenResponse.getAccessToken());
+        return ResponseEntity.ok(tokenResponse);
     }
 
     @PostMapping("/change-password")

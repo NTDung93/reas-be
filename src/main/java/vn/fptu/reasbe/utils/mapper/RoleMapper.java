@@ -3,6 +3,7 @@ package vn.fptu.reasbe.utils.mapper;
 import org.mapstruct.CollectionMappingStrategy;
 import org.mapstruct.Mapper;
 import org.mapstruct.NullValueCheckStrategy;
+import org.springframework.stereotype.Component;
 
 /**
  *
@@ -15,5 +16,6 @@ import org.mapstruct.NullValueCheckStrategy;
                 LocationMapper.class
         }
 )
+@Component
 public interface RoleMapper {
 }
