@@ -35,7 +35,7 @@ public class UserController {
     private final UserService userService;
 
     @PreAuthorize("hasRole('ROLE_ADMIN') or hasRole('ROLE_STAFF')")
-    @GetMapping("/search")
+    @PostMapping("/search")
     public ResponseEntity<BaseSearchPaginationResponse<UserResponse>> searchUserPagination(
             @RequestParam(name = "pageNo", defaultValue = AppConstants.DEFAULT_PAGE_NUMBER, required = false) int pageNo,
             @RequestParam(name = "pageSize", defaultValue = AppConstants.DEFAULT_PAGE_SIZE, required = false) int pageSize,
