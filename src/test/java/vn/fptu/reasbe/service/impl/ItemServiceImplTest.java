@@ -1,9 +1,15 @@
 package vn.fptu.reasbe.service.impl;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import java.math.BigDecimal;
 import java.util.Collections;
@@ -15,7 +21,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -26,8 +31,16 @@ import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import vn.fptu.reasbe.model.dto.core.BaseSearchPaginationResponse;
 import vn.fptu.reasbe.model.dto.desireditem.DesiredItemDto;
-import vn.fptu.reasbe.model.dto.item.*;
-import vn.fptu.reasbe.model.entity.*;
+import vn.fptu.reasbe.model.dto.item.ItemResponse;
+import vn.fptu.reasbe.model.dto.item.SearchItemRequest;
+import vn.fptu.reasbe.model.dto.item.SearchItemResponse;
+import vn.fptu.reasbe.model.dto.item.UpdateItemRequest;
+import vn.fptu.reasbe.model.dto.item.UploadItemRequest;
+import vn.fptu.reasbe.model.entity.Brand;
+import vn.fptu.reasbe.model.entity.Category;
+import vn.fptu.reasbe.model.entity.DesiredItem;
+import vn.fptu.reasbe.model.entity.Item;
+import vn.fptu.reasbe.model.entity.User;
 import vn.fptu.reasbe.model.enums.item.StatusItem;
 import vn.fptu.reasbe.model.exception.ReasApiException;
 import vn.fptu.reasbe.model.exception.ResourceNotFoundException;
@@ -40,11 +53,10 @@ import vn.fptu.reasbe.utils.mapper.DesiredItemMapper;
 import vn.fptu.reasbe.utils.mapper.ItemMapper;
 
 /**
- *
  * @author ntig
  */
 @ExtendWith(MockitoExtension.class)
-public class ItemServiceImplTest {
+class ItemServiceImplTest {
     @Mock
     private ItemRepository itemRepository;
 
@@ -134,7 +146,7 @@ public class ItemServiceImplTest {
     }
 
     @Test
-    public void testSearchItemPagination() {
+    void testSearchItemPagination() {
         // Arrange
         int pageNo = 0;
         int pageSize = 10;
@@ -161,12 +173,11 @@ public class ItemServiceImplTest {
         verify(itemMapper, times(1)).toSearchItemResponse(any(Item.class));
     }
 
-    // ✅ Test Upload Item
     @Test
     void testUploadItem_Success() {
         SecurityContext securityContext = mock(SecurityContext.class);
         SecurityContextHolder.setContext(securityContext);
-        Authentication authentication = Mockito.mock(Authentication.class);
+        Authentication authentication = mock(Authentication.class);
         when(securityContext.getAuthentication()).thenReturn(authentication);
         when(SecurityContextHolder.getContext().getAuthentication().getName()).thenReturn(username);
 
@@ -184,12 +195,11 @@ public class ItemServiceImplTest {
         verify(itemRepository, times(1)).save(any(Item.class));
     }
 
-    // ❌ Test Upload Item With Invalid Category
     @Test
     void testUploadItem_InvalidCategory_ThrowsException() {
         SecurityContext securityContext = mock(SecurityContext.class);
         SecurityContextHolder.setContext(securityContext);
-        Authentication authentication = Mockito.mock(Authentication.class);
+        Authentication authentication = mock(Authentication.class);
         when(securityContext.getAuthentication()).thenReturn(authentication);
         when(SecurityContextHolder.getContext().getAuthentication().getName()).thenReturn(username);
 
@@ -203,7 +213,6 @@ public class ItemServiceImplTest {
         assertTrue(exception.getMessage().contains("Category"));
     }
 
-    // ✅ Test Get Item By ID
     @Test
     void testGetItemDetail_Success() {
         when(itemRepository.findById(1)).thenReturn(Optional.of(mockItem));
@@ -215,7 +224,6 @@ public class ItemServiceImplTest {
         assertEquals(1, response.getId());
     }
 
-    // ❌ Test Get Item By ID (Not Found)
     @Test
     void testGetItemDetail_ItemNotFound_ThrowsException() {
         when(itemRepository.findById(1)).thenReturn(Optional.empty());
@@ -227,7 +235,6 @@ public class ItemServiceImplTest {
         assertTrue(exception.getMessage().contains("Item"));
     }
 
-    // ✅ Test Update Item
     @Test
     void testUpdateItem_Success() {
         UpdateItemRequest updateRequest = new UpdateItemRequest();
@@ -317,9 +324,6 @@ public class ItemServiceImplTest {
         verify(itemRepository, times(1)).save(mockItem);
     }
 
-
-
-    // ❌ Test Update Item (Not Found)
     @Test
     void testUpdateItem_ItemNotFound_ThrowsException() {
         UpdateItemRequest updateRequest = new UpdateItemRequest();
@@ -334,7 +338,6 @@ public class ItemServiceImplTest {
         assertTrue(exception.getMessage().contains("Item"));
     }
 
-    // ✅ Test Review Item (Approve)
     @Test
     void testReviewItem_Approve_Success() {
         when(itemRepository.findById(1)).thenReturn(Optional.of(mockItem));
@@ -361,7 +364,6 @@ public class ItemServiceImplTest {
         verify(itemRepository, times(1)).save(mockItem);
     }
 
-    // ❌ Test Review Item (Invalid Status)
     @Test
     void testReviewItem_StatusNotPending_ThrowsException() {
         mockItem.setStatusItem(StatusItem.APPROVED);
@@ -373,5 +375,4 @@ public class ItemServiceImplTest {
 
         assertTrue(exception.getMessage().contains("Only item with PENDING"));
     }
-
 }

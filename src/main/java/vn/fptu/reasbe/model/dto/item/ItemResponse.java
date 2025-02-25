@@ -1,6 +1,10 @@
 package vn.fptu.reasbe.model.dto.item;
 
-import lombok.*;
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 import lombok.experimental.FieldDefaults;
 import vn.fptu.reasbe.model.dto.brand.BrandDto;
 import vn.fptu.reasbe.model.dto.category.CategoryDto;

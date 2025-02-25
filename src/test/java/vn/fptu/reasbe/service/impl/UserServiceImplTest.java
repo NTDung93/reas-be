@@ -40,7 +40,7 @@ import vn.fptu.reasbe.service.EmailService;
 import vn.fptu.reasbe.utils.mapper.UserMapper;
 
 @ExtendWith(MockitoExtension.class)
-public class UserServiceImplTest {
+class UserServiceImplTest {
     @Mock
     private UserRepository userRepository;
 
@@ -67,7 +67,7 @@ public class UserServiceImplTest {
     private Role role;
 
     @BeforeEach
-    public void setUp() {
+    void setUp() {
         searchUserRequest = new SearchUserRequest();
         searchUserRequest.setUserName("john_doe");
         searchUserRequest.setFullName("John Doe");
@@ -113,7 +113,7 @@ public class UserServiceImplTest {
     }
 
     @Test
-    public void testSearchUserPagination() {
+    void testSearchUserPagination() {
         // Arrange
         int pageNo = 0;
         int pageSize = 10;
@@ -140,7 +140,7 @@ public class UserServiceImplTest {
     }
 
     @Test
-    public void testCreateNewStaff() {
+    void testCreateNewStaff() {
         // Arrange
         when(userRepository.existsByUserName(createStaffRequest.getUserName())).thenReturn(false);
         when(userRepository.existsByEmail(createStaffRequest.getEmail())).thenReturn(false);
@@ -169,7 +169,7 @@ public class UserServiceImplTest {
     }
 
     @Test
-    public void testCreateNewStaff_UserNameExists() {
+    void testCreateNewStaff_UserNameExists() {
         // Arrange
         when(userRepository.existsByUserName(createStaffRequest.getUserName())).thenReturn(true);
 
@@ -185,7 +185,7 @@ public class UserServiceImplTest {
     }
 
     @Test
-    public void testCreateNewStaff_EmailExists() {
+    void testCreateNewStaff_EmailExists() {
         // Arrange
         when(userRepository.existsByUserName(createStaffRequest.getUserName())).thenReturn(false);
         when(userRepository.existsByEmail(createStaffRequest.getEmail())).thenReturn(true);
@@ -203,7 +203,7 @@ public class UserServiceImplTest {
     }
 
     @Test
-    public void testCreateNewStaff_PasswordsDoNotMatch() {
+    void testCreateNewStaff_PasswordsDoNotMatch() {
         // Arrange
         createStaffRequest.setConfirmPassword("DifferentPassword");
 
@@ -217,7 +217,7 @@ public class UserServiceImplTest {
     }
 
     @Test
-    public void testUpdateStaff() {
+    void testUpdateStaff() {
         // Arrange
         when(userRepository.findById(updateStaffRequest.getId())).thenReturn(Optional.of(user));
         when(userRepository.existsByUserNameAndIdIsNot(updateStaffRequest.getUserName(), updateStaffRequest.getId())).thenReturn(false);
@@ -264,7 +264,7 @@ public class UserServiceImplTest {
     }
 
     @Test
-    public void testUpdateStaff_UserNotFound() {
+    void testUpdateStaff_UserNotFound() {
         // Arrange
         when(userRepository.findById(updateStaffRequest.getId())).thenReturn(Optional.empty());
 
@@ -280,7 +280,7 @@ public class UserServiceImplTest {
     }
 
     @Test
-    public void testUpdateStaff_UserNameExists() {
+    void testUpdateStaff_UserNameExists() {
         // Arrange
         when(userRepository.findById(updateStaffRequest.getId())).thenReturn(Optional.of(user));
         when(userRepository.existsByUserNameAndIdIsNot(updateStaffRequest.getUserName(), updateStaffRequest.getId())).thenReturn(true);
@@ -298,7 +298,7 @@ public class UserServiceImplTest {
     }
 
     @Test
-    public void testUpdateStaff_EmailExists() {
+    void testUpdateStaff_EmailExists() {
         // Arrange
         when(userRepository.findById(updateStaffRequest.getId())).thenReturn(Optional.of(user));
         when(userRepository.existsByEmailAndIdIsNot(updateStaffRequest.getEmail(), updateStaffRequest.getId())).thenReturn(true);
@@ -316,7 +316,7 @@ public class UserServiceImplTest {
     }
 
     @Test
-    public void testUpdateStaff_PasswordsDoNotMatch() {
+    void testUpdateStaff_PasswordsDoNotMatch() {
         // Arrange
         when(userRepository.findById(updateStaffRequest.getId())).thenReturn(Optional.of(user));
         updateStaffRequest.setConfirmPassword("DifferentPassword");
@@ -331,7 +331,7 @@ public class UserServiceImplTest {
     }
 
     @Test
-    public void testDeactivateStaff() {
+    void testDeactivateStaff() {
         // Arrange
         when(userRepository.findById(user.getId())).thenReturn(Optional.of(user));
 
@@ -346,7 +346,7 @@ public class UserServiceImplTest {
     }
 
     @Test
-    public void testDeactivateStaff_UserNotFound() {
+    void testDeactivateStaff_UserNotFound() {
         // Arrange
         when(userRepository.findById(user.getId())).thenReturn(Optional.empty());
 

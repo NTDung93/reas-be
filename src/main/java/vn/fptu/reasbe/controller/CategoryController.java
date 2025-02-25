@@ -19,7 +19,7 @@ public class CategoryController {
     private final CategoryService categoryService;
 
     @GetMapping
-    public ResponseEntity<List<CategoryResponse>> getAllCategory(@RequestParam TypeItem typeItem) {
+    public ResponseEntity<List<CategoryResponse>> getAllByTypeItem(@RequestParam TypeItem typeItem) {
         return ResponseEntity.ok(categoryService.getCategoryListByTypeItem(typeItem));
     }
 }

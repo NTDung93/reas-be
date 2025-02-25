@@ -12,10 +12,8 @@ import java.security.SecureRandom;
 @RequiredArgsConstructor
 @Transactional
 public class OtpServiceImpl implements OtpService {
-
     private final SecureRandom secureRandom = new SecureRandom();
     private final EmailService emailService;
-
 
     @Override
     public String generateAndSendOtp(String email, String fullName) {

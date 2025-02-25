@@ -1,6 +1,10 @@
 package vn.fptu.reasbe.utils.mapper;
 
-import org.mapstruct.*;
+import org.mapstruct.CollectionMappingStrategy;
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
+import org.mapstruct.MappingTarget;
+import org.mapstruct.NullValueCheckStrategy;
 import org.springframework.stereotype.Component;
 import vn.fptu.reasbe.model.dto.desireditem.DesiredItemDto;
 import vn.fptu.reasbe.model.dto.desireditem.DesiredItemResponse;
@@ -25,11 +29,5 @@ public interface DesiredItemMapper {
     @Mapping(target = "category", ignore = true)
     @Mapping(target = "brand", ignore = true)
     @Mapping(target = "item", ignore = true)
-    @Mapping(target = "statusEntity", ignore = true)
-    @Mapping(target = "createdBy", ignore = true)
-    @Mapping(target = "creationDate", ignore = true)
-    @Mapping(target = "lastModifiedBy", ignore = true)
-    @Mapping(target = "lastModificationDate", ignore = true)
-    @Mapping(target = "version", ignore = true)
     void updateDesiredItem(@MappingTarget DesiredItem desiredItem, DesiredItemDto dto);
 }
