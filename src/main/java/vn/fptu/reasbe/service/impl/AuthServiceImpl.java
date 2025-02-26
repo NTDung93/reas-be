@@ -12,6 +12,7 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -81,20 +82,29 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public JWTAuthResponse authenticateUser(LoginDto loginDto) {
-        Authentication authentication = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(loginDto.getUserNameOrEmailOrPhone(), loginDto.getPassword()));
-        SecurityContextHolder.getContext().setAuthentication(authentication);
         User user = userRepository.findByUserNameOrEmailOrPhone(
                 loginDto.getUserNameOrEmailOrPhone(),
                 loginDto.getUserNameOrEmailOrPhone(),
-                loginDto.getUserNameOrEmailOrPhone())
-                .orElseThrow(() -> new ResourceNotFoundException("User"));
-        String accessToken = jwtTokenProvider.generateAccessToken(user);
-        String refreshToken = jwtTokenProvider.generateRefreshToken(user);
+                loginDto.getUserNameOrEmailOrPhone()
+        ).orElseThrow(() -> new BadCredentialsException("Email is not exist!"));
 
-        revokeAllTokenByUser(user);
-        saveUserToken(accessToken, refreshToken, user);
-        return new JWTAuthResponse(accessToken, refreshToken);
+        try {
+            Authentication authentication = authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(loginDto.getUserNameOrEmailOrPhone(), loginDto.getPassword()));
+
+            SecurityContextHolder.getContext().setAuthentication(authentication);
+
+            String accessToken = jwtTokenProvider.generateAccessToken(user);
+            String refreshToken = jwtTokenProvider.generateRefreshToken(user);
+
+            revokeAllTokenByUser(user);
+            saveUserToken(accessToken, refreshToken, user);
+
+            return new JWTAuthResponse(accessToken, refreshToken);
+
+        } catch (BadCredentialsException e) {
+            throw new BadCredentialsException("Incorrect password!");
+        }
     }
 
     @Override

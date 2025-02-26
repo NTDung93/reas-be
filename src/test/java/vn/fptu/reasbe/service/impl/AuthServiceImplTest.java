@@ -14,6 +14,7 @@ import org.mockito.MockedConstruction;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.*;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
@@ -38,6 +39,7 @@ import vn.fptu.reasbe.service.EmailService;
 import vn.fptu.reasbe.service.OtpService;
 import vn.fptu.reasbe.utils.mapper.UserMapper;
 
+import javax.naming.AuthenticationException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -118,6 +120,32 @@ class AuthServiceImplTest {
         assertNotNull(response);
         assertEquals("access-token", response.getAccessToken());
         assertEquals("refresh-token", response.getRefreshToken());
+    }
+
+    @Test
+    void authenticateUser_EmailNotExist() {
+        when(userRepository.findByUserNameOrEmailOrPhone(anyString(), anyString(), anyString())).thenReturn(Optional.empty());
+
+        BadCredentialsException exception = assertThrows(BadCredentialsException.class, () ->
+                authService.authenticateUser(loginDto));
+
+        assertNotNull(exception);
+        assertEquals("Email is not exist!", exception.getMessage());
+    }
+
+    @Test
+    void authenticateUser_WrongPassword() {
+        when(userRepository.findByUserNameOrEmailOrPhone(anyString(), anyString(), anyString()))
+                .thenReturn(Optional.of(user));
+
+        when(authenticationManager.authenticate(any(UsernamePasswordAuthenticationToken.class)))
+                .thenThrow(new BadCredentialsException("Incorrect password!"));
+
+        BadCredentialsException exception = assertThrows(BadCredentialsException.class, () ->
+                authService.authenticateUser(loginDto));
+
+        assertNotNull(exception);
+        assertEquals("Incorrect password!", exception.getMessage());
     }
 
     // --- Tests for validateAndSendOtp() ---
