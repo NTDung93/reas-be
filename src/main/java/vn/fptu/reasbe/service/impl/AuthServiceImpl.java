@@ -117,6 +117,7 @@ public class AuthServiceImpl implements AuthService {
     public JWTAuthResponse signupVerifiedUser(SignupDto request) {
         Role userRole = roleRepository.findByName(RoleName.ROLE_RESIDENT)
                 .orElseThrow(() -> new ReasApiException(HttpStatus.BAD_REQUEST, "Role does not exist"));
+        validateUser(request);
         User user = getUser(request);
         user.setRole(userRole);
         user = userRepository.save(user);
