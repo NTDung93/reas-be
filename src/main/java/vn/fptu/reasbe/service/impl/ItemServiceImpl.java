@@ -34,6 +34,7 @@ import vn.fptu.reasbe.utils.mapper.DesiredItemMapper;
 import vn.fptu.reasbe.utils.mapper.ItemMapper;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 /**
  * @author ntig
@@ -55,6 +56,26 @@ public class ItemServiceImpl implements ItemService {
         Sort sort = sortDir.equalsIgnoreCase(Sort.Direction.ASC.name()) ? Sort.by(sortBy).ascending() : Sort.by(sortBy).descending();
         Pageable pageable = PageRequest.of(pageNo, pageSize, sort);
         return BaseSearchPaginationResponse.of(itemRepository.searchItemPagination(request, pageable).map(itemMapper::toSearchItemResponse));
+    }
+
+    @Override
+    public List<ItemResponse> getAllItemOfUser(Integer userId, StatusItem statusItem) {
+        if (statusItem.equals(StatusItem.AVAILABLE)) {
+            return itemRepository.findItemsByUserIdAndOrderedByCreationDate(userId)
+                    .stream()
+                    .map(itemMapper::toItemResponse)
+                    .toList();
+        } else if (statusItem.equals(StatusItem.NO_LONGER_FOR_EXCHANGE)) {
+            return getAllItemByUserIdAndStatusItem(userId, statusItem);
+        } else {
+            throw new ReasApiException(HttpStatus.BAD_REQUEST, "Incorrect status item for viewing other users' items!");
+        }
+    }
+
+    @Override
+    public List<ItemResponse> getAllItemOfCurrentUserByStatusItem(StatusItem statusItem) {
+        User user = getCurrentUser();
+        return getAllItemByUserIdAndStatusItem(user.getId(), statusItem);
     }
 
     @Override
@@ -119,20 +140,35 @@ public class ItemServiceImpl implements ItemService {
     }
 
     @Override
+    public List<ItemResponse> getAllPendingItem() {
+        return itemRepository.findAllByStatusItem(StatusItem.PENDING)
+                .stream()
+                .map(itemMapper::toItemResponse)
+                .toList();
+    }
+
+    @Override
     public ItemResponse reviewItem(Integer id, StatusItem status) {
         Item pendingItem = getItemById(id);
 
         if (!pendingItem.getStatusItem().equals(StatusItem.PENDING))
             throw new ReasApiException(HttpStatus.BAD_REQUEST, "Only item with PENDING status allows to be reviewed.");
 
-        if (status.equals(StatusItem.APPROVED)) {
-            pendingItem.setStatusItem(StatusItem.APPROVED);
+        if (status.equals(StatusItem.AVAILABLE)) {
+            pendingItem.setStatusItem(StatusItem.AVAILABLE);
             pendingItem.setExpiredTime(LocalDateTime.now().plusWeeks(AppConstants.EXPIRED_TIME_WEEKS));
         } else if (status.equals(StatusItem.REJECTED)) {
             pendingItem.setStatusItem(StatusItem.REJECTED);
         }
 
         return itemMapper.toItemResponse(itemRepository.save(pendingItem));
+    }
+
+    private List<ItemResponse> getAllItemByUserIdAndStatusItem(Integer userId, StatusItem statusItem) {
+        return itemRepository.findAllByOwnerIdAndStatusItemOrderByCreationDateDesc(userId, statusItem)
+                .stream()
+                .map(itemMapper::toItemResponse)
+                .toList();
     }
 
     private void updateDesiredItem(DesiredItem desiredItem, DesiredItemDto desiredItemDto) {

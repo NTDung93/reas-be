@@ -17,7 +17,6 @@ public enum StatusItem implements BaseEnum.CodeAccessible {
     EXPIRED("EXPI"),
     NO_LONGER_FOR_EXCHANGE("NLFE"),
     PENDING("PEND"),
-    APPROVED("APPR"),
     REJECTED("REJE");
 
     private final String code;

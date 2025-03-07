@@ -344,10 +344,10 @@ class ItemServiceImplTest {
         when(itemMapper.toItemResponse(mockItem)).thenReturn(mockItemResponse);
         when(itemRepository.save(any(Item.class))).thenReturn(mockItem);
 
-        ItemResponse response = itemServiceImpl.reviewItem(1, StatusItem.APPROVED);
+        ItemResponse response = itemServiceImpl.reviewItem(1, StatusItem.AVAILABLE);
 
         assertNotNull(response);
-        assertEquals(StatusItem.APPROVED, mockItem.getStatusItem());
+        assertEquals(StatusItem.AVAILABLE, mockItem.getStatusItem());
         verify(itemRepository, times(1)).save(mockItem);
     }
 
@@ -366,7 +366,7 @@ class ItemServiceImplTest {
 
     @Test
     void testReviewItem_StatusNotPending_ThrowsException() {
-        mockItem.setStatusItem(StatusItem.APPROVED);
+        mockItem.setStatusItem(StatusItem.AVAILABLE);
         when(itemRepository.findById(1)).thenReturn(Optional.of(mockItem));
 
         Exception exception = assertThrows(ReasApiException.class, () -> {
