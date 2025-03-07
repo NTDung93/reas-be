@@ -9,17 +9,25 @@ import vn.fptu.reasbe.model.dto.item.UpdateItemRequest;
 import vn.fptu.reasbe.model.dto.item.UploadItemRequest;
 import vn.fptu.reasbe.model.enums.item.StatusItem;
 
+import java.util.List;
+
 /**
  * @author ntig
  */
 public interface ItemService {
     BaseSearchPaginationResponse<SearchItemResponse> searchItemPagination(int pageNo, int pageSize, String sortBy, String sortDir, SearchItemRequest request);
 
+    List<ItemResponse> getAllItemOfUser(Integer userId, StatusItem statusItem);
+
+    List<ItemResponse> getAllItemOfCurrentUserByStatusItem(StatusItem statusItem);
+
     ItemResponse uploadItem(UploadItemRequest request);
 
     ItemResponse getItemDetail(Integer id);
 
     ItemResponse updateItem(UpdateItemRequest request);
+
+    List<ItemResponse> getAllPendingItem();
 
     ItemResponse reviewItem(Integer id, StatusItem status);
 }

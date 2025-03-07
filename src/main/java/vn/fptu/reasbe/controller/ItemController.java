@@ -14,6 +14,8 @@ import vn.fptu.reasbe.model.dto.item.*;
 import vn.fptu.reasbe.model.enums.item.StatusItem;
 import vn.fptu.reasbe.service.ItemService;
 
+import java.util.List;
+
 /**
  * @author ntig
  */
@@ -35,6 +37,22 @@ public class ItemController {
         return ResponseEntity.ok(itemService.searchItemPagination(pageNo, pageSize, sortBy, sortDir, request));
     }
 
+    @GetMapping("/user")
+    public ResponseEntity<List<ItemResponse>> getAllAvailableItemOfUser(
+            @RequestParam(value = "userId") Integer userId,
+            @RequestParam(value = "statusItem") StatusItem statusItem)
+    {
+        return ResponseEntity.ok(itemService.getAllItemOfUser(userId, statusItem));
+    }
+
+    @GetMapping("/current-user")
+    @PreAuthorize("hasRole('ROLE_RESIDENT')")
+    public ResponseEntity<List<ItemResponse>> getAllItemOfCurrentUserByStatus(
+             @RequestParam(value = "statusItem") StatusItem statusItem)
+    {
+        return ResponseEntity.ok(itemService.getAllItemOfCurrentUserByStatusItem(statusItem));
+    }
+
     @GetMapping("/{id}")
     public ResponseEntity<ItemResponse> getItemDetail(@PathVariable("id") Integer id) {
         return ResponseEntity.ok(itemService.getItemDetail(id));
@@ -52,6 +70,13 @@ public class ItemController {
     @PutMapping()
     public ResponseEntity<ItemResponse> updateItem(@Valid @RequestBody UpdateItemRequest request) {
         return ResponseEntity.ok(itemService.updateItem(request));
+    }
+
+    @SecurityRequirement(name = AppConstants.SEC_REQ_NAME)
+    @PreAuthorize("hasRole('ROLE_STAFF')")
+    @PutMapping("/pending")
+    public ResponseEntity<List<ItemResponse>> getAllPendingItem() {
+        return ResponseEntity.ok(itemService.getAllPendingItem());
     }
 
     @SecurityRequirement(name = AppConstants.SEC_REQ_NAME)
