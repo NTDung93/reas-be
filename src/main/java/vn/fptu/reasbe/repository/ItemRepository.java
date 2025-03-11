@@ -15,7 +15,7 @@ import java.util.Optional;
  * @author ntig
  */
 public interface ItemRepository extends JpaRepository<Item, Integer>, QuerydslPredicateExecutor<Item>, ItemRepositoryCustom {
-    Optional<Item> findAllByStatusItem(StatusItem statusItem);
+    List<Item> findAllByStatusItem(StatusItem statusItem);
     List<Item> findAllByOwnerId(Integer ownerId);
     List<Item> findAllByOwnerIdAndStatusItemOrderByCreationDateDesc(Integer ownerId, StatusItem statusItem);
 }
