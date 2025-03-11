@@ -74,7 +74,7 @@ public class ItemController {
 
     @SecurityRequirement(name = AppConstants.SEC_REQ_NAME)
     @PreAuthorize("hasRole('ROLE_STAFF')")
-    @PutMapping("/pending")
+    @GetMapping("/pending")
     public ResponseEntity<List<ItemResponse>> getAllPendingItem() {
         return ResponseEntity.ok(itemService.getAllPendingItem());
     }
