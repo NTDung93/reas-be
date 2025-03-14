@@ -11,10 +11,12 @@ import vn.fptu.reasbe.model.dto.category.CategoryDto;
 import vn.fptu.reasbe.model.dto.desireditem.DesiredItemResponse;
 import vn.fptu.reasbe.model.dto.user.UserResponse;
 import vn.fptu.reasbe.model.dto.userlocation.UserLocationDto;
+import vn.fptu.reasbe.model.enums.item.MethodExchange;
 import vn.fptu.reasbe.model.enums.item.StatusItem;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Getter
 @Setter
@@ -31,6 +33,7 @@ public class ItemResponse {
     Boolean moneyAccepted;
     String termsAndConditionsExchange;
     LocalDateTime expiredTime;
+    List<MethodExchange> methodExchanges;
     CategoryDto category;
     BrandDto brand;
     UserResponse owner;

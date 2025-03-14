@@ -16,7 +16,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import vn.fptu.reasbe.model.entity.core.AbstractAuditableEntity;
-import vn.fptu.reasbe.model.enums.category.TypeItem;
 import vn.fptu.reasbe.model.enums.item.ConditionItem;
 
 /**
@@ -32,10 +31,6 @@ import vn.fptu.reasbe.model.enums.item.ConditionItem;
 @Table(name = "DESIRED_ITEM")
 @AttributeOverride(name = "id", column = @Column(name = "DESIRED_ITEM_ID"))
 public class DesiredItem extends AbstractAuditableEntity {
-
-    @NotNull
-    @Column(name = "TYPE_ITEM", length = 4)
-    private TypeItem typeItem;
 
     @ManyToOne
     @JoinColumn(name = "CATEGORY_ID")
