@@ -17,6 +17,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import vn.fptu.reasbe.model.entity.core.AbstractAuditableEntity;
+import vn.fptu.reasbe.model.enums.exchange.StatusExchangeHistory;
 
 /**
  *
@@ -39,8 +40,27 @@ public class ExchangeHistory extends AbstractAuditableEntity {
     @Column(name = "SELLER_CONFIRMATION")
     private Boolean sellerConfirmation;
 
-    @Column(name = "ADDITIONAL_NOTES")
-    private String additionalNotes;
+    @Column(name = "BUYER_ITEM_IMAGE_URL")
+    private String buyerItemImageUrl;
+
+    @Column(name = "SELLER_ITEM_IMAGE_URL")
+    private String sellerItemImageUrl;
+
+    @Column(name = "BUYER_TRANSACTION_IMAGE_URL")
+    private String buyerTransactionImageUrl;
+
+    @Column(name = "SELLER_TRANSACTION_IMAGE_URL")
+    private String sellerTransactionImageUrl;
+
+    @Column(name = "BUYER_ADDITIONAL_NOTES")
+    private String buyerAdditionalNotes;
+
+    @Column(name = "SELLER_ADDITIONAL_NOTES")
+    private String sellerAdditionalNotes;
+
+    @NotNull
+    @Column(name = "STATUS_EXCHANGE_HISTORY", length = 4)
+    private StatusExchangeHistory statusExchangeHistory;
 
     @OneToMany(mappedBy = "exchangeHistory", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<Feedback> feedbacks = new HashSet<>();

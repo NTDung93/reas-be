@@ -1,3 +1,11 @@
+-- Insert data into the ROLE table
+INSERT INTO public."ROLE"
+("STATUS_ENTITY", "USR_LOG_I", "DTE_LOG_I", "DTE_LOG_U", "USR_LOG_U", "VERSION", "NAME")
+VALUES
+    ('ACTIVE', 'admin', NOW(), NULL, NULL, 0, 'ROLE_ADMIN'),
+    ('ACTIVE', 'admin', NOW(), NULL, NULL, 0, 'ROLE_STAFF'),
+    ('ACTIVE', 'admin', NOW(), NULL, NULL, 0, 'ROLE_RESIDENT');
+
 -- Insert data into the BRAND table
 INSERT INTO public."BRAND"
 ("STATUS_ENTITY", "USR_LOG_I", "DTE_LOG_I", "DTE_LOG_U", "USR_LOG_U", "VERSION", "BRAND_NAME", "DESCRIPTION", "IMAGE")
@@ -117,15 +125,6 @@ VALUES
     ('ACTIVE', 'admin', NOW(), NULL, NULL, 0, 'Digital Bathroom Scales', 'For personal health tracking.', 'BATH'),
     ('ACTIVE', 'admin', NOW(), NULL, NULL, 0, 'Others', 'Other appliances', 'BATH');
 
-
--- Insert data into the ROLE table
-INSERT INTO public."ROLE"
-("STATUS_ENTITY", "USR_LOG_I", "DTE_LOG_I", "DTE_LOG_U", "USR_LOG_U", "VERSION", "NAME")
-VALUES
-    ('ACTIVE', 'admin', NOW(), NULL, NULL, 0, 'ROLE_ADMIN'),
-    ('ACTIVE', 'admin', NOW(), NULL, NULL, 0, 'ROLE_STAFF'),
-    ('ACTIVE', 'admin', NOW(), NULL, NULL, 0, 'ROLE_RESIDENT');
-
 -- Insert data into the USER table
 INSERT INTO public."USER"
 ("STATUS_ENTITY", "USR_LOG_I", "DTE_LOG_I", "DTE_LOG_U", "USR_LOG_U", "VERSION", "EMAIL", "FULL_NAME", "GENDER", "IMAGE", "IS_FIRST_LOGIN", "PASSWORD", "PHONE", "USER_NAME", "ROLE_ID")
@@ -165,4 +164,42 @@ VALUES
     ('ACTIVE', 'admin', NOW(), NULL, NULL, 0, true, 'Room 302, Building B', 4, 7),  -- Hien Nhu - The Ascent
     ('ACTIVE', 'admin', NOW(), NULL, NULL, 0, false, 'Room 1206, Building D', 5, 7);  -- Hien Nhu - Saigon Pearl
 
+INSERT INTO public."DESIRED_ITEM"
+("STATUS_ENTITY", "USR_LOG_I", "DTE_LOG_I", "DTE_LOG_U", "USR_LOG_U", "VERSION", "CONDITION_ITEM", "MAX_PRICE", "MIN_PRICE", "BRAND_ID", "CATEGORY_ID")
+VALUES
+    ('ACTIVE', 'admin', NOW(), NULL, NULL, 0, 'GOOD', 13000000, 9000000, 7, 7), -- LG Smart TV 55 Inch
+    ('ACTIVE', 'admin', NOW(), NULL, NULL, 0, 'FAIR', 6000000, 4000000, 8, 8), -- TOTO Smart Toilet Seat
+    ('ACTIVE', 'admin', NOW(), NULL, NULL, 0, 'LNEW', 4000000, 2500000, 9, 9), -- Bosch Kitchen Mixer
+    ('ACTIVE', 'admin', NOW(), NULL, NULL, 0, 'EXCE', 3000000, 2000000, 10, 11); -- Eufy Video Doorbell
 
+INSERT INTO public."ITEM"
+("STATUS_ENTITY", "USR_LOG_I", "DTE_LOG_I", "DTE_LOG_U", "USR_LOG_U", "VERSION", "ITEM_NAME", "DESCRIPTION", "EXPIRED_TIME", "CONDITION_ITEM", "STATUS_ITEM", "CATEGORY_ID", "BRAND_ID", "IMAGE_URL", "OWNER_ID", "USER_LOCATION_ID", "TYPE_EXCHANGE", "PRICE", "DESIRED_ITEM_ID", "IS_MONEY_ACCEPTED")
+VALUES
+    ('ACTIVE', 'admin', NOW(), NULL, NULL, 0, 'Philips Air Fryer', 'Oil-free fryer with rapid air technology.', '2025-04-13 12:00:00', 'EXCE', 'AVAI', 1, 1, 'https://pisces.bbystatic.com/image2/BestBuy_US/images/products/6369/6369449_rd.jpg', 3, 1, 'OPEN', 250000, NULL, TRUE),
+    ('ACTIVE', 'admin', NOW(), NULL, NULL, 0, 'Samsung Front Load Washer', '9kg washing machine with eco-bubble technology.', '2025-04-28 12:00:00', 'LNEW', 'AVAI', 2, 2, 'https://pisces.bbystatic.com/image2/BestBuy_US/images/products/6323/6323149_sd.jpg', 3, 2, 'OPEN', 7500000, NULL, TRUE),
+    ('ACTIVE', 'admin', NOW(), NULL, NULL, 0, 'Dyson Air Purifier', 'Removes 99.97% of allergens and pollutants.', '2025-05-13 12:00:00', 'GOOD', 'PEND', 3, 3, 'https://dyson-h.assetsadobe2.com/is/image/content/dam/dyson/leap-petite-global/markets/thai/products/ec/tp07-bn-hepa13-pdp.png', 3, 3, 'OPEN', 4500000, NULL, FALSE),
+    ('ACTIVE', 'admin', NOW(), NULL, NULL, 0, 'Sony Bluetooth Speaker', 'Portable speaker with deep bass and 12-hour battery life.', '2025-04-13 12:00:00', 'EXCE', 'AVAI', 4, 4, 'https://static.bhphoto.com/images/images500x500/1590584805_1566561.jpg', 4, 5, 'OPEN', 1500000, NULL, TRUE),
+    ('ACTIVE', 'admin', NOW(), NULL, NULL, 0, 'Xiaomi Smart LED Bulb', 'Dimmable LED bulb with smart home integration.', '2025-04-03 12:00:00', 'LNEW', 'NLFE', 5, 5, 'https://www.mistorechile.cl/wp-content/uploads/2024/03/led-bulb-white-and-color-4-0021c55c-7990-4996-8b36-857ca8236398.png', 4, 6, 'OPEN', 200000, NULL, FALSE),
+    ('ACTIVE', 'admin', NOW(), NULL, NULL, 0, 'Panasonic Electric Blanket', 'Soft and cozy heated blanket with adjustable temperature.', '2025-04-23 12:00:00', 'BNEW', 'AVAI', 6, 6, 'https://panasonicjp.scene7.com/is/image/panasonicjp/DB-RM3M-C?fmt=png-alpha', 5, 7, 'OPEN', 800000, NULL, TRUE),
+    ('ACTIVE', 'admin', NOW(), NULL, NULL, 0, 'LG Smart TV 55 Inch', '4K UHD Smart TV with Dolby Vision and AI sound.', '2025-05-03 12:00:00', 'GOOD', 'AVAI', 7, 7, 'https://www.lg.com/content/dam/channel/wcms/vn/images/tivi/55uq7550psf_atv_eavh_vn_c/gallery/DZ-01.jpg', 5, 8, 'DESI', 12000000, 1, TRUE),
+    ('ACTIVE', 'admin', NOW(), NULL, NULL, 0, 'TOTO Smart Toilet Seat', 'Heated seat with bidet and self-cleaning function.', '2025-04-13 12:00:00', 'FAIR', 'AVAI', 8, 8, 'https://assets.totousa.com/MS922CUMFG/images/MS922CUMFG_01_2000_2000.webp', 6, 9, 'DESI', 5000000, 2, FALSE),
+    ('ACTIVE', 'admin', NOW(), NULL, NULL, 0, 'Bosch Kitchen Mixer', 'Stand mixer with multiple speed settings.', '2025-04-08 12:00:00', 'LNEW', 'AVAI', 9, 9, 'https://i.ytimg.com/vi/6_uLJQ14LKg/sddefault.jpg', 6, 10, 'DESI', 3500000, 3, FALSE),
+    ('ACTIVE', 'admin', NOW(), NULL, NULL, 0, 'Eufy Video Doorbell', 'Smart doorbell with 2K resolution and motion detection.', '2025-04-18 12:00:00', 'EXCE', 'AVAI', 11, 10, 'https://shopdocla.vn/wp-content/uploads/2023/10/z4797756818217_42bf1646bfebde0bf05707ddaec05c2a.jpg', 7, 12, 'DESI', 2500000, 4, FALSE);
+
+INSERT INTO public."ITEM_METHODEXCHANGES" ("ITEM_ITEM_ID", "METHOD_EXCHANGE") VALUES
+                                                                                  (1, 'PICK'),
+                                                                                  (1, 'MEET'),
+                                                                                  (2, 'DELI'),
+                                                                                  (3, 'MEET'),
+                                                                                  (3, 'PICK'),
+                                                                                  (4, 'PICK'),
+                                                                                  (5, 'DELI'),
+                                                                                  (5, 'MEET'),
+                                                                                  (6, 'MEET'),
+                                                                                  (7, 'DELI'),
+                                                                                  (7, 'PICK'),
+                                                                                  (8, 'PICK'),
+                                                                                  (9, 'MEET'),
+                                                                                  (9, 'DELI'),
+                                                                                  (10, 'DELI'),
+                                                                                  (10, 'PICK');
