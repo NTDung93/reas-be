@@ -33,6 +33,7 @@ public class ItemResponse {
     Boolean moneyAccepted;
     String termsAndConditionsExchange;
     LocalDateTime expiredTime;
+    LocalDateTime approvedTime;
     List<MethodExchange> methodExchanges;
     CategoryDto category;
     BrandDto brand;

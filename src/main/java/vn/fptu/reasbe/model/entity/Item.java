@@ -76,6 +76,9 @@ public class Item extends AbstractAuditableEntity {
     @Column(name = "EXPIRED_TIME")
     private LocalDateTime expiredTime;
 
+    @Column(name = "APPROVED_TIME")
+    private LocalDateTime approvedTime;
+
     @ManyToOne
     @JoinColumn(name = "CATEGORY_ID")
     private Category category;
@@ -91,6 +94,12 @@ public class Item extends AbstractAuditableEntity {
     @ManyToOne
     @JoinColumn(name = "USER_LOCATION_ID")
     private UserLocation userLocation;
+
+    @OneToMany(mappedBy = "sellerItem", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<ExchangeRequest> sellerExchangeRequests;
+
+    @OneToMany(mappedBy = "buyerItem", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<ExchangeRequest> buyerExchangeRequests;
 
     @OneToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "DESIRED_ITEM_ID")

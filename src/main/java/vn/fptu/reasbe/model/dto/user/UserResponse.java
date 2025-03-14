@@ -23,6 +23,9 @@ public class UserResponse {
     String email;
     String phone;
     Gender gender;
+    Integer numOfExchangedItems;
+    Integer numOfFeedbacks;
+    Double numOfRatings;
     StatusEntity statusEntity;
     String image;
     RoleName roleName;

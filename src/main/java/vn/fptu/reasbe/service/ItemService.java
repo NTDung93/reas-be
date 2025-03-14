@@ -7,6 +7,7 @@ import vn.fptu.reasbe.model.dto.item.SearchItemRequest;
 import vn.fptu.reasbe.model.dto.item.SearchItemResponse;
 import vn.fptu.reasbe.model.dto.item.UpdateItemRequest;
 import vn.fptu.reasbe.model.dto.item.UploadItemRequest;
+import vn.fptu.reasbe.model.entity.Item;
 import vn.fptu.reasbe.model.enums.item.StatusItem;
 
 import java.util.List;
@@ -16,6 +17,10 @@ import java.util.List;
  */
 public interface ItemService {
     BaseSearchPaginationResponse<SearchItemResponse> searchItemPagination(int pageNo, int pageSize, String sortBy, String sortDir, SearchItemRequest request);
+
+    Item getItemById(Integer id);
+
+    Item createItem(UploadItemRequest request);
 
     List<ItemResponse> getAllItemOfUser(Integer userId, StatusItem statusItem);
 

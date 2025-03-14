@@ -77,6 +77,12 @@ public class UserServiceImpl implements UserService {
         return true;
     }
 
+    @Override
+    public User getUserById(Integer id) {
+        return userRepository.findById(id)
+                .orElseThrow(() -> new ReasApiException(HttpStatus.BAD_REQUEST, "error.userNotFound"));
+    }
+
     private Role getStaffRole() {
         return roleRepository.findByName(RoleName.ROLE_STAFF)
                 .orElseThrow(() -> new ReasApiException(HttpStatus.BAD_REQUEST, "error.roleNotFound"));

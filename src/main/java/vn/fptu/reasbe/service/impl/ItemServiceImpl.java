@@ -30,10 +30,10 @@ import vn.fptu.reasbe.repository.UserRepository;
 import vn.fptu.reasbe.service.BrandService;
 import vn.fptu.reasbe.service.CategoryService;
 import vn.fptu.reasbe.service.ItemService;
+import vn.fptu.reasbe.utils.common.DateUtils;
 import vn.fptu.reasbe.utils.mapper.DesiredItemMapper;
 import vn.fptu.reasbe.utils.mapper.ItemMapper;
 
-import java.time.LocalDateTime;
 import java.util.List;
 
 /**
@@ -80,22 +80,7 @@ public class ItemServiceImpl implements ItemService {
 
     @Override
     public ItemResponse uploadItem(UploadItemRequest request) {
-        User currentUser = getCurrentUser();
-
-        Item newItem = itemMapper.toEntity(request);
-        newItem.setCategory(categoryService.getCategoryById(request.getCategoryId()));
-        newItem.setBrand(brandService.getBrandById(request.getBrandId()));
-        newItem.setOwner(currentUser);
-        newItem.setStatusItem(StatusItem.PENDING);
-        newItem.setUserLocation(getPrimaryUserLocation(currentUser));
-
-        if (request.getDesiredItem() != null) {
-            DesiredItem newDesiredItem = desiredItemMapper.toDesiredItem(request.getDesiredItem());
-            newDesiredItem.setCategory(categoryService.getCategoryById(request.getDesiredItem().getCategoryId()));
-            newDesiredItem.setBrand(brandService.getBrandById(request.getDesiredItem().getBrandId()));
-            newItem.setDesiredItem(desiredItemRepository.save(newDesiredItem));
-        }
-
+        Item newItem = createItem(request);
         return itemMapper.toItemResponse(itemRepository.save(newItem));
     }
 
@@ -156,7 +141,8 @@ public class ItemServiceImpl implements ItemService {
 
         if (status.equals(StatusItem.AVAILABLE)) {
             pendingItem.setStatusItem(StatusItem.AVAILABLE);
-            pendingItem.setExpiredTime(LocalDateTime.now().plusWeeks(AppConstants.EXPIRED_TIME_WEEKS));
+            pendingItem.setApprovedTime(DateUtils.getCurrentDateTime());
+            pendingItem.setExpiredTime(pendingItem.getApprovedTime().plusWeeks(AppConstants.EXPIRED_TIME_WEEKS));
         } else if (status.equals(StatusItem.REJECTED)) {
             pendingItem.setStatusItem(StatusItem.REJECTED);
         }
@@ -182,9 +168,30 @@ public class ItemServiceImpl implements ItemService {
         }
     }
 
-    private Item getItemById(Integer id) {
+    @Override
+    public Item getItemById(Integer id) {
         return itemRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Item", "id", id));
+    }
+
+    @Override
+    public Item createItem(UploadItemRequest request) {
+        User currentUser = getCurrentUser();
+
+        Item newItem = itemMapper.toEntity(request);
+        newItem.setCategory(categoryService.getCategoryById(request.getCategoryId()));
+        newItem.setBrand(brandService.getBrandById(request.getBrandId()));
+        newItem.setOwner(currentUser);
+        newItem.setStatusItem(StatusItem.PENDING);
+        newItem.setUserLocation(getPrimaryUserLocation(currentUser));
+
+        if (request.getDesiredItem() != null) {
+            DesiredItem newDesiredItem = desiredItemMapper.toDesiredItem(request.getDesiredItem());
+            newDesiredItem.setCategory(categoryService.getCategoryById(request.getDesiredItem().getCategoryId()));
+            newDesiredItem.setBrand(brandService.getBrandById(request.getDesiredItem().getBrandId()));
+            newItem.setDesiredItem(desiredItemRepository.save(newDesiredItem));
+        }
+        return newItem;
     }
 
     private UserLocation getPrimaryUserLocation(User user) {
