@@ -13,6 +13,7 @@ import vn.fptu.reasbe.model.dto.core.BaseSearchPaginationResponse;
 import vn.fptu.reasbe.model.dto.item.*;
 import vn.fptu.reasbe.model.enums.item.StatusItem;
 import vn.fptu.reasbe.service.ItemService;
+import vn.fptu.reasbe.utils.mapper.ItemMapper;
 
 import java.util.List;
 
@@ -25,6 +26,7 @@ import java.util.List;
 public class ItemController {
 
     private final ItemService itemService;
+    private final ItemMapper itemMapper;
 
     @GetMapping("/search")
     public ResponseEntity<BaseSearchPaginationResponse<SearchItemResponse>> searchItemPagination(
@@ -55,14 +57,14 @@ public class ItemController {
 
     @GetMapping("/{id}")
     public ResponseEntity<ItemResponse> getItemDetail(@PathVariable("id") Integer id) {
-        return ResponseEntity.ok(itemService.getItemDetail(id));
+        return ResponseEntity.ok(itemMapper.toItemResponse(itemService.getItemById(id)));
     }
 
     @SecurityRequirement(name = AppConstants.SEC_REQ_NAME)
     @PreAuthorize("hasRole('ROLE_RESIDENT')")
     @PostMapping()
     public ResponseEntity<ItemResponse> uploadItem(@Valid @RequestBody UploadItemRequest request) {
-        return ResponseEntity.ok(itemService.uploadItem(request));
+        return ResponseEntity.ok(itemMapper.toItemResponse(itemService.uploadItem(request)));
     }
 
     @SecurityRequirement(name = AppConstants.SEC_REQ_NAME)

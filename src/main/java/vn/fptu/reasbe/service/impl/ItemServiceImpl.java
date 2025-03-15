@@ -4,7 +4,6 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -20,20 +19,20 @@ import vn.fptu.reasbe.model.dto.item.UploadItemRequest;
 import vn.fptu.reasbe.model.entity.DesiredItem;
 import vn.fptu.reasbe.model.entity.Item;
 import vn.fptu.reasbe.model.entity.User;
-import vn.fptu.reasbe.model.entity.UserLocation;
 import vn.fptu.reasbe.model.enums.item.StatusItem;
 import vn.fptu.reasbe.model.exception.ReasApiException;
 import vn.fptu.reasbe.model.exception.ResourceNotFoundException;
 import vn.fptu.reasbe.repository.DesiredItemRepository;
 import vn.fptu.reasbe.repository.ItemRepository;
-import vn.fptu.reasbe.repository.UserRepository;
+import vn.fptu.reasbe.service.AuthService;
 import vn.fptu.reasbe.service.BrandService;
 import vn.fptu.reasbe.service.CategoryService;
 import vn.fptu.reasbe.service.ItemService;
+import vn.fptu.reasbe.service.UserService;
+import vn.fptu.reasbe.utils.common.DateUtils;
 import vn.fptu.reasbe.utils.mapper.DesiredItemMapper;
 import vn.fptu.reasbe.utils.mapper.ItemMapper;
 
-import java.time.LocalDateTime;
 import java.util.List;
 
 /**
@@ -45,8 +44,9 @@ import java.util.List;
 public class ItemServiceImpl implements ItemService {
     private final CategoryService categoryService;
     private final BrandService brandService;
+    private final UserService userService;
+    private final AuthService authService;
     private final ItemRepository itemRepository;
-    private final UserRepository userRepository;
     private final DesiredItemRepository desiredItemRepository;
     private final ItemMapper itemMapper;
     private final DesiredItemMapper desiredItemMapper;
@@ -74,34 +74,8 @@ public class ItemServiceImpl implements ItemService {
 
     @Override
     public List<ItemResponse> getAllItemOfCurrentUserByStatusItem(StatusItem statusItem) {
-        User user = getCurrentUser();
+        User user = authService.getCurrentUser();
         return getAllItemByUserIdAndStatusItem(user.getId(), statusItem);
-    }
-
-    @Override
-    public ItemResponse uploadItem(UploadItemRequest request) {
-        User currentUser = getCurrentUser();
-
-        Item newItem = itemMapper.toEntity(request);
-        newItem.setCategory(categoryService.getCategoryById(request.getCategoryId()));
-        newItem.setBrand(brandService.getBrandById(request.getBrandId()));
-        newItem.setOwner(currentUser);
-        newItem.setStatusItem(StatusItem.PENDING);
-        newItem.setUserLocation(getPrimaryUserLocation(currentUser));
-
-        if (request.getDesiredItem() != null) {
-            DesiredItem newDesiredItem = desiredItemMapper.toDesiredItem(request.getDesiredItem());
-            newDesiredItem.setCategory(categoryService.getCategoryById(request.getDesiredItem().getCategoryId()));
-            newDesiredItem.setBrand(brandService.getBrandById(request.getDesiredItem().getBrandId()));
-            newItem.setDesiredItem(desiredItemRepository.save(newDesiredItem));
-        }
-
-        return itemMapper.toItemResponse(itemRepository.save(newItem));
-    }
-
-    @Override
-    public ItemResponse getItemDetail(Integer id) {
-        return itemMapper.toItemResponse(getItemById(id));
     }
 
     @Override
@@ -156,7 +130,8 @@ public class ItemServiceImpl implements ItemService {
 
         if (status.equals(StatusItem.AVAILABLE)) {
             pendingItem.setStatusItem(StatusItem.AVAILABLE);
-            pendingItem.setExpiredTime(LocalDateTime.now().plusWeeks(AppConstants.EXPIRED_TIME_WEEKS));
+            pendingItem.setApprovedTime(DateUtils.getCurrentDateTime());
+            pendingItem.setExpiredTime(pendingItem.getApprovedTime().plusWeeks(AppConstants.EXPIRED_TIME_WEEKS));
         } else if (status.equals(StatusItem.REJECTED)) {
             pendingItem.setStatusItem(StatusItem.REJECTED);
         }
@@ -182,22 +157,29 @@ public class ItemServiceImpl implements ItemService {
         }
     }
 
-    private Item getItemById(Integer id) {
+    @Override
+    public Item getItemById(Integer id) {
         return itemRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Item", "id", id));
     }
 
-    private UserLocation getPrimaryUserLocation(User user) {
-        return user.getUserLocations()
-                .stream()
-                .filter(UserLocation::isPrimary)
-                .findFirst()
-                .orElse(null);
-    }
+    @Override
+    public Item uploadItem(UploadItemRequest request) {
+        User currentUser = authService.getCurrentUser();
 
-    private User getCurrentUser() {
-        String username = SecurityContextHolder.getContext().getAuthentication().getName();
-        return userRepository.findByUserName(username)
-                .orElseThrow(() -> new ResourceNotFoundException("User", "username", username));
+        Item newItem = itemMapper.toEntity(request);
+        newItem.setCategory(categoryService.getCategoryById(request.getCategoryId()));
+        newItem.setBrand(brandService.getBrandById(request.getBrandId()));
+        newItem.setOwner(currentUser);
+        newItem.setStatusItem(StatusItem.PENDING);
+        newItem.setUserLocation(userService.getPrimaryUserLocation(currentUser));
+
+        if (request.getDesiredItem() != null) {
+            DesiredItem newDesiredItem = desiredItemMapper.toDesiredItem(request.getDesiredItem());
+            newDesiredItem.setCategory(categoryService.getCategoryById(request.getDesiredItem().getCategoryId()));
+            newDesiredItem.setBrand(brandService.getBrandById(request.getDesiredItem().getBrandId()));
+            newItem.setDesiredItem(desiredItemRepository.save(newDesiredItem));
+        }
+        return itemRepository.save(newItem);
     }
 }
