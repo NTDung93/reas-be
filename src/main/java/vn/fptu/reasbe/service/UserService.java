@@ -6,6 +6,7 @@ import vn.fptu.reasbe.model.dto.user.SearchUserRequest;
 import vn.fptu.reasbe.model.dto.user.UpdateStaffRequest;
 import vn.fptu.reasbe.model.dto.user.UserResponse;
 import vn.fptu.reasbe.model.entity.User;
+import vn.fptu.reasbe.model.entity.UserLocation;
 
 /**
  * @author ntig
@@ -20,4 +21,6 @@ public interface UserService {
     Boolean deactivateStaff(Integer userId);
 
     User getUserById(Integer id);
+
+    UserLocation getPrimaryUserLocation(User user);
 }

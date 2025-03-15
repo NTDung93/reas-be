@@ -20,15 +20,11 @@ public interface ItemService {
 
     Item getItemById(Integer id);
 
-    Item createItem(UploadItemRequest request);
+    Item uploadItem(UploadItemRequest request);
 
     List<ItemResponse> getAllItemOfUser(Integer userId, StatusItem statusItem);
 
     List<ItemResponse> getAllItemOfCurrentUserByStatusItem(StatusItem statusItem);
-
-    ItemResponse uploadItem(UploadItemRequest request);
-
-    ItemResponse getItemDetail(Integer id);
 
     ItemResponse updateItem(UpdateItemRequest request);
 

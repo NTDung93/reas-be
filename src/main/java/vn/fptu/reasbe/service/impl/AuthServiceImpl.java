@@ -25,7 +25,6 @@ import vn.fptu.reasbe.model.constant.AppConstants;
 import vn.fptu.reasbe.model.dto.auth.JWTAuthResponse;
 import vn.fptu.reasbe.model.dto.auth.LoginDto;
 import vn.fptu.reasbe.model.dto.auth.SignupDto;
-import vn.fptu.reasbe.model.dto.user.UserResponse;
 import vn.fptu.reasbe.model.entity.Role;
 import vn.fptu.reasbe.model.entity.Token;
 import vn.fptu.reasbe.model.entity.User;
@@ -57,7 +56,6 @@ public class AuthServiceImpl implements AuthService {
     private final PasswordEncoder passwordEncoder;
     private final EmailService emailService;
     private final OtpService otpService;
-    private final UserMapper userMapper;
     private final JwtTokenProvider jwtTokenProvider;
 
     RestTemplate restTemplate = new RestTemplate();
@@ -118,7 +116,7 @@ public class AuthServiceImpl implements AuthService {
         Role userRole = roleRepository.findByName(RoleName.ROLE_RESIDENT)
                 .orElseThrow(() -> new ReasApiException(HttpStatus.BAD_REQUEST, "Role does not exist"));
         validateUser(request);
-        User user = getUser(request);
+        User user = prepareUserData(request);
         user.setRole(userRole);
         user = userRepository.save(user);
 
@@ -177,11 +175,10 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
-    public UserResponse getUserInfo() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String userName = authentication.getName();
-        User user = userRepository.findByUserNameOrEmailOrPhone(userName, userName, userName).orElseThrow(() -> new ResourceNotFoundException("User"));
-        return userMapper.toUserResponse(user);
+    public User getCurrentUser() {
+        String username = SecurityContextHolder.getContext().getAuthentication().getName();
+        return userRepository.findByUserName(username)
+                .orElseThrow(() -> new ResourceNotFoundException("User", "username", username));
     }
 
     @Override
@@ -300,7 +297,7 @@ public class AuthServiceImpl implements AuthService {
         }
     }
 
-    private User getUser(SignupDto signupDto) {
+    private User prepareUserData(SignupDto signupDto) {
         return User.builder()
                 .email(signupDto.getEmail())
                 .userName(signupDto.getEmail().substring(0, signupDto.getEmail().indexOf("@")))

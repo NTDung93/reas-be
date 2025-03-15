@@ -16,6 +16,7 @@ import vn.fptu.reasbe.model.dto.user.UpdateStaffRequest;
 import vn.fptu.reasbe.model.dto.user.UserResponse;
 import vn.fptu.reasbe.model.entity.Role;
 import vn.fptu.reasbe.model.entity.User;
+import vn.fptu.reasbe.model.entity.UserLocation;
 import vn.fptu.reasbe.model.enums.core.StatusEntity;
 import vn.fptu.reasbe.model.enums.user.RoleName;
 import vn.fptu.reasbe.model.exception.ReasApiException;
@@ -70,8 +71,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public Boolean deactivateStaff(Integer userId) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new ReasApiException(HttpStatus.BAD_REQUEST, "error.userNotFound"));
+        User user = getUserById(userId);
         user.setStatusEntity(StatusEntity.INACTIVE);
         userRepository.save(user);
         return true;
@@ -81,6 +81,15 @@ public class UserServiceImpl implements UserService {
     public User getUserById(Integer id) {
         return userRepository.findById(id)
                 .orElseThrow(() -> new ReasApiException(HttpStatus.BAD_REQUEST, "error.userNotFound"));
+    }
+
+    @Override
+    public UserLocation getPrimaryUserLocation(User user) {
+        return user.getUserLocations()
+                .stream()
+                .filter(UserLocation::isPrimary)
+                .findFirst()
+                .orElse(null);
     }
 
     private Role getStaffRole() {

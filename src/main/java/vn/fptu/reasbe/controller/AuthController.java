@@ -18,12 +18,14 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import vn.fptu.reasbe.utils.mapper.UserMapper;
 
 @RestController
 @RequestMapping("/api/v1/auth")
 @RequiredArgsConstructor
 public class AuthController {
     private final AuthService authService;
+    private final UserMapper userMapper;
     private final HttpHeaders headers = new HttpHeaders();
 
     @PostMapping("/login")
@@ -74,6 +76,6 @@ public class AuthController {
     @SecurityRequirement(name = AppConstants.SEC_REQ_NAME)
     @GetMapping("/info")
     public ResponseEntity<UserResponse> getInfo() {
-        return ResponseEntity.ok(authService.getUserInfo());
+        return ResponseEntity.ok(userMapper.toUserResponse(authService.getCurrentUser()));
     }
 }

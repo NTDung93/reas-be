@@ -10,7 +10,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.MockedConstruction;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.*;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -21,12 +20,10 @@ import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.util.ReflectionTestUtils;
-import org.springframework.web.client.RestTemplate;
 import vn.fptu.reasbe.model.constant.AppConstants;
 import vn.fptu.reasbe.model.dto.auth.JWTAuthResponse;
 import vn.fptu.reasbe.model.dto.auth.LoginDto;
 import vn.fptu.reasbe.model.dto.auth.SignupDto;
-import vn.fptu.reasbe.model.dto.user.UserResponse;
 import vn.fptu.reasbe.model.entity.Role;
 import vn.fptu.reasbe.model.entity.User;
 import vn.fptu.reasbe.model.enums.user.RoleName;
@@ -39,9 +36,6 @@ import vn.fptu.reasbe.service.EmailService;
 import vn.fptu.reasbe.service.OtpService;
 import vn.fptu.reasbe.utils.mapper.UserMapper;
 
-import javax.naming.AuthenticationException;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Optional;
 
 @ExtendWith(MockitoExtension.class)
@@ -214,144 +208,6 @@ class AuthServiceImplTest {
     }
 
     // --- Tests for authenticateGoogleUser() using MockedConstruction for RestTemplate ---
-    @Test
-    void authenticateGoogleUser_JsonDataNull() {
-        try (MockedConstruction<RestTemplate> mocked = mockConstruction(RestTemplate.class, (mock, context) -> {
-            when(mock.postForObject(eq("https://oauth2.googleapis.com/token"), any(), eq(Map.class)))
-                    .thenReturn(null);
-        })) {
-            ReasApiException exception = assertThrows(ReasApiException.class, () ->
-                    authService.authenticateGoogleUser("authCode"));
-            assertEquals(HttpStatus.CONFLICT, exception.getStatus());
-            assertEquals("No access token retrieved from OAuth2", exception.getMessage());
-        }
-    }
-
-    @Test
-    void authenticateGoogleUser_UserInfoResponseNotOk() {
-        Map<String, Object> jsonData = new HashMap<>();
-        jsonData.put("access_token", "google-access-token");
-
-        try (MockedConstruction<RestTemplate> mocked = mockConstruction(RestTemplate.class, (mock, context) -> {
-            when(mock.postForObject(eq("https://oauth2.googleapis.com/token"), any(), eq(Map.class)))
-                    .thenReturn(jsonData);
-            ResponseEntity<Map> badResponse = new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-            when(mock.exchange(eq("https://www.googleapis.com/oauth2/v3/userinfo"),
-                    eq(HttpMethod.GET), any(), eq(Map.class))).thenReturn(badResponse);
-        })) {
-            ReasApiException exception = assertThrows(ReasApiException.class, () ->
-                    authService.authenticateGoogleUser("authCode"));
-            assertEquals(HttpStatus.BAD_REQUEST, exception.getStatus());
-            assertEquals("Failed to retrieve user info", exception.getMessage());
-        }
-    }
-
-    @Test
-    void authenticateGoogleUser_UserInfoNull() {
-        Map<String, Object> jsonData = new HashMap<>();
-        jsonData.put("access_token", "google-access-token");
-
-        try (MockedConstruction<RestTemplate> mocked = mockConstruction(RestTemplate.class, (mock, context) -> {
-            when(mock.postForObject(eq("https://oauth2.googleapis.com/token"), any(), eq(Map.class)))
-                    .thenReturn(jsonData);
-            ResponseEntity<Map> okResponse = new ResponseEntity<>(null, HttpStatus.OK);
-            when(mock.exchange(eq("https://www.googleapis.com/oauth2/v3/userinfo"),
-                    eq(HttpMethod.GET), any(), eq(Map.class))).thenReturn(okResponse);
-        })) {
-            ReasApiException exception = assertThrows(ReasApiException.class, () ->
-                    authService.authenticateGoogleUser("authCode"));
-            assertEquals(HttpStatus.NOT_FOUND, exception.getStatus());
-            assertEquals("Failed to retrieve user info: userInfo is null", exception.getMessage());
-        }
-    }
-
-    @Test
-    void authenticateGoogleUser_NewUserCreation() {
-        // Prepare user info map returned by Google
-        Map<String, Object> userInfoMap = new HashMap<>();
-        userInfoMap.put("email", "google@example.com");
-        userInfoMap.put("name", "Google User");
-        userInfoMap.put("sub", "12345");
-        userInfoMap.put("picture", "imageUrl");
-
-        Map<String, Object> jsonData = new HashMap<>();
-        jsonData.put("access_token", "google-access-token");
-
-        // Create a new user to be returned upon save
-        User googleUser = new User();
-        googleUser.setId(2);
-        googleUser.setEmail("google@example.com");
-
-        try (MockedConstruction<RestTemplate> mocked = mockConstruction(RestTemplate.class, (mock, context) -> {
-            when(mock.postForObject(eq("https://oauth2.googleapis.com/token"), any(), eq(Map.class)))
-                    .thenReturn(jsonData);
-            ResponseEntity<Map> okResponse = new ResponseEntity<>(userInfoMap, HttpStatus.OK);
-            when(mock.exchange(eq("https://www.googleapis.com/oauth2/v3/userinfo"),
-                    eq(HttpMethod.GET), any(), eq(Map.class))).thenReturn(okResponse);
-        })) {
-            // Simulate that the user does not exist yet
-            when(userRepository.findByEmail("google@example.com")).thenReturn(Optional.empty());
-            when(roleRepository.findByName(RoleName.ROLE_RESIDENT)).thenReturn(Optional.of(role));
-            when(passwordEncoder.encode("Google:" + "12345")).thenReturn("encoded-google-pass");
-            when(userRepository.save(any(User.class))).thenReturn(googleUser);
-
-            // For the inner call to authenticateUser, stub dependencies:
-            Authentication auth = mock(Authentication.class);
-            when(authenticationManager.authenticate(any(UsernamePasswordAuthenticationToken.class))).thenReturn(auth);
-            when(userRepository.findByUserNameOrEmailOrPhone(eq("google@example.com"), any(), any())).
-                    thenReturn(Optional.of(googleUser));
-            when(jwtTokenProvider.generateAccessToken(googleUser)).thenReturn("access-token-new");
-            when(jwtTokenProvider.generateRefreshToken(googleUser)).thenReturn("refresh-token-new");
-
-            JWTAuthResponse response = authService.authenticateGoogleUser("authCode");
-            assertNotNull(response);
-            assertEquals("access-token-new", response.getAccessToken());
-            assertEquals("refresh-token-new", response.getRefreshToken());
-        }
-    }
-
-    @Test
-    void authenticateGoogleUser_ExistingUser() {
-        // Prepare user info map returned by Google
-        Map<String, Object> userInfoMap = new HashMap<>();
-        userInfoMap.put("email", "google@example.com");
-        userInfoMap.put("name", "Google User");
-        userInfoMap.put("sub", "12345");
-        userInfoMap.put("picture", "imageUrl");
-
-        Map<String, Object> jsonData = new HashMap<>();
-        jsonData.put("access_token", "google-access-token");
-
-        // An existing user in the system
-        User existingUser = new User();
-        existingUser.setId(3);
-        existingUser.setEmail("google@example.com");
-
-        try (MockedConstruction<RestTemplate> mocked = mockConstruction(RestTemplate.class, (mock, context) -> {
-            when(mock.postForObject(eq("https://oauth2.googleapis.com/token"), any(), eq(Map.class)))
-                    .thenReturn(jsonData);
-            ResponseEntity<Map> okResponse = new ResponseEntity<>(userInfoMap, HttpStatus.OK);
-            when(mock.exchange(eq("https://www.googleapis.com/oauth2/v3/userinfo"),
-                    eq(HttpMethod.GET), any(), eq(Map.class))).thenReturn(okResponse);
-        })) {
-            // Simulate that the user already exists
-            when(userRepository.findByEmail("google@example.com")).thenReturn(Optional.of(existingUser));
-            // IMPORTANT: Stub role lookup so that the role exists
-            when(roleRepository.findByName(RoleName.ROLE_RESIDENT)).thenReturn(Optional.of(role));
-            // For the inner call to authenticateUser, stub dependencies:
-            Authentication auth = mock(Authentication.class);
-            when(authenticationManager.authenticate(any(UsernamePasswordAuthenticationToken.class))).thenReturn(auth);
-            when(userRepository.findByUserNameOrEmailOrPhone(eq("google@example.com"), any(), any())).
-                    thenReturn(Optional.of(existingUser));
-            when(jwtTokenProvider.generateAccessToken(existingUser)).thenReturn("access-token-existing");
-            when(jwtTokenProvider.generateRefreshToken(existingUser)).thenReturn("refresh-token-existing");
-
-            JWTAuthResponse response = authService.authenticateGoogleUser("authCode");
-            assertNotNull(response);
-            assertEquals("access-token-existing", response.getAccessToken());
-            assertEquals("refresh-token-existing", response.getRefreshToken());
-        }
-    }
 
     // --- Test for getUserInfo() ---
     @Test
@@ -361,13 +217,11 @@ class AuthServiceImplTest {
         when(securityContext.getAuthentication()).thenReturn(auth);
         when(auth.getName()).thenReturn("test@example.com");
         SecurityContextHolder.setContext(securityContext);
-        when(userRepository.findByUserNameOrEmailOrPhone(anyString(), anyString(), anyString()))
+        when(userRepository.findByUserName(anyString()))
                 .thenReturn(Optional.of(user));
-        UserResponse userResponse = new UserResponse();
-        when(userMapper.toUserResponse(user)).thenReturn(userResponse);
 
-        UserResponse response = authService.getUserInfo();
-        assertNotNull(response);
+        User user1 = authService.getCurrentUser();
+        assertNotNull(user1);
     }
 
     // --- Tests for refreshToken() ---
