@@ -14,7 +14,6 @@ import vn.fptu.reasbe.model.entity.ExchangeRequest;
 import vn.fptu.reasbe.model.entity.Feedback;
 import vn.fptu.reasbe.model.entity.User;
 import vn.fptu.reasbe.model.enums.exchange.StatusExchangeHistory;
-import vn.fptu.reasbe.model.enums.exchange.StatusExchangeRequest;
 
 import java.util.Objects;
 import java.util.stream.Stream;
@@ -44,38 +43,38 @@ public interface UserMapper {
     @Mapping(target = "password", ignore = true)
     void updateUser(@MappingTarget User user, UpdateStaffRequest request);
 
+    // Count successful exchanges (both as seller and buyer)
     default Integer mapNumOfExchangedItems(User user) {
         if (user.getItems() == null) return 0;
 
         return (int) user.getItems().stream()
                 .flatMap(item -> Stream.concat(
-                        item.getSellerExchangeRequests().stream(),
-                        item.getBuyerExchangeRequests().stream()
+                        item.getSellerExchangeRequests() != null ? item.getSellerExchangeRequests().stream() : Stream.empty(),
+                        item.getBuyerExchangeRequests() != null ? item.getBuyerExchangeRequests().stream() : Stream.empty()
                 ))
-                .filter(er -> er.getStatusExchangeRequest() == StatusExchangeRequest.APPROVED)
                 .filter(er -> er.getExchangeHistory() != null)
                 .filter(er -> er.getExchangeHistory().getStatusExchangeHistory() == StatusExchangeHistory.SUCCESSFUL)
                 .count();
     }
 
-    // Only count feedback from seller transactions
+    // Count feedbacks only from seller transactions
     default Integer mapNumOfFeedbacks(User user) {
         if (user.getItems() == null) return 0;
 
         return user.getItems().stream()
-                .flatMap(item -> item.getSellerExchangeRequests().stream()) // Only seller-side exchange requests
+                .flatMap(item -> item.getSellerExchangeRequests() != null ? item.getSellerExchangeRequests().stream() : Stream.empty())
                 .map(ExchangeRequest::getExchangeHistory)
                 .filter(Objects::nonNull)
                 .mapToInt(eh -> eh.getFeedbacks() != null ? eh.getFeedbacks().size() : 0)
                 .sum();
     }
 
-    // Only get ratings from seller transactions
+    // Calculate average rating only from seller transactions
     default Double mapNumOfRatings(User user) {
         if (user.getItems() == null) return 0.0;
 
         return user.getItems().stream()
-                .flatMap(item -> item.getSellerExchangeRequests().stream()) // Only seller-side exchange requests
+                .flatMap(item -> item.getSellerExchangeRequests() != null ? item.getSellerExchangeRequests().stream() : Stream.empty())
                 .map(ExchangeRequest::getExchangeHistory)
                 .filter(Objects::nonNull)
                 .flatMap(eh -> eh.getFeedbacks() != null ? eh.getFeedbacks().stream() : Stream.empty())

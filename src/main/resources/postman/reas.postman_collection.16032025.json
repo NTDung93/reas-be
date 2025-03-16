@@ -1,0 +1,485 @@
+{
+	"info": {
+		"_postman_id": "51831739-1ba6-47f2-86db-bf000a3eca69",
+		"name": "reas",
+		"schema": "https://schema.getpostman.com/json/collection/v2.0.0/collection.json",
+		"_exporter_id": "29966508"
+	},
+	"item": [
+		{
+			"name": "Auth",
+			"item": [
+				{
+					"name": "Signup",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer ya29.a0AXeO80QCCACWZA_phyhjrAQ80GDTJbkytOyFhw6nVF3dgYGa-tbLPXlyDPbFLonthHdM7mEIg-Y7AwFDUp5GYYj0JJSyeCf7a9jDSuGNomITqJI1U1Oiz4056Hnzcf2BIBZtho2yCYVlKNRYfdtoggYL6ySQKvZY7ZQLBV3oaCgYKAQsSARMSFQHGX2MiD4qmfCdXi6zrXRwijGEqaw0175\"",
+								"type": "text",
+								"disabled": true
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"email\": \"henryvn2003@gmail.com\",\r\n    \"password\": \"Oishi2003!\",\r\n    \"fullName\": \"Nguyễn Lê Ngọc Ki\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": "http://localhost:8080/api/v1/auth/register/user"
+					},
+					"response": []
+				},
+				{
+					"name": "Google Login URL Fetch",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": "http://localhost:8080/api/v1/auth/oauth2/login"
+					},
+					"response": []
+				},
+				{
+					"name": "Verify OTP",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"email\": \"henryvn2003@gmail.com\",\r\n    \"password\": \"Oishi2003!\",\r\n    \"fullName\": \"Nguyễn Lê Ngọc Ki\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": "http://localhost:8080/api/v1/auth/otp"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Profile",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": {
+								"token": "eyJhbGciOiJIUzM4NCJ9.eyJzdWIiOiJjdW9uZ25sbnNlMTcxNjgyIiwiaWF0IjoxNzQwMjkwMDExLCJleHAiOjE3NDAzNzY0MTF9.7KSncGGBDJiCfk-VIIpVxUN1avmZYmNvzROgjzsXRWE5SvjmgeQaO6BR_xiOInAV"
+							}
+						},
+						"method": "GET",
+						"header": [],
+						"url": "http://localhost:8080/api/v1/auth/info"
+					},
+					"response": []
+				},
+				{
+					"name": "Login Resident",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"userNameOrEmailOrPhone\": \"tiendung@reas.vn\",\r\n    \"password\": \"password123\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": "http://localhost:8080/api/v1/auth/login/resident"
+					},
+					"response": []
+				},
+				{
+					"name": "Login Admin",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"userNameOrEmailOrPhone\": \"ducanh@reas.vn\",\r\n    \"password\": \"password123\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": "http://localhost:8080/api/v1/auth/login/admin"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Item",
+			"item": [
+				{
+					"name": "Upload Item",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": {
+								"token": "eyJhbGciOiJIUzM4NCJ9.eyJzdWIiOiJjdW9uZ25sbnNlMTcxNjgyIiwiaWF0IjoxNzQwNDczNDY4LCJleHAiOjE3NDA1NTk4Njh9.wdoNGiPiZNoA_I-a9j_YrJosE24_9koijsH77Sd0qxQvlCxXORIeXdUO3ExchS-F"
+							}
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"itemName\": \"Refrigeratior\",\r\n    \"description\": \"A sturdy wooden sofa set that seats six people, perfect for family TV binge-watching session.\",\r\n    \"price\": 2500000,\r\n    \"conditionItem\": \"LIKE_NEW\",\r\n    \"imageUrl\": \"hehehehe\",\r\n    \"methodExchanges\": [\r\n        \"PICK_UP_IN_PERSON\",\r\n        \"DELIVERY\"\r\n    ],\r\n    \"isMoneyAccepted\": true,\r\n    \"typeExchange\": \"OPEN_EXCHANGE\",\r\n    \"typeItem\": \"LIVING_ROOM_APPLIANCES\",\r\n    \"termsAndConditionsExchange\": \"Looking for a fair trade with another furniture item.\",\r\n    \"categoryId\": 2,\r\n    \"brandId\": 2,\r\n    \"desiredItem\": {\r\n        \"typeItem\": \"KITCHEN_APPLIANCES\",\r\n        \"categoryId\": 1,\r\n        \"brandId\": 1,\r\n        \"conditionItem\": \"LIKE_NEW\",\r\n        \"minPrice\": 100000,\r\n        \"maxPrice\": 150000\r\n    }\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": "http://localhost:8080/api/v1/item"
+					},
+					"response": []
+				},
+				{
+					"name": "Update Item",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": {
+								"token": "eyJhbGciOiJIUzM4NCJ9.eyJzdWIiOiJjdW9uZ25sbnNlMTcxNjgyIiwiaWF0IjoxNzQwNDczNDY4LCJleHAiOjE3NDA1NTk4Njh9.wdoNGiPiZNoA_I-a9j_YrJosE24_9koijsH77Sd0qxQvlCxXORIeXdUO3ExchS-F"
+							}
+						},
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"id\": 5,\r\n    \"itemName\": \"Refrigeratior\",\r\n    \"description\": \"A sturdy wooden sofa set that seats six people, perfect for family TV binge-watching session.\",\r\n    \"price\": 2500000,\r\n    \"conditionItem\": \"LIKE_NEW\",\r\n    \"imageUrl\": \"hehehehe\",\r\n    \"methodExchanges\": [\r\n        \"PICK_UP_IN_PERSON\",\r\n        \"DELIVERY\"\r\n    ],\r\n    \"isMoneyAccepted\": true,\r\n    \"typeExchange\": \"OPEN_EXCHANGE\",\r\n    \"typeItem\": \"LIVING_ROOM_APPLIANCES\",\r\n    \"termsAndConditionsExchange\": \"Looking for a fair trade with another furniture item.\",\r\n    \"categoryId\": 2,\r\n    \"brandId\": 2,\r\n    \"desiredItem\": {\r\n        \"typeItem\": \"KITCHEN_APPLIANCES\",\r\n        \"categoryId\": 1,\r\n        \"brandId\": 1,\r\n        \"conditionItem\": \"LIKE_NEW\",\r\n        \"minPrice\": 200000,\r\n        \"maxPrice\": 199999\r\n    }\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": "http://localhost:8080/api/v1/item"
+					},
+					"response": []
+				},
+				{
+					"name": "Review Item",
+					"request": {
+						"method": "GET",
+						"header": []
+					},
+					"response": []
+				},
+				{
+					"name": "Get Item Detail",
+					"request": {
+						"method": "GET",
+						"header": []
+					},
+					"response": []
+				},
+				{
+					"name": "Get All Item of User",
+					"request": {
+						"method": "GET",
+						"header": []
+					},
+					"response": []
+				},
+				{
+					"name": "Get all Item of current user",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": {
+								"token": "eyJhbGciOiJIUzM4NCJ9.eyJzdWIiOiJ0aWVuZHVuZyIsImlhdCI6MTc0MjA2MTIxOSwiZXhwIjoxNzQyMTQ3NjE5fQ.HEXAG5fe0fbMsDuqGURpaTmAevcxuLl7n2RQUmUEQv2kkEJzDGY_gI8b9lB4x4HS"
+							}
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/api/v1/item/current-user?statusItem=UNAVAILABLE",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"v1",
+								"item",
+								"current-user"
+							],
+							"query": [
+								{
+									"key": "statusItem",
+									"value": "UNAVAILABLE"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Search Item",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": "http://localhost:8080/api/v1/item/search"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Brand",
+			"item": [
+				{
+					"name": "Get All Brand",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": "http://localhost:8080/api/v1/brand"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Category",
+			"item": [
+				{
+					"name": "Get All Category",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/api/v1/category?typeItem=COOLING_HEATING_APPLIANCES",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"v1",
+								"category"
+							],
+							"query": [
+								{
+									"key": "typeItem",
+									"value": "COOLING_HEATING_APPLIANCES"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Exchange",
+			"item": [
+				{
+					"name": "Make An Exchange",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": {
+								"token": "eyJhbGciOiJIUzM4NCJ9.eyJzdWIiOiJ0aWVuZHVuZyIsImlhdCI6MTc0MjA2MTIxOSwiZXhwIjoxNzQyMTQ3NjE5fQ.HEXAG5fe0fbMsDuqGURpaTmAevcxuLl7n2RQUmUEQv2kkEJzDGY_gI8b9lB4x4HS"
+							}
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"sellerItemId\": 4,\r\n  \"buyerItemId\": 1,\r\n  \"paidByUserId\": 3,\r\n  \"exchangeDate\": \"2025-03-20T14:00:00\",\r\n  \"exchangeLocation\": \"123 Main Street, City\",\r\n  \"estimatePrice\": 1250000.00,\r\n  \"methodExchange\": \"DELIVERY\",\r\n  \"additionalNotes\": \"Please bring original packaging.\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": "http://localhost:8080/api/v1/exchange"
+					},
+					"response": []
+				},
+				{
+					"name": "Get All Exchange by Status of Current User",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": {
+								"token": "eyJhbGciOiJIUzM4NCJ9.eyJzdWIiOiJ0aWVuZHVuZyIsImlhdCI6MTc0MjA2NjcxOCwiZXhwIjoxNzQyMTUzMTE4fQ.ZDuaSrRjjSgCk6XP1eQuIMBQ3pEDuJzm_Qmc3fxj5yVZwS6GR5QPQwk1J2mRFo3B"
+							}
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/api/v1/exchange/current-user?statusExchangeRequest=APPROVED&statusExchangeHistory=FAILED",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"v1",
+								"exchange",
+								"current-user"
+							],
+							"query": [
+								{
+									"key": "statusExchangeRequest",
+									"value": "APPROVED"
+								},
+								{
+									"key": "statusExchangeHistory",
+									"value": "FAILED"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Review Exchange",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": {
+								"token": "eyJhbGciOiJIUzM4NCJ9.eyJzdWIiOiJkdWNhbmgiLCJpYXQiOjE3NDIxMDAxMDksImV4cCI6MTc0MjE4NjUwOX0.GogEItuVN80_2cA8-7sFU7IGOhzxXJmRAmCI2uxuAzrlPcigmOXtoQkvMEMV97H-"
+							}
+						},
+						"method": "PUT",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/api/v1/exchange/review?exchangeId=2&statusExchangeRequest=APPROVED",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"v1",
+								"exchange",
+								"review"
+							],
+							"query": [
+								{
+									"key": "exchangeId",
+									"value": "2"
+								},
+								{
+									"key": "statusExchangeRequest",
+									"value": "APPROVED"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Cancel Approved Exchange",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": {
+								"token": "eyJhbGciOiJIUzM4NCJ9.eyJzdWIiOiJ0aWVuZHVuZyIsImlhdCI6MTc0MjA2NjcxOCwiZXhwIjoxNzQyMTUzMTE4fQ.ZDuaSrRjjSgCk6XP1eQuIMBQ3pEDuJzm_Qmc3fxj5yVZwS6GR5QPQwk1J2mRFo3B"
+							}
+						},
+						"method": "PUT",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/api/v1/exchange/cancel?exchangeId=1",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"v1",
+								"exchange",
+								"cancel"
+							],
+							"query": [
+								{
+									"key": "exchangeId",
+									"value": "1"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Upload Evidence",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": {
+								"token": "eyJhbGciOiJIUzM4NCJ9.eyJzdWIiOiJ0aWVuZHVuZyIsImlhdCI6MTc0MjA2NjcxOCwiZXhwIjoxNzQyMTUzMTE4fQ.ZDuaSrRjjSgCk6XP1eQuIMBQ3pEDuJzm_Qmc3fxj5yVZwS6GR5QPQwk1J2mRFo3B"
+							}
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"exchangeHistoryId\" : 2,\r\n    \"itemImageUrl\": \"testImg123.url\",\r\n    \"transactionImageUrl\": null,\r\n    \"additionalNotes\": \"stestssdfsdf\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": "http://localhost:8080/api/v1/exchange/evidence"
+					},
+					"response": []
+				},
+				{
+					"name": "Update Exchange Request Price",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": {
+								"token": "eyJhbGciOiJIUzM4NCJ9.eyJzdWIiOiJ0aWVuZHVuZyIsImlhdCI6MTc0MjA5OTg3NCwiZXhwIjoxNzQyMTg2Mjc0fQ.JOAbhr-fF3ISUYUQQQNIwQglmu9P39ckxGKWSWjUxIyfx-05HWT9EnTrtvweq7MU"
+							}
+						},
+						"method": "PUT",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/api/v1/exchange/negotiated-price?exchangeId=2&negotiatedPrice=105000.00",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"v1",
+								"exchange",
+								"negotiated-price"
+							],
+							"query": [
+								{
+									"key": "exchangeId",
+									"value": "2"
+								},
+								{
+									"key": "negotiatedPrice",
+									"value": "105000.00"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	]
+}

@@ -153,7 +153,7 @@ INSERT INTO public."USER_LOCATION"
 VALUES
     ('ACTIVE', 'admin', NOW(), NULL, NULL, 0, true, 'Room S2052503, Building 1', 1, 3),  -- Ti Dung - Vinhomes Grand Park
     ('ACTIVE', 'admin', NOW(), NULL, NULL, 0, false, 'Room 101, Building 2', 2, 3),  -- Ti Dung - Masteri Thao Dien
-    ('ACTIVE', 'admin', NOW(), NULL, NULL, 0, true, 'Room 1205, Building A', 3, 3),  -- Ti Dung - Cityland Park Hills
+    ('ACTIVE', 'admin', NOW(), NULL, NULL, 0, false, 'Room 1205, Building A', 3, 3),  -- Ti Dung - Cityland Park Hills
     ('ACTIVE', 'admin', NOW(), NULL, NULL, 0, false, 'Room 2005, Building B', 4, 3),  -- Ti Dung - The Ascent
     ('ACTIVE', 'admin', NOW(), NULL, NULL, 0, true, 'Room 303, Building 3', 1, 4),  -- Duc Anh - Vinhomes Grand Park
     ('ACTIVE', 'admin', NOW(), NULL, NULL, 0, false, 'Room 905, Building D', 5, 4),  -- Duc Anh - Saigon Pearl

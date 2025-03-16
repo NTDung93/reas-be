@@ -1,7 +1,5 @@
 package vn.fptu.reasbe.model.constant;
 
-import java.util.concurrent.TimeUnit;
-
 public class AppConstants {
     // pagination
     public static final String DEFAULT_PAGE_NUMBER = "0";
@@ -19,13 +17,13 @@ public class AppConstants {
     public static final String AUTH_ATTR_NAME = "Authorization";
     public static final String AUTH_VALUE_PREFIX = "Bearer ";
     public static final String SEC_REQ_NAME = "Bear Authentication";
-    public static final String ROLE_USER = "ROLE_USER";
+    public static final String ROLE_RESIDENT = "ROLE_RESIDENT";
     public static final String ROLE_ADMIN = "ROLE_ADMIN";
     public static final String ROLE_STAFF = "ROLE_STAFF";
 
-    //otp
-    public static final int OTP_LENGTH = 6;
-
     //item
     public static final int EXPIRED_TIME_WEEKS = 2;
+
+    //exchange
+    public static final int NUM_OF_OFFER = 3;
 }

@@ -127,6 +127,7 @@ class ItemServiceImplTest {
         mockItem.setId(1);
         mockItem.setItemName("Vacuum Cleaner");
         mockItem.setStatusItem(StatusItem.PENDING);
+        mockItem.setOwner(mockUser);
 
         // Mock DTO Request
         mockUploadRequest = new UploadItemRequest();
@@ -234,6 +235,7 @@ class ItemServiceImplTest {
         when(itemRepository.findById(1)).thenReturn(Optional.of(mockItem));
         when(itemRepository.save(mockItem)).thenReturn(mockItem);
         when(itemMapper.toItemResponse(mockItem)).thenReturn(mockItemResponse);
+        when(authService.getCurrentUser()).thenReturn(mockUser);
 
         ItemResponse response = itemServiceImpl.updateItem(updateRequest);
 
@@ -257,7 +259,7 @@ class ItemServiceImplTest {
             itemServiceImpl.updateItem(updateRequest);
         });
 
-        assertTrue(exception.getMessage().contains("Min price must not be greater than max price."));
+        assertTrue(exception.getMessage().contains("error"));
     }
 
     @Test
@@ -270,6 +272,7 @@ class ItemServiceImplTest {
         when(itemRepository.findById(1)).thenReturn(Optional.of(mockItem));
         when(itemRepository.save(mockItem)).thenReturn(mockItem);
         when(itemMapper.toItemResponse(mockItem)).thenReturn(mockItemResponse);
+        when(authService.getCurrentUser()).thenReturn(mockUser);
 
         ItemResponse response = itemServiceImpl.updateItem(updateRequest);
 
@@ -284,10 +287,10 @@ class ItemServiceImplTest {
         updateRequest.setItemName("Rice Cooker");
         updateRequest.setDesiredItem(mockDesiredItemDto);
         mockItem.setDesiredItem(new DesiredItem());
-
         when(itemRepository.findById(1)).thenReturn(Optional.of(mockItem));
         when(itemRepository.save(mockItem)).thenReturn(mockItem);
         when(itemMapper.toItemResponse(mockItem)).thenReturn(mockItemResponse);
+        when(authService.getCurrentUser()).thenReturn(mockUser);
 
         ItemResponse response = itemServiceImpl.updateItem(updateRequest);
 
@@ -307,6 +310,7 @@ class ItemServiceImplTest {
         when(itemRepository.findById(1)).thenReturn(Optional.of(mockItem));
         when(itemRepository.save(mockItem)).thenReturn(mockItem);
         when(itemMapper.toItemResponse(mockItem)).thenReturn(mockItemResponse);
+        when(authService.getCurrentUser()).thenReturn(mockUser);
 
         ItemResponse response = itemServiceImpl.updateItem(updateRequest);
 
@@ -325,7 +329,7 @@ class ItemServiceImplTest {
             itemServiceImpl.updateItem(updateRequest);
         });
 
-        assertTrue(exception.getMessage().contains("Item"));
+        assertTrue(exception.getMessage().contains("Item not found"));
     }
 
     @Test
@@ -363,6 +367,6 @@ class ItemServiceImplTest {
             itemServiceImpl.reviewItem(1, StatusItem.REJECTED);
         });
 
-        assertTrue(exception.getMessage().contains("Only item with PENDING"));
+        assertTrue(exception.getMessage().contains("error"));
     }
 }

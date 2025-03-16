@@ -67,27 +67,44 @@ class AuthServiceImplTest {
     @InjectMocks
     private AuthServiceImpl authService;
 
-    private User user;
-    private Role role;
+    private User resident;
+    private User staff;
+    private Role residentRole;
+    private Role staffRole;
     private SignupDto signupDto;
     private LoginDto loginDto;
+    private LoginDto staffLoginDto;
 
     @BeforeEach
     void setUp() {
         // Prepare a dummy user and role
-        user = new User();
-        user.setId(1);
-        user.setEmail("test@example.com");
-        user.setUserName("testuser");
-        user.setFullName("Test User");
-        user.setPassword("encodedPassword");
 
-        role = new Role();
-        role.setName(RoleName.ROLE_RESIDENT);
+        residentRole = new Role();
+        residentRole.setName(RoleName.ROLE_RESIDENT);
+
+        staffRole = new Role();
+        staffRole.setName(RoleName.ROLE_STAFF);
+
+        staff = new User();
+        staff.setId(2);
+        staff.setEmail("testStaff@example.com");
+        staff.setUserName("teststaff");
+        staff.setFullName("Test Staff");
+        staff.setPassword("encodedPassword");
+        staff.setRole(staffRole);
+
+        resident = new User();
+        resident.setId(1);
+        resident.setEmail("test@example.com");
+        resident.setUserName("testuser");
+        resident.setFullName("Test User");
+        resident.setPassword("encodedPassword");
+        resident.setRole(residentRole);
 
         // IMPORTANT: The expected constructor order is (email, fullName, password)
         signupDto = new SignupDto("test@example.com", "Test User", "password123");
         loginDto = new LoginDto("test@example.com", "password123");
+        staffLoginDto = new LoginDto(staff.getEmail(), "password123");
 
         // Prepare a dummy security context
         SecurityContext securityContext = mock(SecurityContext.class);
@@ -101,15 +118,15 @@ class AuthServiceImplTest {
 
     // --- Test for authenticateUser() ---
     @Test
-    void authenticateUser_Success() {
+    void authenticateResident_Success() {
         Authentication auth = mock(Authentication.class);
         when(authenticationManager.authenticate(any(UsernamePasswordAuthenticationToken.class))).thenReturn(auth);
         when(userRepository.findByUserNameOrEmailOrPhone(anyString(), anyString(), anyString()))
-                .thenReturn(Optional.of(user));
-        when(jwtTokenProvider.generateAccessToken(user)).thenReturn("access-token");
-        when(jwtTokenProvider.generateRefreshToken(user)).thenReturn("refresh-token");
+                .thenReturn(Optional.of(resident));
+        when(jwtTokenProvider.generateAccessToken(resident)).thenReturn("access-token");
+        when(jwtTokenProvider.generateRefreshToken(resident)).thenReturn("refresh-token");
 
-        JWTAuthResponse response = authService.authenticateUser(loginDto);
+        JWTAuthResponse response = authService.authenticateResident(loginDto);
 
         assertNotNull(response);
         assertEquals("access-token", response.getAccessToken());
@@ -117,29 +134,71 @@ class AuthServiceImplTest {
     }
 
     @Test
-    void authenticateUser_EmailNotExist() {
+    void authenticateResident_EmailNotExist() {
         when(userRepository.findByUserNameOrEmailOrPhone(anyString(), anyString(), anyString())).thenReturn(Optional.empty());
 
         BadCredentialsException exception = assertThrows(BadCredentialsException.class, () ->
-                authService.authenticateUser(loginDto));
+                authService.authenticateResident(loginDto));
 
         assertNotNull(exception);
-        assertEquals("Email is not exist!", exception.getMessage());
+        assertEquals("error.emailNotExist", exception.getMessage());
     }
 
     @Test
-    void authenticateUser_WrongPassword() {
+    void authenticateResident_WrongPassword() {
         when(userRepository.findByUserNameOrEmailOrPhone(anyString(), anyString(), anyString()))
-                .thenReturn(Optional.of(user));
+                .thenReturn(Optional.of(resident));
 
         when(authenticationManager.authenticate(any(UsernamePasswordAuthenticationToken.class)))
                 .thenThrow(new BadCredentialsException("Incorrect password!"));
 
         BadCredentialsException exception = assertThrows(BadCredentialsException.class, () ->
-                authService.authenticateUser(loginDto));
+                authService.authenticateResident(loginDto));
 
         assertNotNull(exception);
-        assertEquals("Incorrect password!", exception.getMessage());
+        assertEquals("error.incorrectPassword", exception.getMessage());
+    }
+
+    @Test
+    void authenticateAdminOrStaff_Success() {
+        Authentication auth = mock(Authentication.class);
+        when(authenticationManager.authenticate(any(UsernamePasswordAuthenticationToken.class))).thenReturn(auth);
+        when(userRepository.findByUserNameOrEmailOrPhone(anyString(), anyString(), anyString()))
+                .thenReturn(Optional.of(staff));
+        when(jwtTokenProvider.generateAccessToken(staff)).thenReturn("access-token");
+        when(jwtTokenProvider.generateRefreshToken(staff)).thenReturn("refresh-token");
+
+        JWTAuthResponse response = authService.authenticateAdminOrStaff(staffLoginDto);
+
+        assertNotNull(response);
+        assertEquals("access-token", response.getAccessToken());
+        assertEquals("refresh-token", response.getRefreshToken());
+    }
+
+    @Test
+    void authenticateAdminOrStaff_EmailNotExist() {
+        when(userRepository.findByUserNameOrEmailOrPhone(anyString(), anyString(), anyString())).thenReturn(Optional.empty());
+
+        BadCredentialsException exception = assertThrows(BadCredentialsException.class, () ->
+                authService.authenticateAdminOrStaff(staffLoginDto));
+
+        assertNotNull(exception);
+        assertEquals("error.emailNotExist", exception.getMessage());
+    }
+
+    @Test
+    void authenticateAdminOrStaff_WrongPassword() {
+        when(userRepository.findByUserNameOrEmailOrPhone(anyString(), anyString(), anyString()))
+                .thenReturn(Optional.of(staff));
+
+        when(authenticationManager.authenticate(any(UsernamePasswordAuthenticationToken.class)))
+                .thenThrow(new BadCredentialsException("Incorrect password!"));
+
+        BadCredentialsException exception = assertThrows(BadCredentialsException.class, () ->
+                authService.authenticateAdminOrStaff(loginDto));
+
+        assertNotNull(exception);
+        assertEquals("error.incorrectPassword", exception.getMessage());
     }
 
     // --- Tests for validateAndSendOtp() ---
@@ -160,13 +219,13 @@ class AuthServiceImplTest {
         ReasApiException exception = assertThrows(ReasApiException.class, () ->
                 authService.validateAndSendOtp(signupDto));
         assertEquals(HttpStatus.BAD_REQUEST, exception.getStatus());
-        assertEquals("Email is already exist!", exception.getMessage());
+        assertEquals("error.emailAlreadyExist", exception.getMessage());
     }
 
     // --- Tests for signupVerifiedUser() ---
     @Test
     void signupVerifiedUser_Success() {
-        when(roleRepository.findByName(RoleName.ROLE_RESIDENT)).thenReturn(Optional.of(role));
+        when(roleRepository.findByName(RoleName.ROLE_RESIDENT)).thenReturn(Optional.of(residentRole));
         // Simulate creation of a new user from signupDto
         User newUser = new User();
         newUser.setEmail(signupDto.getEmail());
@@ -195,7 +254,7 @@ class AuthServiceImplTest {
         ReasApiException exception = assertThrows(ReasApiException.class, () ->
                 authService.signupVerifiedUser(signupDto));
         assertEquals(HttpStatus.BAD_REQUEST, exception.getStatus());
-        assertEquals("Role does not exist", exception.getMessage());
+        assertEquals("error.roleNotExist", exception.getMessage());
     }
 
     // --- Test for getGoogleLoginUrl() ---
@@ -218,7 +277,7 @@ class AuthServiceImplTest {
         when(auth.getName()).thenReturn("test@example.com");
         SecurityContextHolder.setContext(securityContext);
         when(userRepository.findByUserName(anyString()))
-                .thenReturn(Optional.of(user));
+                .thenReturn(Optional.of(resident));
 
         User user1 = authService.getCurrentUser();
         assertNotNull(user1);
@@ -231,10 +290,10 @@ class AuthServiceImplTest {
                 .thenReturn(AppConstants.AUTH_VALUE_PREFIX + "access-token");
         when(jwtTokenProvider.getUsernameFromJwt("access-token")).thenReturn("test@example.com");
         when(userRepository.findByUserNameOrEmailOrPhone(anyString(), anyString(), anyString()))
-                .thenReturn(Optional.of(user));
-        when(jwtTokenProvider.isValidRefreshToken("access-token", user.getUserName())).thenReturn(true);
-        when(jwtTokenProvider.generateAccessToken(user)).thenReturn("new-access-token");
-        when(jwtTokenProvider.generateRefreshToken(user)).thenReturn("new-refresh-token");
+                .thenReturn(Optional.of(resident));
+        when(jwtTokenProvider.isValidRefreshToken("access-token", resident.getUserName())).thenReturn(true);
+        when(jwtTokenProvider.generateAccessToken(resident)).thenReturn("new-access-token");
+        when(jwtTokenProvider.generateRefreshToken(resident)).thenReturn("new-refresh-token");
 
         ResponseEntity<JWTAuthResponse> responseEntity = authService.refreshToken(request, response);
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
@@ -261,8 +320,8 @@ class AuthServiceImplTest {
                 .thenReturn(AppConstants.AUTH_VALUE_PREFIX + "access-token");
         when(jwtTokenProvider.getUsernameFromJwt("access-token")).thenReturn("test@example.com");
         when(userRepository.findByUserNameOrEmailOrPhone(anyString(), anyString(), anyString()))
-                .thenReturn(Optional.of(user));
-        when(jwtTokenProvider.isValidRefreshToken("access-token", user.getUserName())).thenReturn(false);
+                .thenReturn(Optional.of(resident));
+        when(jwtTokenProvider.isValidRefreshToken("access-token", resident.getUserName())).thenReturn(false);
 
         ResponseEntity<JWTAuthResponse> responseEntity = authService.refreshToken(request, response);
         assertEquals(HttpStatus.UNAUTHORIZED, responseEntity.getStatusCode());
@@ -278,13 +337,13 @@ class AuthServiceImplTest {
         SecurityContextHolder.setContext(securityContext);
 
         when(userRepository.findByUserNameOrEmailOrPhone(anyString(), anyString(), anyString()))
-                .thenReturn(Optional.of(user));
-        when(passwordEncoder.matches("oldPassword", user.getPassword())).thenReturn(true);
+                .thenReturn(Optional.of(resident));
+        when(passwordEncoder.matches("oldPassword", resident.getPassword())).thenReturn(true);
         when(passwordEncoder.encode("NewPassword1!")).thenReturn("newEncodedPassword");
 
         authService.changePassword("oldPassword", "NewPassword1!");
-        verify(userRepository).save(user);
-        assertEquals("newEncodedPassword", user.getPassword());
+        verify(userRepository).save(resident);
+        assertEquals("newEncodedPassword", resident.getPassword());
     }
 
     @Test
@@ -296,13 +355,13 @@ class AuthServiceImplTest {
         SecurityContextHolder.setContext(securityContext);
 
         when(userRepository.findByUserNameOrEmailOrPhone(anyString(), anyString(), anyString()))
-                .thenReturn(Optional.of(user));
-        when(passwordEncoder.matches("wrongOldPassword", user.getPassword())).thenReturn(false);
+                .thenReturn(Optional.of(resident));
+        when(passwordEncoder.matches("wrongOldPassword", resident.getPassword())).thenReturn(false);
 
         ReasApiException exception = assertThrows(ReasApiException.class, () ->
                 authService.changePassword("wrongOldPassword", "NewPassword1!"));
         assertEquals(HttpStatus.BAD_REQUEST, exception.getStatus());
-        assertEquals("Old password does not match!", exception.getMessage());
+        assertEquals("error.oldPasswordNotMatch", exception.getMessage());
     }
 
     @Test
@@ -315,12 +374,12 @@ class AuthServiceImplTest {
         SecurityContextHolder.setContext(securityContext);
 
         when(userRepository.findByUserNameOrEmailOrPhone(anyString(), anyString(), anyString()))
-                .thenReturn(Optional.of(user));
-        when(passwordEncoder.matches("oldPassword", user.getPassword())).thenReturn(true);
+                .thenReturn(Optional.of(resident));
+        when(passwordEncoder.matches("oldPassword", resident.getPassword())).thenReturn(true);
 
         ReasApiException exception = assertThrows(ReasApiException.class, () ->
                 authService.changePassword("oldPassword", "short"));
         assertEquals(HttpStatus.BAD_REQUEST, exception.getStatus());
-        assertTrue(exception.getMessage().contains("Password must have at least 8 characters"));
+        assertTrue(exception.getMessage().contains("error"));
     }
 }

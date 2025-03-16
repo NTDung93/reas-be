@@ -44,7 +44,7 @@ public class ExchangeRequest extends AbstractAuditableEntity {
     @JoinColumn(name = "BUYER_ITEM_ID")
     private Item buyerItem;
 
-    @OneToOne
+    @ManyToOne
     @JoinColumn(name = "PAID_BY_ID")
     private User paidBy;
 
@@ -61,6 +61,10 @@ public class ExchangeRequest extends AbstractAuditableEntity {
     @NotNull
     @Column(name = "FINAL_PRICE")
     private BigDecimal finalPrice;
+
+    @NotNull
+    @Column(name = "NUM_OF_OFFER")
+    private Integer numberOfOffer;
 
     @NotNull
     @Column(name = "METHOD_EXCHANGE")

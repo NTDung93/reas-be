@@ -21,6 +21,7 @@ import vn.fptu.reasbe.model.enums.core.StatusEntity;
 import vn.fptu.reasbe.model.enums.user.RoleName;
 import vn.fptu.reasbe.model.exception.ReasApiException;
 import vn.fptu.reasbe.repository.RoleRepository;
+import vn.fptu.reasbe.repository.UserLocationRepository;
 import vn.fptu.reasbe.repository.UserRepository;
 import vn.fptu.reasbe.service.EmailService;
 import vn.fptu.reasbe.service.UserService;
@@ -38,6 +39,7 @@ public class UserServiceImpl implements UserService {
     private final UserMapper userMapper;
     private final PasswordEncoder passwordEncoder;
     private final EmailService emailService;
+    private final UserLocationRepository userLocationRepository;
 
     @Override
     public BaseSearchPaginationResponse<UserResponse> searchUserPagination(int pageNo, int pageSize, String sortBy, String sortDir, SearchUserRequest request) {
@@ -59,8 +61,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserResponse updateStaff(UpdateStaffRequest request) {
-        User user = userRepository.findById(request.getId())
-                .orElseThrow(() -> new ReasApiException(HttpStatus.BAD_REQUEST, "error.userNotFound"));
+        User user = getUserById(request.getId());
         validateUpdateStaffRequest(request);
         userMapper.updateUser(user, request);
         user.setPassword(passwordEncoder.encode(request.getPassword()));
@@ -85,11 +86,8 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserLocation getPrimaryUserLocation(User user) {
-        return user.getUserLocations()
-                .stream()
-                .filter(UserLocation::isPrimary)
-                .findFirst()
-                .orElse(null);
+        return userLocationRepository.findByIsPrimaryTrueAndUser(user)
+                .orElseThrow(() -> new ReasApiException(HttpStatus.BAD_REQUEST, "error.primaryLocationNotFound"));
     }
 
     private Role getStaffRole() {

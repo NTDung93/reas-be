@@ -28,9 +28,16 @@ public class AuthController {
     private final UserMapper userMapper;
     private final HttpHeaders headers = new HttpHeaders();
 
-    @PostMapping("/login")
-    public ResponseEntity<JWTAuthResponse> authenticationUser(@RequestBody @Valid LoginDto loginDto) {
-        JWTAuthResponse jwtAuthResponse = authService.authenticateUser(loginDto);
+    @PostMapping("/login/resident")
+    public ResponseEntity<JWTAuthResponse> authenticationResident(@RequestBody @Valid LoginDto loginDto) {
+        JWTAuthResponse jwtAuthResponse = authService.authenticateResident(loginDto);
+        headers.add(AppConstants.AUTH_ATTR_NAME, AppConstants.AUTH_VALUE_PREFIX + jwtAuthResponse.getAccessToken());
+        return new ResponseEntity<>(jwtAuthResponse, headers, HttpStatus.OK);
+    }
+
+    @PostMapping("/login/admin")
+    public ResponseEntity<JWTAuthResponse> authenticationAdminOrStaff(@RequestBody @Valid LoginDto loginDto) {
+        JWTAuthResponse jwtAuthResponse = authService.authenticateAdminOrStaff(loginDto);
         headers.add(AppConstants.AUTH_ATTR_NAME, AppConstants.AUTH_VALUE_PREFIX + jwtAuthResponse.getAccessToken());
         return new ResponseEntity<>(jwtAuthResponse, headers, HttpStatus.OK);
     }

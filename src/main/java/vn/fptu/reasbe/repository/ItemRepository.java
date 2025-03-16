@@ -7,6 +7,7 @@ import vn.fptu.reasbe.model.entity.Item;
 import vn.fptu.reasbe.model.enums.item.StatusItem;
 import vn.fptu.reasbe.repository.custom.ItemRepositoryCustom;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 /**
@@ -15,6 +16,6 @@ import java.util.List;
  */
 public interface ItemRepository extends JpaRepository<Item, Integer>, QuerydslPredicateExecutor<Item>, ItemRepositoryCustom {
     List<Item> findAllByStatusItem(StatusItem statusItem);
-    List<Item> findAllByOwnerId(Integer ownerId);
     List<Item> findAllByOwnerIdAndStatusItemOrderByCreationDateDesc(Integer ownerId, StatusItem statusItem);
+    List<Item> findAllByExpiredTimeBeforeAndStatusItem(LocalDateTime currDateTime, StatusItem statusItem);
 }

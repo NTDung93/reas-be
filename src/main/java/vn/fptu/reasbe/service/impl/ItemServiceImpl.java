@@ -1,9 +1,11 @@
 package vn.fptu.reasbe.service.impl;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -38,6 +40,7 @@ import java.util.List;
 /**
  * @author ntig
  */
+@Slf4j
 @Service
 @Transactional
 @RequiredArgsConstructor
@@ -60,15 +63,10 @@ public class ItemServiceImpl implements ItemService {
 
     @Override
     public List<ItemResponse> getAllItemOfUser(Integer userId, StatusItem statusItem) {
-        if (statusItem.equals(StatusItem.AVAILABLE)) {
-            return itemRepository.findItemsByUserIdAndOrderedByCreationDate(userId)
-                    .stream()
-                    .map(itemMapper::toItemResponse)
-                    .toList();
-        } else if (statusItem.equals(StatusItem.NO_LONGER_FOR_EXCHANGE)) {
+        if (statusItem.equals(StatusItem.AVAILABLE) || statusItem.equals(StatusItem.NO_LONGER_FOR_EXCHANGE)) {
             return getAllItemByUserIdAndStatusItem(userId, statusItem);
         } else {
-            throw new ReasApiException(HttpStatus.BAD_REQUEST, "Incorrect status item for viewing other users' items!");
+            throw new ReasApiException(HttpStatus.BAD_REQUEST, "error.invalidStatusItem");
         }
     }
 
@@ -76,85 +74,6 @@ public class ItemServiceImpl implements ItemService {
     public List<ItemResponse> getAllItemOfCurrentUserByStatusItem(StatusItem statusItem) {
         User user = authService.getCurrentUser();
         return getAllItemByUserIdAndStatusItem(user.getId(), statusItem);
-    }
-
-    @Override
-    public ItemResponse updateItem(UpdateItemRequest request) {
-        Item existedItem = getItemById(request.getId());
-        itemMapper.updateItem(existedItem, request);
-
-        DesiredItem existedDesiredItem = existedItem.getDesiredItem();
-        DesiredItemDto desiredItemDto = request.getDesiredItem();
-
-        if (desiredItemDto == null) {
-            // If there's an existing item, remove it
-            if (existedDesiredItem != null) {
-                desiredItemRepository.delete(existedDesiredItem);
-                existedItem.setDesiredItem(null);
-            }
-        } else {
-            // desiredItemDto is not null
-            validateDesiredItem(desiredItemDto);
-
-            if (existedDesiredItem != null) {
-                // Update existing desired item
-                desiredItemMapper.updateDesiredItem(existedDesiredItem, desiredItemDto);
-                updateDesiredItem(existedDesiredItem, desiredItemDto);
-                desiredItemRepository.save(existedDesiredItem);
-            } else {
-                // Create new desired item
-                DesiredItem newDesiredItem = desiredItemMapper.toDesiredItem(desiredItemDto);
-                updateDesiredItem(newDesiredItem, desiredItemDto);
-                existedItem.setDesiredItem(desiredItemRepository.save(newDesiredItem));
-            }
-        }
-
-
-        return itemMapper.toItemResponse(itemRepository.save(existedItem));
-    }
-
-    @Override
-    public List<ItemResponse> getAllPendingItem() {
-        return itemRepository.findAllByStatusItem(StatusItem.PENDING)
-                .stream()
-                .map(itemMapper::toItemResponse)
-                .toList();
-    }
-
-    @Override
-    public ItemResponse reviewItem(Integer id, StatusItem status) {
-        Item pendingItem = getItemById(id);
-
-        if (!pendingItem.getStatusItem().equals(StatusItem.PENDING))
-            throw new ReasApiException(HttpStatus.BAD_REQUEST, "Only item with PENDING status allows to be reviewed.");
-
-        if (status.equals(StatusItem.AVAILABLE)) {
-            pendingItem.setStatusItem(StatusItem.AVAILABLE);
-            pendingItem.setApprovedTime(DateUtils.getCurrentDateTime());
-            pendingItem.setExpiredTime(pendingItem.getApprovedTime().plusWeeks(AppConstants.EXPIRED_TIME_WEEKS));
-        } else if (status.equals(StatusItem.REJECTED)) {
-            pendingItem.setStatusItem(StatusItem.REJECTED);
-        }
-
-        return itemMapper.toItemResponse(itemRepository.save(pendingItem));
-    }
-
-    private List<ItemResponse> getAllItemByUserIdAndStatusItem(Integer userId, StatusItem statusItem) {
-        return itemRepository.findAllByOwnerIdAndStatusItemOrderByCreationDateDesc(userId, statusItem)
-                .stream()
-                .map(itemMapper::toItemResponse)
-                .toList();
-    }
-
-    private void updateDesiredItem(DesiredItem desiredItem, DesiredItemDto desiredItemDto) {
-        desiredItem.setBrand(brandService.getBrandById(desiredItemDto.getBrandId()));
-        desiredItem.setCategory(categoryService.getCategoryById(desiredItemDto.getCategoryId()));
-    }
-
-    private void validateDesiredItem(DesiredItemDto dto) {
-        if (dto.getMinPrice().compareTo(dto.getMaxPrice()) > 0) {
-            throw new ReasApiException(HttpStatus.BAD_REQUEST, "Min price must not be greater than max price.");
-        }
     }
 
     @Override
@@ -176,10 +95,101 @@ public class ItemServiceImpl implements ItemService {
 
         if (request.getDesiredItem() != null) {
             DesiredItem newDesiredItem = desiredItemMapper.toDesiredItem(request.getDesiredItem());
-            newDesiredItem.setCategory(categoryService.getCategoryById(request.getDesiredItem().getCategoryId()));
-            newDesiredItem.setBrand(brandService.getBrandById(request.getDesiredItem().getBrandId()));
+            prepareDesiredItem(newDesiredItem, request.getDesiredItem());
             newItem.setDesiredItem(desiredItemRepository.save(newDesiredItem));
         }
         return itemRepository.save(newItem);
+    }
+
+    @Override
+    public ItemResponse updateItem(UpdateItemRequest request) {
+        Item existedItem = getItemById(request.getId());
+        User currentUser = authService.getCurrentUser();
+        if (!existedItem.getOwner().equals(currentUser)) {
+            throw new ReasApiException(HttpStatus.BAD_REQUEST, "error.invalidOwner");
+        }
+
+        itemMapper.updateItem(existedItem, request);
+
+        DesiredItem existedDesiredItem = existedItem.getDesiredItem();
+        DesiredItemDto desiredItemDto = request.getDesiredItem();
+
+        if (desiredItemDto == null) {
+            // If there's an existing item, remove it
+            if (existedDesiredItem != null) {
+                desiredItemRepository.delete(existedDesiredItem);
+                existedItem.setDesiredItem(null);
+            }
+        } else {
+            // desiredItemDto is not null
+            validateDesiredItem(desiredItemDto);
+
+            if (existedDesiredItem != null) {
+                // Update existing desired item
+                desiredItemMapper.updateDesiredItem(existedDesiredItem, desiredItemDto);
+                prepareDesiredItem(existedDesiredItem, desiredItemDto);
+                desiredItemRepository.save(existedDesiredItem);
+            } else {
+                // Create new desired item
+                DesiredItem newDesiredItem = desiredItemMapper.toDesiredItem(desiredItemDto);
+                prepareDesiredItem(newDesiredItem, desiredItemDto);
+                existedItem.setDesiredItem(desiredItemRepository.save(newDesiredItem));
+            }
+        }
+
+        return itemMapper.toItemResponse(itemRepository.save(existedItem));
+    }
+
+    @Override
+    public List<ItemResponse> getAllPendingItem() {
+        return itemRepository.findAllByStatusItem(StatusItem.PENDING)
+                .stream()
+                .map(itemMapper::toItemResponse)
+                .toList();
+    }
+
+    @Override
+    public ItemResponse reviewItem(Integer id, StatusItem status) {
+        Item pendingItem = getItemById(id);
+
+        if (!pendingItem.getStatusItem().equals(StatusItem.PENDING))
+            throw new ReasApiException(HttpStatus.BAD_REQUEST, "error.pendingItemOnly");
+
+        if (status.equals(StatusItem.AVAILABLE)) {
+            pendingItem.setStatusItem(StatusItem.AVAILABLE);
+            pendingItem.setApprovedTime(DateUtils.getCurrentDateTime().toLocalDate().atStartOfDay());
+            pendingItem.setExpiredTime(pendingItem.getApprovedTime().plusWeeks(AppConstants.EXPIRED_TIME_WEEKS));
+        } else if (status.equals(StatusItem.REJECTED)) {
+            pendingItem.setStatusItem(StatusItem.REJECTED);
+        }
+
+        return itemMapper.toItemResponse(itemRepository.save(pendingItem));
+    }
+
+    @Scheduled(cron = "0 0 0 * * *")
+    private void checkExpiredItems(){
+        //TODO: in testing
+        List<Item> expiredItems = itemRepository.findAllByExpiredTimeBeforeAndStatusItem(DateUtils.getCurrentDateTime(), StatusItem.AVAILABLE);
+        expiredItems.forEach(expiredItem -> expiredItem.setStatusItem(StatusItem.EXPIRED));
+        itemRepository.saveAll(expiredItems);
+        log.info("Updated {} expired items", expiredItems.size());
+    }
+
+    private List<ItemResponse> getAllItemByUserIdAndStatusItem(Integer userId, StatusItem statusItem) {
+        return itemRepository.findAllByOwnerIdAndStatusItemOrderByCreationDateDesc(userId, statusItem)
+                .stream()
+                .map(itemMapper::toItemResponse)
+                .toList();
+    }
+
+    private void prepareDesiredItem(DesiredItem desiredItem, DesiredItemDto desiredItemDto) {
+        desiredItem.setBrand(brandService.getBrandById(desiredItemDto.getBrandId()));
+        desiredItem.setCategory(categoryService.getCategoryById(desiredItemDto.getCategoryId()));
+    }
+
+    private void validateDesiredItem(DesiredItemDto dto) {
+        if (dto.getMinPrice().compareTo(dto.getMaxPrice()) > 0) {
+            throw new ReasApiException(HttpStatus.BAD_REQUEST, "error.minPriceGreaterThanMaxPrice");
+        }
     }
 }
