@@ -1,11 +1,13 @@
 package vn.fptu.reasbe.service.impl;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import java.util.Collections;
@@ -359,5 +361,33 @@ class UserServiceImplTest {
         assertEquals("error.userNotFound", exception.getMessage());
 
         verify(userRepository, times(1)).findById(user.getId());
+    }
+
+    @Test
+    void loadDetailInfoUser_ShouldReturnUserResponse_WhenUserExists() {
+        when(userRepository.findById(1)).thenReturn(Optional.ofNullable(user));
+        when(userMapper.toUserResponse(user)).thenReturn(userResponse);
+
+        UserResponse result = userServiceImpl.loadDetailInfoUser(1);
+
+        assertNotNull(result);
+        assertEquals(userResponse.getId(), result.getId());
+        assertEquals(userResponse.getUserName(), result.getUserName());
+
+        verify(userRepository, times(1)).findById(1);
+        verify(userMapper, times(1)).toUserResponse(user);
+    }
+
+    @Test
+    void loadDetailInfoUser_ShouldThrowException_WhenUserNotFound() {
+        when(userRepository.findById(1)).thenReturn(java.util.Optional.empty());
+
+        ReasApiException exception = assertThrows(ReasApiException.class, () -> userServiceImpl.loadDetailInfoUser(1));
+
+        assertEquals(HttpStatus.BAD_REQUEST, exception.getStatus());
+        assertEquals("error.userNotFound", exception.getMessage());
+
+        verify(userRepository, times(1)).findById(1);
+        verifyNoInteractions(userMapper);
     }
 }
