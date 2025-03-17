@@ -6,6 +6,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.FieldDefaults;
+import vn.fptu.reasbe.model.enums.user.RoleName;
 
 @Getter
 @Setter
@@ -15,4 +16,5 @@ import lombok.experimental.FieldDefaults;
 public class JWTAuthResponse {
     String accessToken;
     String refreshToken;
+    RoleName roleName;
 }

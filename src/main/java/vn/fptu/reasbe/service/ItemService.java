@@ -10,8 +10,6 @@ import vn.fptu.reasbe.model.dto.item.UploadItemRequest;
 import vn.fptu.reasbe.model.entity.Item;
 import vn.fptu.reasbe.model.enums.item.StatusItem;
 
-import java.util.List;
-
 /**
  * @author ntig
  */
@@ -22,13 +20,13 @@ public interface ItemService {
 
     Item uploadItem(UploadItemRequest request);
 
-    List<ItemResponse> getAllItemOfUser(Integer userId, StatusItem statusItem);
+    BaseSearchPaginationResponse<ItemResponse> getAllItemOfUser(int pageNo, int pageSize, String sortBy, String sortDir, Integer userId, StatusItem statusItem);
 
-    List<ItemResponse> getAllItemOfCurrentUserByStatusItem(StatusItem statusItem);
+    BaseSearchPaginationResponse<ItemResponse> getAllItemOfCurrentUserByStatusItem(int pageNo, int pageSize, String sortBy, String sortDir, StatusItem statusItem);
 
     ItemResponse updateItem(UpdateItemRequest request);
 
-    List<ItemResponse> getAllPendingItem();
+    BaseSearchPaginationResponse<ItemResponse> getAllPendingItem(int pageNo, int pageSize, String sortBy, String sortDir);
 
     ItemResponse reviewItem(Integer id, StatusItem status);
 }

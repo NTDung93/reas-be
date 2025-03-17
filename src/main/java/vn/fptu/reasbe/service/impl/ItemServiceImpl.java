@@ -1,6 +1,7 @@
 package vn.fptu.reasbe.service.impl;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -37,6 +38,7 @@ import vn.fptu.reasbe.utils.mapper.ItemMapper;
 
 import java.util.List;
 
+import static vn.fptu.reasbe.model.dto.core.BaseSearchPaginationResponse.getPageable;
 /**
  * @author ntig
  */
@@ -56,24 +58,22 @@ public class ItemServiceImpl implements ItemService {
 
     @Override
     public BaseSearchPaginationResponse<SearchItemResponse> searchItemPagination(int pageNo, int pageSize, String sortBy, String sortDir, SearchItemRequest request) {
-        Sort sort = sortDir.equalsIgnoreCase(Sort.Direction.ASC.name()) ? Sort.by(sortBy).ascending() : Sort.by(sortBy).descending();
-        Pageable pageable = PageRequest.of(pageNo, pageSize, sort);
-        return BaseSearchPaginationResponse.of(itemRepository.searchItemPagination(request, pageable).map(itemMapper::toSearchItemResponse));
+        return BaseSearchPaginationResponse.of(itemRepository.searchItemPagination(request, getPageable(pageNo, pageSize, sortBy, sortDir)).map(itemMapper::toSearchItemResponse));
     }
 
     @Override
-    public List<ItemResponse> getAllItemOfUser(Integer userId, StatusItem statusItem) {
+    public BaseSearchPaginationResponse<ItemResponse> getAllItemOfUser(int pageNo, int pageSize, String sortBy, String sortDir, Integer userId, StatusItem statusItem) {
         if (statusItem.equals(StatusItem.AVAILABLE) || statusItem.equals(StatusItem.NO_LONGER_FOR_EXCHANGE)) {
-            return getAllItemByUserIdAndStatusItem(userId, statusItem);
+            return BaseSearchPaginationResponse.of(getAllItemByUserIdAndStatusItem(userId, statusItem, getPageable(pageNo, pageSize, sortBy, sortDir)).map(itemMapper::toItemResponse));
         } else {
             throw new ReasApiException(HttpStatus.BAD_REQUEST, "error.invalidStatusItem");
         }
     }
 
     @Override
-    public List<ItemResponse> getAllItemOfCurrentUserByStatusItem(StatusItem statusItem) {
+    public BaseSearchPaginationResponse<ItemResponse> getAllItemOfCurrentUserByStatusItem(int pageNo, int pageSize, String sortBy, String sortDir, StatusItem statusItem) {
         User user = authService.getCurrentUser();
-        return getAllItemByUserIdAndStatusItem(user.getId(), statusItem);
+        return BaseSearchPaginationResponse.of(getAllItemByUserIdAndStatusItem(user.getId(), statusItem, getPageable(pageNo, pageSize, sortBy, sortDir)).map(itemMapper::toItemResponse));
     }
 
     @Override
@@ -141,11 +141,10 @@ public class ItemServiceImpl implements ItemService {
     }
 
     @Override
-    public List<ItemResponse> getAllPendingItem() {
-        return itemRepository.findAllByStatusItem(StatusItem.PENDING)
-                .stream()
-                .map(itemMapper::toItemResponse)
-                .toList();
+    public BaseSearchPaginationResponse<ItemResponse> getAllPendingItem(int pageNo, int pageSize, String sortBy, String sortDir) {
+        Sort sort = sortDir.equalsIgnoreCase(Sort.Direction.ASC.name()) ? Sort.by(sortBy).ascending() : Sort.by(sortBy).descending();
+        Pageable pageable = PageRequest.of(pageNo, pageSize, sort);
+        return BaseSearchPaginationResponse.of(itemRepository.findAllByStatusItem(StatusItem.PENDING, pageable).map(itemMapper::toItemResponse));
     }
 
     @Override
@@ -175,11 +174,8 @@ public class ItemServiceImpl implements ItemService {
         log.info("Updated {} expired items", expiredItems.size());
     }
 
-    private List<ItemResponse> getAllItemByUserIdAndStatusItem(Integer userId, StatusItem statusItem) {
-        return itemRepository.findAllByOwnerIdAndStatusItemOrderByCreationDateDesc(userId, statusItem)
-                .stream()
-                .map(itemMapper::toItemResponse)
-                .toList();
+    private Page<Item> getAllItemByUserIdAndStatusItem(Integer userId, StatusItem statusItem, Pageable pageable) {
+        return itemRepository.findAllByOwnerIdAndStatusItemOrderByCreationDateDesc(userId, statusItem, pageable);
     }
 
     private void prepareDesiredItem(DesiredItem desiredItem, DesiredItemDto desiredItemDto) {

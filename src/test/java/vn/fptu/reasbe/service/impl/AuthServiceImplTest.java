@@ -34,6 +34,7 @@ import vn.fptu.reasbe.repository.UserRepository;
 import vn.fptu.reasbe.security.JwtTokenProvider;
 import vn.fptu.reasbe.service.EmailService;
 import vn.fptu.reasbe.service.OtpService;
+import vn.fptu.reasbe.service.mongodb.UserMService;
 import vn.fptu.reasbe.utils.mapper.UserMapper;
 
 import java.util.Optional;
@@ -52,6 +53,8 @@ class AuthServiceImplTest {
     @Mock
     private PasswordEncoder passwordEncoder;
     @Mock
+    private UserMService userMService;
+    @Mock
     private EmailService emailService;
     @Mock
     private OtpService otpService;
@@ -68,12 +71,9 @@ class AuthServiceImplTest {
     private AuthServiceImpl authService;
 
     private User resident;
-    private User staff;
     private Role residentRole;
-    private Role staffRole;
     private SignupDto signupDto;
     private LoginDto loginDto;
-    private LoginDto staffLoginDto;
 
     @BeforeEach
     void setUp() {
@@ -81,17 +81,6 @@ class AuthServiceImplTest {
 
         residentRole = new Role();
         residentRole.setName(RoleName.ROLE_RESIDENT);
-
-        staffRole = new Role();
-        staffRole.setName(RoleName.ROLE_STAFF);
-
-        staff = new User();
-        staff.setId(2);
-        staff.setEmail("testStaff@example.com");
-        staff.setUserName("teststaff");
-        staff.setFullName("Test Staff");
-        staff.setPassword("encodedPassword");
-        staff.setRole(staffRole);
 
         resident = new User();
         resident.setId(1);
@@ -104,7 +93,6 @@ class AuthServiceImplTest {
         // IMPORTANT: The expected constructor order is (email, fullName, password)
         signupDto = new SignupDto("test@example.com", "Test User", "password123");
         loginDto = new LoginDto("test@example.com", "password123");
-        staffLoginDto = new LoginDto(staff.getEmail(), "password123");
 
         // Prepare a dummy security context
         SecurityContext securityContext = mock(SecurityContext.class);
@@ -118,7 +106,7 @@ class AuthServiceImplTest {
 
     // --- Test for authenticateUser() ---
     @Test
-    void authenticateResident_Success() {
+    void authenticateUser_Success() {
         Authentication auth = mock(Authentication.class);
         when(authenticationManager.authenticate(any(UsernamePasswordAuthenticationToken.class))).thenReturn(auth);
         when(userRepository.findByUserNameOrEmailOrPhone(anyString(), anyString(), anyString()))
@@ -126,7 +114,7 @@ class AuthServiceImplTest {
         when(jwtTokenProvider.generateAccessToken(resident)).thenReturn("access-token");
         when(jwtTokenProvider.generateRefreshToken(resident)).thenReturn("refresh-token");
 
-        JWTAuthResponse response = authService.authenticateResident(loginDto);
+        JWTAuthResponse response = authService.authenticateUser(loginDto);
 
         assertNotNull(response);
         assertEquals("access-token", response.getAccessToken());
@@ -134,18 +122,18 @@ class AuthServiceImplTest {
     }
 
     @Test
-    void authenticateResident_EmailNotExist() {
+    void authenticateUser_EmailNotExist() {
         when(userRepository.findByUserNameOrEmailOrPhone(anyString(), anyString(), anyString())).thenReturn(Optional.empty());
 
         BadCredentialsException exception = assertThrows(BadCredentialsException.class, () ->
-                authService.authenticateResident(loginDto));
+                authService.authenticateUser(loginDto));
 
         assertNotNull(exception);
         assertEquals("error.emailNotExist", exception.getMessage());
     }
 
     @Test
-    void authenticateResident_WrongPassword() {
+    void authenticateUser_WrongPassword() {
         when(userRepository.findByUserNameOrEmailOrPhone(anyString(), anyString(), anyString()))
                 .thenReturn(Optional.of(resident));
 
@@ -153,49 +141,7 @@ class AuthServiceImplTest {
                 .thenThrow(new BadCredentialsException("Incorrect password!"));
 
         BadCredentialsException exception = assertThrows(BadCredentialsException.class, () ->
-                authService.authenticateResident(loginDto));
-
-        assertNotNull(exception);
-        assertEquals("error.incorrectPassword", exception.getMessage());
-    }
-
-    @Test
-    void authenticateAdminOrStaff_Success() {
-        Authentication auth = mock(Authentication.class);
-        when(authenticationManager.authenticate(any(UsernamePasswordAuthenticationToken.class))).thenReturn(auth);
-        when(userRepository.findByUserNameOrEmailOrPhone(anyString(), anyString(), anyString()))
-                .thenReturn(Optional.of(staff));
-        when(jwtTokenProvider.generateAccessToken(staff)).thenReturn("access-token");
-        when(jwtTokenProvider.generateRefreshToken(staff)).thenReturn("refresh-token");
-
-        JWTAuthResponse response = authService.authenticateAdminOrStaff(staffLoginDto);
-
-        assertNotNull(response);
-        assertEquals("access-token", response.getAccessToken());
-        assertEquals("refresh-token", response.getRefreshToken());
-    }
-
-    @Test
-    void authenticateAdminOrStaff_EmailNotExist() {
-        when(userRepository.findByUserNameOrEmailOrPhone(anyString(), anyString(), anyString())).thenReturn(Optional.empty());
-
-        BadCredentialsException exception = assertThrows(BadCredentialsException.class, () ->
-                authService.authenticateAdminOrStaff(staffLoginDto));
-
-        assertNotNull(exception);
-        assertEquals("error.emailNotExist", exception.getMessage());
-    }
-
-    @Test
-    void authenticateAdminOrStaff_WrongPassword() {
-        when(userRepository.findByUserNameOrEmailOrPhone(anyString(), anyString(), anyString()))
-                .thenReturn(Optional.of(staff));
-
-        when(authenticationManager.authenticate(any(UsernamePasswordAuthenticationToken.class)))
-                .thenThrow(new BadCredentialsException("Incorrect password!"));
-
-        BadCredentialsException exception = assertThrows(BadCredentialsException.class, () ->
-                authService.authenticateAdminOrStaff(loginDto));
+                authService.authenticateUser(loginDto));
 
         assertNotNull(exception);
         assertEquals("error.incorrectPassword", exception.getMessage());
@@ -225,7 +171,6 @@ class AuthServiceImplTest {
     // --- Tests for signupVerifiedUser() ---
     @Test
     void signupVerifiedUser_Success() {
-        when(roleRepository.findByName(RoleName.ROLE_RESIDENT)).thenReturn(Optional.of(residentRole));
         // Simulate creation of a new user from signupDto
         User newUser = new User();
         newUser.setEmail(signupDto.getEmail());
@@ -233,6 +178,9 @@ class AuthServiceImplTest {
         newUser.setFullName(signupDto.getFullName());
         newUser.setPassword("encodedPass");
         newUser.setFirstLogin(false);
+        newUser.setRole(residentRole);
+
+        when(roleRepository.findByName(RoleName.ROLE_RESIDENT)).thenReturn(Optional.of(residentRole));
         when(passwordEncoder.encode(signupDto.getPassword())).thenReturn("encodedPass");
         when(userRepository.save(any(User.class))).thenReturn(newUser);
         when(jwtTokenProvider.generateAccessToken(newUser)).thenReturn("access-token");

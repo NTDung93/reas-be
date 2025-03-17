@@ -11,7 +11,6 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -82,28 +81,13 @@ public class AuthServiceImpl implements AuthService {
     private String googleAuthUri;
 
     @Override
-    public JWTAuthResponse authenticateResident(LoginDto loginDto) {
-        User user = findUserByEmailOrUsernameOrPhone(loginDto.getUserNameOrEmailOrPhone());
+    public JWTAuthResponse authenticateUser (LoginDto dto) {
+        User user = userRepository.findByUserNameOrEmailOrPhone(
+                dto.getUserNameOrEmailOrPhone(),
+                dto.getUserNameOrEmailOrPhone(),
+                dto.getUserNameOrEmailOrPhone()
+        ).orElseThrow(() -> new BadCredentialsException("error.emailNotExist"));
 
-        if (user.getRole().getName().equals(RoleName.ROLE_ADMIN) || user.getRole().getName().equals(RoleName.ROLE_STAFF)) {
-            throw new AccessDeniedException("error.notAuthorizedForResidentLogin");
-        }
-
-        return authenticateUser(user, loginDto);
-    }
-
-    @Override
-    public JWTAuthResponse authenticateAdminOrStaff(LoginDto loginDto) {
-        User user = findUserByEmailOrUsernameOrPhone(loginDto.getUserNameOrEmailOrPhone());
-
-        if (user.getRole().getName().equals(RoleName.ROLE_RESIDENT)) {
-            throw new AccessDeniedException("error.notAuthorizedForAdminLogin");
-        }
-
-        return authenticateUser(user, loginDto);
-    }
-
-    private JWTAuthResponse authenticateUser(User user, LoginDto dto) {
         try {
             Authentication authentication = authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(dto.getUserNameOrEmailOrPhone(), dto.getPassword()));
@@ -116,7 +100,7 @@ public class AuthServiceImpl implements AuthService {
             revokeAllTokenByUser(user);
             saveUserToken(accessToken, refreshToken, user);
 
-            return new JWTAuthResponse(accessToken, refreshToken);
+            return new JWTAuthResponse(accessToken, refreshToken, user.getRole().getName());
 
         } catch (BadCredentialsException e) {
             throw new BadCredentialsException("error.incorrectPassword");
@@ -154,7 +138,7 @@ public class AuthServiceImpl implements AuthService {
 
         // send email to user
         sendMailToUser(user);
-        return new JWTAuthResponse(accessToken, refreshToken);
+        return new JWTAuthResponse(accessToken, refreshToken, user.getRole().getName());
     }
 
     @Override
@@ -235,7 +219,7 @@ public class AuthServiceImpl implements AuthService {
             revokeAllTokenByUser(user);
             saveUserToken(accessToken, refreshToken, user);
 
-            return new ResponseEntity<>(new JWTAuthResponse(accessToken, refreshToken), HttpStatus.OK);
+            return new ResponseEntity<>(new JWTAuthResponse(accessToken, refreshToken, user.getRole().getName()), HttpStatus.OK);
         }
 
         return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
@@ -282,7 +266,7 @@ public class AuthServiceImpl implements AuthService {
         } else {
             user = existingUser.get();
         }
-        return authenticateUser(user, new LoginDto(user.getEmail(), password));
+        return authenticateUser(new LoginDto(user.getEmail(), password));
     }
 
     private Map<String, Object> getGoogleUserData(String accessToken) {
@@ -316,14 +300,6 @@ public class AuthServiceImpl implements AuthService {
                 "grant_type", "authorization_code");
 
         return restTemplate.postForObject(googleTokenUri, tokenRequest, Map.class);
-    }
-
-    private User findUserByEmailOrUsernameOrPhone(String userLogin){
-        return userRepository.findByUserNameOrEmailOrPhone(
-                userLogin,
-                userLogin,
-                userLogin
-        ).orElseThrow(() -> new BadCredentialsException("error.emailNotExist"));
     }
 
     private void validateUser(SignupDto dto) {

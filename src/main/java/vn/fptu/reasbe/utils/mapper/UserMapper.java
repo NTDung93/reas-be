@@ -25,7 +25,8 @@ import java.util.stream.Stream;
         collectionMappingStrategy = CollectionMappingStrategy.SETTER_PREFERRED,
         nullValueCheckStrategy = NullValueCheckStrategy.ALWAYS,
         uses = {
-                LocationMapper.class
+                LocationMapper.class,
+                UserLocationMapper.class
         }
 )
 @Component
@@ -49,22 +50,26 @@ public interface UserMapper {
 
         return (int) user.getItems().stream()
                 .flatMap(item -> Stream.concat(
+                        // Take exchange requests from both seller and buyer side
                         item.getSellerExchangeRequests() != null ? item.getSellerExchangeRequests().stream() : Stream.empty(),
                         item.getBuyerExchangeRequests() != null ? item.getBuyerExchangeRequests().stream() : Stream.empty()
                 ))
-                .filter(er -> er.getExchangeHistory() != null)
-                .filter(er -> er.getExchangeHistory().getStatusExchangeHistory() == StatusExchangeHistory.SUCCESSFUL)
+                .map(ExchangeRequest::getExchangeHistory) // Map to exchange history
+                .filter(eh -> eh != null && eh.getStatusExchangeHistory() == StatusExchangeHistory.SUCCESSFUL) // Filter successful exchanges
                 .count();
     }
+
 
     // Count feedbacks only from seller transactions
     default Integer mapNumOfFeedbacks(User user) {
         if (user.getItems() == null) return 0;
 
         return user.getItems().stream()
+                //checking if the user has any exchangeRequest as a seller
                 .flatMap(item -> item.getSellerExchangeRequests() != null ? item.getSellerExchangeRequests().stream() : Stream.empty())
                 .map(ExchangeRequest::getExchangeHistory)
                 .filter(Objects::nonNull)
+                //count all available feedbacks
                 .mapToInt(eh -> eh.getFeedbacks() != null ? eh.getFeedbacks().size() : 0)
                 .sum();
     }
@@ -74,12 +79,14 @@ public interface UserMapper {
         if (user.getItems() == null) return 0.0;
 
         return user.getItems().stream()
+                //checking if the user has any exchangeRequest as a seller
                 .flatMap(item -> item.getSellerExchangeRequests() != null ? item.getSellerExchangeRequests().stream() : Stream.empty())
                 .map(ExchangeRequest::getExchangeHistory)
                 .filter(Objects::nonNull)
+                //get the feedback of user
                 .flatMap(eh -> eh.getFeedbacks() != null ? eh.getFeedbacks().stream() : Stream.empty())
                 .mapToDouble(Feedback::getRating)
-                .average()
+                .average() // calculate the average
                 .orElse(0.0);
     }
 }

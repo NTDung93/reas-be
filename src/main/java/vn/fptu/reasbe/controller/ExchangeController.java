@@ -12,6 +12,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import vn.fptu.reasbe.model.constant.AppConstants;
+import vn.fptu.reasbe.model.dto.core.BaseSearchPaginationResponse;
 import vn.fptu.reasbe.model.dto.exchange.EvidenceExchangeRequest;
 import vn.fptu.reasbe.model.dto.exchange.ExchangeRequestRequest;
 import vn.fptu.reasbe.model.dto.exchange.ExchangeRequestResponse;
@@ -21,7 +23,6 @@ import vn.fptu.reasbe.model.enums.exchange.StatusExchangeRequest;
 import vn.fptu.reasbe.service.ExchangeService;
 
 import java.math.BigDecimal;
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1/exchange")
@@ -31,44 +32,56 @@ public class ExchangeController {
 
 
     @GetMapping("/current-user")
-    @PreAuthorize("hasRole('ROLE_RESIDENT')")
-    public ResponseEntity<List<ExchangeResponse>> getAllExchangesByStatusOfCurrentUser(@RequestParam StatusExchangeRequest statusExchangeRequest,
-                                                                                       @RequestParam(required = false) StatusExchangeHistory statusExchangeHistory) {
-        return ResponseEntity.ok(exchangeService.getAllExchangeByStatusOfCurrentUser(statusExchangeRequest, statusExchangeHistory));
+    @PreAuthorize("hasRole(T(vn.fptu.reasbe.model.constant.AppConstants).ROLE_RESIDENT)")
+    public ResponseEntity<BaseSearchPaginationResponse<ExchangeResponse>> getAllExchangesByStatusOfCurrentUser(
+            @RequestParam(name = "pageNo", defaultValue = AppConstants.DEFAULT_PAGE_NUMBER, required = false) int pageNo,
+            @RequestParam(name = "pageSize", defaultValue = AppConstants.DEFAULT_PAGE_SIZE, required = false) int pageSize,
+            @RequestParam(name = "sortBy", defaultValue = AppConstants.DEFAULT_SORT_BY, required = false) String sortBy,
+            @RequestParam(name = "sortDir", defaultValue = AppConstants.DEFAULT_SORT_DIRECTION, required = false) String sortDir,
+            @RequestParam StatusExchangeRequest statusExchangeRequest,
+            @RequestParam(required = false) StatusExchangeHistory statusExchangeHistory
+    ) {
+        return ResponseEntity.ok(exchangeService.getAllExchangeByStatusOfCurrentUser(pageNo, pageSize, sortBy, sortDir, statusExchangeRequest, statusExchangeHistory));
     }
 
     @GetMapping("/{exchangeId}")
-    @PreAuthorize("hasRole('ROLE_RESIDENT')")
+    @PreAuthorize("hasRole(T(vn.fptu.reasbe.model.constant.AppConstants).ROLE_RESIDENT)")
     public ResponseEntity<ExchangeResponse> getExchangeById(@PathVariable Integer exchangeId) {
         return ResponseEntity.ok(exchangeService.getExchangeById(exchangeId));
     }
 
     @PostMapping
-    @PreAuthorize("hasRole('ROLE_RESIDENT')")
+    @PreAuthorize("hasRole(T(vn.fptu.reasbe.model.constant.AppConstants).ROLE_RESIDENT)")
     public ResponseEntity<ExchangeRequestResponse> makeAnExchange(@RequestBody @Valid ExchangeRequestRequest request) {
         return ResponseEntity.ok(exchangeService.createExchangeRequest(request));
     }
 
     @PutMapping("/negotiated-price")
-    @PreAuthorize("hasRole('ROLE_RESIDENT')")
+    @PreAuthorize("hasRole(T(vn.fptu.reasbe.model.constant.AppConstants).ROLE_RESIDENT)")
     public ResponseEntity<ExchangeRequestResponse> updateExchangeRequestPrice(@RequestParam Integer exchangeId, @RequestParam BigDecimal negotiatedPrice) {
         return ResponseEntity.ok(exchangeService.updateExchangeRequestPrice(exchangeId, negotiatedPrice));
     }
 
+    @PutMapping("/negotiated-price/confirm")
+    @PreAuthorize("hasRole(T(vn.fptu.reasbe.model.constant.AppConstants).ROLE_RESIDENT)")
+    public ResponseEntity<Boolean> confirmNegotiatedPrice(@RequestParam Integer exchangeId) {
+        return ResponseEntity.ok(exchangeService.confirmNegotiatedPrice(exchangeId));
+    }
+
     @PutMapping("/review")
-    @PreAuthorize("hasRole('ROLE_RESIDENT')")
+    @PreAuthorize("hasRole(T(vn.fptu.reasbe.model.constant.AppConstants).ROLE_RESIDENT)")
     public ResponseEntity<ExchangeResponse> reviewExchangeRequest(@RequestParam Integer exchangeId, @RequestParam StatusExchangeRequest statusExchangeRequest) {
         return ResponseEntity.ok(exchangeService.reviewExchangeRequest(exchangeId, statusExchangeRequest));
     }
 
     @PostMapping("/evidence")
-    @PreAuthorize("hasRole('ROLE_RESIDENT')")
+    @PreAuthorize("hasRole(T(vn.fptu.reasbe.model.constant.AppConstants).ROLE_RESIDENT)")
     public ResponseEntity<ExchangeResponse> uploadExchangeEvidence(@RequestBody @Valid EvidenceExchangeRequest request) {
         return ResponseEntity.ok(exchangeService.uploadEvidence(request));
     }
 
     @PutMapping("/cancel")
-    @PreAuthorize("hasRole('ROLE_RESIDENT')")
+    @PreAuthorize("hasRole(T(vn.fptu.reasbe.model.constant.AppConstants).ROLE_RESIDENT)")
     public ResponseEntity<ExchangeResponse> cancelApprovedExchange(@RequestParam Integer exchangeId) {
         return ResponseEntity.ok(exchangeService.cancelApprovedExchange(exchangeId));
     }

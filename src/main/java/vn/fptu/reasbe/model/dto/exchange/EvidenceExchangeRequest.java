@@ -18,10 +18,8 @@ public class EvidenceExchangeRequest {
     @NotNull(message = "ExchangeHistoryId must not be null")
     Integer exchangeHistoryId;
 
-    @NotNull(message = "Item image must not be blank")
-    String itemImageUrl;
-
-    String transactionImageUrl;
+    @NotNull(message = "Image must not be blank")
+    String imageUrl;
 
     String additionalNotes;
 }

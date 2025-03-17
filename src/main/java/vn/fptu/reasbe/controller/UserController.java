@@ -34,7 +34,7 @@ public class UserController {
 
     private final UserService userService;
 
-    @PreAuthorize("hasRole('ROLE_ADMIN') or hasRole('ROLE_STAFF')")
+    @PreAuthorize("hasRole(T(vn.fptu.reasbe.model.constant.AppConstants).ROLE_ADMIN) or hasRole(T(vn.fptu.reasbe.model.constant.AppConstants).ROLE_STAFF)")
     @PostMapping("/search")
     public ResponseEntity<BaseSearchPaginationResponse<UserResponse>> searchUserPagination(
             @RequestParam(name = "pageNo", defaultValue = AppConstants.DEFAULT_PAGE_NUMBER, required = false) int pageNo,
@@ -46,25 +46,25 @@ public class UserController {
         return ResponseEntity.ok(userService.searchUserPagination(pageNo, pageSize, sortBy, sortDir, request));
     }
 
-    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    @PreAuthorize("hasRole(T(vn.fptu.reasbe.model.constant.AppConstants).ROLE_ADMIN)")
     @PostMapping("/create-new-staff")
     public ResponseEntity<UserResponse> createNewStaff(@RequestBody @Valid CreateStaffRequest request) {
         return ResponseEntity.ok(userService.createNewStaff(request));
     }
 
-    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    @PreAuthorize("hasRole(T(vn.fptu.reasbe.model.constant.AppConstants).ROLE_ADMIN)")
     @PutMapping("/update-staff")
     public ResponseEntity<UserResponse> updateStaff(@RequestBody @Valid UpdateStaffRequest request) {
         return ResponseEntity.ok(userService.updateStaff(request));
     }
 
-    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    @PreAuthorize("hasRole(T(vn.fptu.reasbe.model.constant.AppConstants).ROLE_ADMIN)")
     @DeleteMapping("/deactivate-staff/{userId}")
     public ResponseEntity<Boolean> deactivateStaff(@PathVariable Integer userId) {
         return ResponseEntity.ok(userService.deactivateStaff(userId));
     }
 
-    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    @PreAuthorize("hasRole(T(vn.fptu.reasbe.model.constant.AppConstants).ROLE_ADMIN)")
     @GetMapping("/{userId}")
     public ResponseEntity<UserResponse> getUser(@PathVariable Integer userId) {
         return ResponseEntity.ok(userService.loadDetailInfoUser(userId));

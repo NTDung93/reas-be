@@ -11,9 +11,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import vn.fptu.reasbe.model.entity.User;
 
 public interface AuthService {
-    JWTAuthResponse authenticateResident(LoginDto loginDto);
-
-    JWTAuthResponse authenticateAdminOrStaff(LoginDto loginDto);
+    JWTAuthResponse authenticateUser(LoginDto loginDto);
 
     String validateAndSendOtp(SignupDto dto);
 

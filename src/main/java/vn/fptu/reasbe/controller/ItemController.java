@@ -15,8 +15,6 @@ import vn.fptu.reasbe.model.enums.item.StatusItem;
 import vn.fptu.reasbe.service.ItemService;
 import vn.fptu.reasbe.utils.mapper.ItemMapper;
 
-import java.util.List;
-
 /**
  * @author ntig
  */
@@ -40,19 +38,27 @@ public class ItemController {
     }
 
     @GetMapping("/user")
-    public ResponseEntity<List<ItemResponse>> getAllAvailableItemOfUser(
+    public ResponseEntity<BaseSearchPaginationResponse<ItemResponse>> getAllAvailableItemOfUser(
+            @RequestParam(name = "pageNo", defaultValue = AppConstants.DEFAULT_PAGE_NUMBER, required = false) int pageNo,
+            @RequestParam(name = "pageSize", defaultValue = AppConstants.DEFAULT_PAGE_SIZE, required = false) int pageSize,
+            @RequestParam(name = "sortBy", defaultValue = AppConstants.DEFAULT_SORT_BY, required = false) String sortBy,
+            @RequestParam(name = "sortDir", defaultValue = AppConstants.DEFAULT_SORT_DIRECTION, required = false) String sortDir,
             @RequestParam(value = "userId") Integer userId,
             @RequestParam(value = "statusItem") StatusItem statusItem)
     {
-        return ResponseEntity.ok(itemService.getAllItemOfUser(userId, statusItem));
+        return ResponseEntity.ok(itemService.getAllItemOfUser(pageNo, pageSize, sortBy, sortDir, userId, statusItem));
     }
 
     @GetMapping("/current-user")
-    @PreAuthorize("hasRole('ROLE_RESIDENT')")
-    public ResponseEntity<List<ItemResponse>> getAllItemOfCurrentUserByStatus(
+    @PreAuthorize("hasRole(T(vn.fptu.reasbe.model.constant.AppConstants).ROLE_RESIDENT)")
+    public ResponseEntity<BaseSearchPaginationResponse<ItemResponse>> getAllItemOfCurrentUserByStatus(
+            @RequestParam(name = "pageNo", defaultValue = AppConstants.DEFAULT_PAGE_NUMBER, required = false) int pageNo,
+            @RequestParam(name = "pageSize", defaultValue = AppConstants.DEFAULT_PAGE_SIZE, required = false) int pageSize,
+            @RequestParam(name = "sortBy", defaultValue = AppConstants.DEFAULT_SORT_BY, required = false) String sortBy,
+            @RequestParam(name = "sortDir", defaultValue = AppConstants.DEFAULT_SORT_DIRECTION, required = false) String sortDir,
              @RequestParam(value = "statusItem") StatusItem statusItem)
     {
-        return ResponseEntity.ok(itemService.getAllItemOfCurrentUserByStatusItem(statusItem));
+        return ResponseEntity.ok(itemService.getAllItemOfCurrentUserByStatusItem(pageNo, pageSize, sortBy, sortDir, statusItem));
     }
 
     @GetMapping("/{id}")
@@ -61,28 +67,33 @@ public class ItemController {
     }
 
     @SecurityRequirement(name = AppConstants.SEC_REQ_NAME)
-    @PreAuthorize("hasRole('ROLE_RESIDENT')")
+    @PreAuthorize("hasRole(T(vn.fptu.reasbe.model.constant.AppConstants).ROLE_RESIDENT)")
     @PostMapping()
     public ResponseEntity<ItemResponse> uploadItem(@Valid @RequestBody UploadItemRequest request) {
         return ResponseEntity.ok(itemMapper.toItemResponse(itemService.uploadItem(request)));
     }
 
     @SecurityRequirement(name = AppConstants.SEC_REQ_NAME)
-    @PreAuthorize("hasRole('ROLE_RESIDENT')")
+    @PreAuthorize("hasRole(T(vn.fptu.reasbe.model.constant.AppConstants).ROLE_RESIDENT)")
     @PutMapping()
     public ResponseEntity<ItemResponse> updateItem(@Valid @RequestBody UpdateItemRequest request) {
         return ResponseEntity.ok(itemService.updateItem(request));
     }
 
     @SecurityRequirement(name = AppConstants.SEC_REQ_NAME)
-    @PreAuthorize("hasRole('ROLE_STAFF')")
+    @PreAuthorize("hasRole(T(vn.fptu.reasbe.model.constant.AppConstants).ROLE_STAFF)")
     @GetMapping("/pending")
-    public ResponseEntity<List<ItemResponse>> getAllPendingItem() {
-        return ResponseEntity.ok(itemService.getAllPendingItem());
+    public ResponseEntity<BaseSearchPaginationResponse<ItemResponse>> getAllPendingItem(
+            @RequestParam(name = "pageNo", defaultValue = AppConstants.DEFAULT_PAGE_NUMBER, required = false) int pageNo,
+            @RequestParam(name = "pageSize", defaultValue = AppConstants.DEFAULT_PAGE_SIZE, required = false) int pageSize,
+            @RequestParam(name = "sortBy", defaultValue = AppConstants.DEFAULT_SORT_BY, required = false) String sortBy,
+            @RequestParam(name = "sortDir", defaultValue = AppConstants.DEFAULT_SORT_DIRECTION, required = false) String sortDir
+    ) {
+        return ResponseEntity.ok(itemService.getAllPendingItem(pageNo, pageSize, sortBy, sortDir));
     }
 
     @SecurityRequirement(name = AppConstants.SEC_REQ_NAME)
-    @PreAuthorize("hasRole('ROLE_STAFF')")
+    @PreAuthorize("hasRole(T(vn.fptu.reasbe.model.constant.AppConstants).ROLE_STAFF)")
     @PutMapping("/review")
     public ResponseEntity<ItemResponse> reviewItem(@RequestParam("id") Integer id, @RequestParam("statusItem") StatusItem statusItem) {
         return ResponseEntity.ok(itemService.reviewItem(id, statusItem));
