@@ -16,10 +16,12 @@ import vn.fptu.reasbe.model.dto.user.UpdateStaffRequest;
 import vn.fptu.reasbe.model.dto.user.UserResponse;
 import vn.fptu.reasbe.model.entity.Role;
 import vn.fptu.reasbe.model.entity.User;
+import vn.fptu.reasbe.model.entity.UserLocation;
 import vn.fptu.reasbe.model.enums.core.StatusEntity;
 import vn.fptu.reasbe.model.enums.user.RoleName;
 import vn.fptu.reasbe.model.exception.ReasApiException;
 import vn.fptu.reasbe.repository.RoleRepository;
+import vn.fptu.reasbe.repository.UserLocationRepository;
 import vn.fptu.reasbe.repository.UserRepository;
 import vn.fptu.reasbe.service.EmailService;
 import vn.fptu.reasbe.service.UserService;
@@ -38,6 +40,7 @@ public class UserServiceImpl implements UserService {
     private final UserMapper userMapper;
     private final PasswordEncoder passwordEncoder;
     private final EmailService emailService;
+    private final UserLocationRepository userLocationRepository;
     private final UserMService userMService;
 
     @Override
@@ -71,8 +74,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserResponse updateStaff(UpdateStaffRequest request) {
-        User user = userRepository.findById(request.getId())
-                .orElseThrow(() -> new ReasApiException(HttpStatus.BAD_REQUEST, "error.userNotFound"));
+        User user = getUserById(request.getId());
         validateUpdateStaffRequest(request);
         userMapper.updateUser(user, request);
         user.setPassword(passwordEncoder.encode(request.getPassword()));
@@ -93,20 +95,27 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public Boolean deactivateStaff(Integer userId) {
-        User user = getUser(userId);
+        User user = getUserById(userId);
         user.setStatusEntity(StatusEntity.INACTIVE);
         userRepository.save(user);
         return true;
     }
 
-    private User getUser(Integer userId) {
-        return userRepository.findById(userId)
+    @Override
+    public User getUserById(Integer id) {
+        return userRepository.findById(id)
                 .orElseThrow(() -> new ReasApiException(HttpStatus.BAD_REQUEST, "error.userNotFound"));
     }
 
     @Override
+    public UserLocation getPrimaryUserLocation(User user) {
+        return userLocationRepository.findByIsPrimaryTrueAndUser(user)
+                .orElseThrow(() -> new ReasApiException(HttpStatus.BAD_REQUEST, "error.primaryLocationNotFound"));
+    }
+
+    @Override
     public UserResponse loadDetailInfoUser(Integer userId) {
-        return userMapper.toUserResponse(getUser(userId));
+        return userMapper.toUserResponse(getUserById(userId));
     }
 
     private Role getStaffRole() {

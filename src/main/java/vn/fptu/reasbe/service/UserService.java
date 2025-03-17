@@ -5,6 +5,8 @@ import vn.fptu.reasbe.model.dto.user.CreateStaffRequest;
 import vn.fptu.reasbe.model.dto.user.SearchUserRequest;
 import vn.fptu.reasbe.model.dto.user.UpdateStaffRequest;
 import vn.fptu.reasbe.model.dto.user.UserResponse;
+import vn.fptu.reasbe.model.entity.User;
+import vn.fptu.reasbe.model.entity.UserLocation;
 
 /**
  * @author ntig
@@ -17,6 +19,10 @@ public interface UserService {
     UserResponse updateStaff(UpdateStaffRequest request);
 
     Boolean deactivateStaff(Integer userId);
+
+    User getUserById(Integer id);
+
+    UserLocation getPrimaryUserLocation(User user);
 
     UserResponse loadDetailInfoUser(Integer userId);
 }

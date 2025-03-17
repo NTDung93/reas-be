@@ -2,6 +2,7 @@ package vn.fptu.reasbe.model.dto.user;
 
 import lombok.AccessLevel;
 import lombok.experimental.FieldDefaults;
+import vn.fptu.reasbe.model.dto.userlocation.UserLocationDto;
 import vn.fptu.reasbe.model.enums.core.StatusEntity;
 
 import lombok.AllArgsConstructor;
@@ -10,6 +11,8 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import vn.fptu.reasbe.model.enums.user.Gender;
 import vn.fptu.reasbe.model.enums.user.RoleName;
+
+import java.util.List;
 
 @Getter
 @Setter
@@ -23,7 +26,11 @@ public class UserResponse {
     String email;
     String phone;
     Gender gender;
+    Integer numOfExchangedItems;
+    Integer numOfFeedbacks;
+    Double numOfRatings;
     StatusEntity statusEntity;
     String image;
     RoleName roleName;
+    List<UserLocationDto> userLocations;
 }

@@ -7,9 +7,8 @@ import vn.fptu.reasbe.model.dto.item.SearchItemRequest;
 import vn.fptu.reasbe.model.dto.item.SearchItemResponse;
 import vn.fptu.reasbe.model.dto.item.UpdateItemRequest;
 import vn.fptu.reasbe.model.dto.item.UploadItemRequest;
+import vn.fptu.reasbe.model.entity.Item;
 import vn.fptu.reasbe.model.enums.item.StatusItem;
-
-import java.util.List;
 
 /**
  * @author ntig
@@ -17,17 +16,17 @@ import java.util.List;
 public interface ItemService {
     BaseSearchPaginationResponse<SearchItemResponse> searchItemPagination(int pageNo, int pageSize, String sortBy, String sortDir, SearchItemRequest request);
 
-    List<ItemResponse> getAllItemOfUser(Integer userId, StatusItem statusItem);
+    Item getItemById(Integer id);
 
-    List<ItemResponse> getAllItemOfCurrentUserByStatusItem(StatusItem statusItem);
+    Item uploadItem(UploadItemRequest request);
 
-    ItemResponse uploadItem(UploadItemRequest request);
+    BaseSearchPaginationResponse<ItemResponse> getAllItemOfUser(int pageNo, int pageSize, String sortBy, String sortDir, Integer userId, StatusItem statusItem);
 
-    ItemResponse getItemDetail(Integer id);
+    BaseSearchPaginationResponse<ItemResponse> getAllItemOfCurrentUserByStatusItem(int pageNo, int pageSize, String sortBy, String sortDir, StatusItem statusItem);
 
     ItemResponse updateItem(UpdateItemRequest request);
 
-    List<ItemResponse> getAllPendingItem();
+    BaseSearchPaginationResponse<ItemResponse> getAllPendingItem(int pageNo, int pageSize, String sortBy, String sortDir);
 
     ItemResponse reviewItem(Integer id, StatusItem status);
 }

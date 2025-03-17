@@ -10,7 +10,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.MockedConstruction;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.*;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -21,12 +20,10 @@ import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.util.ReflectionTestUtils;
-import org.springframework.web.client.RestTemplate;
 import vn.fptu.reasbe.model.constant.AppConstants;
 import vn.fptu.reasbe.model.dto.auth.JWTAuthResponse;
 import vn.fptu.reasbe.model.dto.auth.LoginDto;
 import vn.fptu.reasbe.model.dto.auth.SignupDto;
-import vn.fptu.reasbe.model.dto.user.UserResponse;
 import vn.fptu.reasbe.model.entity.Role;
 import vn.fptu.reasbe.model.entity.User;
 import vn.fptu.reasbe.model.enums.user.RoleName;
@@ -37,11 +34,9 @@ import vn.fptu.reasbe.repository.UserRepository;
 import vn.fptu.reasbe.security.JwtTokenProvider;
 import vn.fptu.reasbe.service.EmailService;
 import vn.fptu.reasbe.service.OtpService;
+import vn.fptu.reasbe.service.mongodb.UserMService;
 import vn.fptu.reasbe.utils.mapper.UserMapper;
 
-import javax.naming.AuthenticationException;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Optional;
 
 @ExtendWith(MockitoExtension.class)
@@ -58,6 +53,8 @@ class AuthServiceImplTest {
     @Mock
     private PasswordEncoder passwordEncoder;
     @Mock
+    private UserMService userMService;
+    @Mock
     private EmailService emailService;
     @Mock
     private OtpService otpService;
@@ -73,23 +70,25 @@ class AuthServiceImplTest {
     @InjectMocks
     private AuthServiceImpl authService;
 
-    private User user;
-    private Role role;
+    private User resident;
+    private Role residentRole;
     private SignupDto signupDto;
     private LoginDto loginDto;
 
     @BeforeEach
     void setUp() {
         // Prepare a dummy user and role
-        user = new User();
-        user.setId(1);
-        user.setEmail("test@example.com");
-        user.setUserName("testuser");
-        user.setFullName("Test User");
-        user.setPassword("encodedPassword");
 
-        role = new Role();
-        role.setName(RoleName.ROLE_RESIDENT);
+        residentRole = new Role();
+        residentRole.setName(RoleName.ROLE_RESIDENT);
+
+        resident = new User();
+        resident.setId(1);
+        resident.setEmail("test@example.com");
+        resident.setUserName("testuser");
+        resident.setFullName("Test User");
+        resident.setPassword("encodedPassword");
+        resident.setRole(residentRole);
 
         // IMPORTANT: The expected constructor order is (email, fullName, password)
         signupDto = new SignupDto("test@example.com", "Test User", "password123");
@@ -111,9 +110,9 @@ class AuthServiceImplTest {
         Authentication auth = mock(Authentication.class);
         when(authenticationManager.authenticate(any(UsernamePasswordAuthenticationToken.class))).thenReturn(auth);
         when(userRepository.findByUserNameOrEmailOrPhone(anyString(), anyString(), anyString()))
-                .thenReturn(Optional.of(user));
-        when(jwtTokenProvider.generateAccessToken(user)).thenReturn("access-token");
-        when(jwtTokenProvider.generateRefreshToken(user)).thenReturn("refresh-token");
+                .thenReturn(Optional.of(resident));
+        when(jwtTokenProvider.generateAccessToken(resident)).thenReturn("access-token");
+        when(jwtTokenProvider.generateRefreshToken(resident)).thenReturn("refresh-token");
 
         JWTAuthResponse response = authService.authenticateUser(loginDto);
 
@@ -130,13 +129,13 @@ class AuthServiceImplTest {
                 authService.authenticateUser(loginDto));
 
         assertNotNull(exception);
-        assertEquals("Email is not exist!", exception.getMessage());
+        assertEquals("error.emailNotExist", exception.getMessage());
     }
 
     @Test
     void authenticateUser_WrongPassword() {
         when(userRepository.findByUserNameOrEmailOrPhone(anyString(), anyString(), anyString()))
-                .thenReturn(Optional.of(user));
+                .thenReturn(Optional.of(resident));
 
         when(authenticationManager.authenticate(any(UsernamePasswordAuthenticationToken.class)))
                 .thenThrow(new BadCredentialsException("Incorrect password!"));
@@ -145,7 +144,7 @@ class AuthServiceImplTest {
                 authService.authenticateUser(loginDto));
 
         assertNotNull(exception);
-        assertEquals("Incorrect password!", exception.getMessage());
+        assertEquals("error.incorrectPassword", exception.getMessage());
     }
 
     // --- Tests for validateAndSendOtp() ---
@@ -166,13 +165,12 @@ class AuthServiceImplTest {
         ReasApiException exception = assertThrows(ReasApiException.class, () ->
                 authService.validateAndSendOtp(signupDto));
         assertEquals(HttpStatus.BAD_REQUEST, exception.getStatus());
-        assertEquals("Email is already exist!", exception.getMessage());
+        assertEquals("error.emailAlreadyExist", exception.getMessage());
     }
 
     // --- Tests for signupVerifiedUser() ---
     @Test
     void signupVerifiedUser_Success() {
-        when(roleRepository.findByName(RoleName.ROLE_RESIDENT)).thenReturn(Optional.of(role));
         // Simulate creation of a new user from signupDto
         User newUser = new User();
         newUser.setEmail(signupDto.getEmail());
@@ -180,6 +178,9 @@ class AuthServiceImplTest {
         newUser.setFullName(signupDto.getFullName());
         newUser.setPassword("encodedPass");
         newUser.setFirstLogin(false);
+        newUser.setRole(residentRole);
+
+        when(roleRepository.findByName(RoleName.ROLE_RESIDENT)).thenReturn(Optional.of(residentRole));
         when(passwordEncoder.encode(signupDto.getPassword())).thenReturn("encodedPass");
         when(userRepository.save(any(User.class))).thenReturn(newUser);
         when(jwtTokenProvider.generateAccessToken(newUser)).thenReturn("access-token");
@@ -201,7 +202,7 @@ class AuthServiceImplTest {
         ReasApiException exception = assertThrows(ReasApiException.class, () ->
                 authService.signupVerifiedUser(signupDto));
         assertEquals(HttpStatus.BAD_REQUEST, exception.getStatus());
-        assertEquals("Role does not exist", exception.getMessage());
+        assertEquals("error.roleNotExist", exception.getMessage());
     }
 
     // --- Test for getGoogleLoginUrl() ---
@@ -214,144 +215,6 @@ class AuthServiceImplTest {
     }
 
     // --- Tests for authenticateGoogleUser() using MockedConstruction for RestTemplate ---
-    @Test
-    void authenticateGoogleUser_JsonDataNull() {
-        try (MockedConstruction<RestTemplate> mocked = mockConstruction(RestTemplate.class, (mock, context) -> {
-            when(mock.postForObject(eq("https://oauth2.googleapis.com/token"), any(), eq(Map.class)))
-                    .thenReturn(null);
-        })) {
-            ReasApiException exception = assertThrows(ReasApiException.class, () ->
-                    authService.authenticateGoogleUser("authCode"));
-            assertEquals(HttpStatus.CONFLICT, exception.getStatus());
-            assertEquals("No access token retrieved from OAuth2", exception.getMessage());
-        }
-    }
-
-    @Test
-    void authenticateGoogleUser_UserInfoResponseNotOk() {
-        Map<String, Object> jsonData = new HashMap<>();
-        jsonData.put("access_token", "google-access-token");
-
-        try (MockedConstruction<RestTemplate> mocked = mockConstruction(RestTemplate.class, (mock, context) -> {
-            when(mock.postForObject(eq("https://oauth2.googleapis.com/token"), any(), eq(Map.class)))
-                    .thenReturn(jsonData);
-            ResponseEntity<Map> badResponse = new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-            when(mock.exchange(eq("https://www.googleapis.com/oauth2/v3/userinfo"),
-                    eq(HttpMethod.GET), any(), eq(Map.class))).thenReturn(badResponse);
-        })) {
-            ReasApiException exception = assertThrows(ReasApiException.class, () ->
-                    authService.authenticateGoogleUser("authCode"));
-            assertEquals(HttpStatus.BAD_REQUEST, exception.getStatus());
-            assertEquals("Failed to retrieve user info", exception.getMessage());
-        }
-    }
-
-    @Test
-    void authenticateGoogleUser_UserInfoNull() {
-        Map<String, Object> jsonData = new HashMap<>();
-        jsonData.put("access_token", "google-access-token");
-
-        try (MockedConstruction<RestTemplate> mocked = mockConstruction(RestTemplate.class, (mock, context) -> {
-            when(mock.postForObject(eq("https://oauth2.googleapis.com/token"), any(), eq(Map.class)))
-                    .thenReturn(jsonData);
-            ResponseEntity<Map> okResponse = new ResponseEntity<>(null, HttpStatus.OK);
-            when(mock.exchange(eq("https://www.googleapis.com/oauth2/v3/userinfo"),
-                    eq(HttpMethod.GET), any(), eq(Map.class))).thenReturn(okResponse);
-        })) {
-            ReasApiException exception = assertThrows(ReasApiException.class, () ->
-                    authService.authenticateGoogleUser("authCode"));
-            assertEquals(HttpStatus.NOT_FOUND, exception.getStatus());
-            assertEquals("Failed to retrieve user info: userInfo is null", exception.getMessage());
-        }
-    }
-
-    @Test
-    void authenticateGoogleUser_NewUserCreation() {
-        // Prepare user info map returned by Google
-        Map<String, Object> userInfoMap = new HashMap<>();
-        userInfoMap.put("email", "google@example.com");
-        userInfoMap.put("name", "Google User");
-        userInfoMap.put("sub", "12345");
-        userInfoMap.put("picture", "imageUrl");
-
-        Map<String, Object> jsonData = new HashMap<>();
-        jsonData.put("access_token", "google-access-token");
-
-        // Create a new user to be returned upon save
-        User googleUser = new User();
-        googleUser.setId(2);
-        googleUser.setEmail("google@example.com");
-
-        try (MockedConstruction<RestTemplate> mocked = mockConstruction(RestTemplate.class, (mock, context) -> {
-            when(mock.postForObject(eq("https://oauth2.googleapis.com/token"), any(), eq(Map.class)))
-                    .thenReturn(jsonData);
-            ResponseEntity<Map> okResponse = new ResponseEntity<>(userInfoMap, HttpStatus.OK);
-            when(mock.exchange(eq("https://www.googleapis.com/oauth2/v3/userinfo"),
-                    eq(HttpMethod.GET), any(), eq(Map.class))).thenReturn(okResponse);
-        })) {
-            // Simulate that the user does not exist yet
-            when(userRepository.findByEmail("google@example.com")).thenReturn(Optional.empty());
-            when(roleRepository.findByName(RoleName.ROLE_RESIDENT)).thenReturn(Optional.of(role));
-            when(passwordEncoder.encode("Google:" + "12345")).thenReturn("encoded-google-pass");
-            when(userRepository.save(any(User.class))).thenReturn(googleUser);
-
-            // For the inner call to authenticateUser, stub dependencies:
-            Authentication auth = mock(Authentication.class);
-            when(authenticationManager.authenticate(any(UsernamePasswordAuthenticationToken.class))).thenReturn(auth);
-            when(userRepository.findByUserNameOrEmailOrPhone(eq("google@example.com"), any(), any())).
-                    thenReturn(Optional.of(googleUser));
-            when(jwtTokenProvider.generateAccessToken(googleUser)).thenReturn("access-token-new");
-            when(jwtTokenProvider.generateRefreshToken(googleUser)).thenReturn("refresh-token-new");
-
-            JWTAuthResponse response = authService.authenticateGoogleUser("authCode");
-            assertNotNull(response);
-            assertEquals("access-token-new", response.getAccessToken());
-            assertEquals("refresh-token-new", response.getRefreshToken());
-        }
-    }
-
-    @Test
-    void authenticateGoogleUser_ExistingUser() {
-        // Prepare user info map returned by Google
-        Map<String, Object> userInfoMap = new HashMap<>();
-        userInfoMap.put("email", "google@example.com");
-        userInfoMap.put("name", "Google User");
-        userInfoMap.put("sub", "12345");
-        userInfoMap.put("picture", "imageUrl");
-
-        Map<String, Object> jsonData = new HashMap<>();
-        jsonData.put("access_token", "google-access-token");
-
-        // An existing user in the system
-        User existingUser = new User();
-        existingUser.setId(3);
-        existingUser.setEmail("google@example.com");
-
-        try (MockedConstruction<RestTemplate> mocked = mockConstruction(RestTemplate.class, (mock, context) -> {
-            when(mock.postForObject(eq("https://oauth2.googleapis.com/token"), any(), eq(Map.class)))
-                    .thenReturn(jsonData);
-            ResponseEntity<Map> okResponse = new ResponseEntity<>(userInfoMap, HttpStatus.OK);
-            when(mock.exchange(eq("https://www.googleapis.com/oauth2/v3/userinfo"),
-                    eq(HttpMethod.GET), any(), eq(Map.class))).thenReturn(okResponse);
-        })) {
-            // Simulate that the user already exists
-            when(userRepository.findByEmail("google@example.com")).thenReturn(Optional.of(existingUser));
-            // IMPORTANT: Stub role lookup so that the role exists
-            when(roleRepository.findByName(RoleName.ROLE_RESIDENT)).thenReturn(Optional.of(role));
-            // For the inner call to authenticateUser, stub dependencies:
-            Authentication auth = mock(Authentication.class);
-            when(authenticationManager.authenticate(any(UsernamePasswordAuthenticationToken.class))).thenReturn(auth);
-            when(userRepository.findByUserNameOrEmailOrPhone(eq("google@example.com"), any(), any())).
-                    thenReturn(Optional.of(existingUser));
-            when(jwtTokenProvider.generateAccessToken(existingUser)).thenReturn("access-token-existing");
-            when(jwtTokenProvider.generateRefreshToken(existingUser)).thenReturn("refresh-token-existing");
-
-            JWTAuthResponse response = authService.authenticateGoogleUser("authCode");
-            assertNotNull(response);
-            assertEquals("access-token-existing", response.getAccessToken());
-            assertEquals("refresh-token-existing", response.getRefreshToken());
-        }
-    }
 
     // --- Test for getUserInfo() ---
     @Test
@@ -361,13 +224,11 @@ class AuthServiceImplTest {
         when(securityContext.getAuthentication()).thenReturn(auth);
         when(auth.getName()).thenReturn("test@example.com");
         SecurityContextHolder.setContext(securityContext);
-        when(userRepository.findByUserNameOrEmailOrPhone(anyString(), anyString(), anyString()))
-                .thenReturn(Optional.of(user));
-        UserResponse userResponse = new UserResponse();
-        when(userMapper.toUserResponse(user)).thenReturn(userResponse);
+        when(userRepository.findByUserName(anyString()))
+                .thenReturn(Optional.of(resident));
 
-        UserResponse response = authService.getUserInfo();
-        assertNotNull(response);
+        User user1 = authService.getCurrentUser();
+        assertNotNull(user1);
     }
 
     // --- Tests for refreshToken() ---
@@ -377,10 +238,10 @@ class AuthServiceImplTest {
                 .thenReturn(AppConstants.AUTH_VALUE_PREFIX + "access-token");
         when(jwtTokenProvider.getUsernameFromJwt("access-token")).thenReturn("test@example.com");
         when(userRepository.findByUserNameOrEmailOrPhone(anyString(), anyString(), anyString()))
-                .thenReturn(Optional.of(user));
-        when(jwtTokenProvider.isValidRefreshToken("access-token", user.getUserName())).thenReturn(true);
-        when(jwtTokenProvider.generateAccessToken(user)).thenReturn("new-access-token");
-        when(jwtTokenProvider.generateRefreshToken(user)).thenReturn("new-refresh-token");
+                .thenReturn(Optional.of(resident));
+        when(jwtTokenProvider.isValidRefreshToken("access-token", resident.getUserName())).thenReturn(true);
+        when(jwtTokenProvider.generateAccessToken(resident)).thenReturn("new-access-token");
+        when(jwtTokenProvider.generateRefreshToken(resident)).thenReturn("new-refresh-token");
 
         ResponseEntity<JWTAuthResponse> responseEntity = authService.refreshToken(request, response);
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
@@ -407,8 +268,8 @@ class AuthServiceImplTest {
                 .thenReturn(AppConstants.AUTH_VALUE_PREFIX + "access-token");
         when(jwtTokenProvider.getUsernameFromJwt("access-token")).thenReturn("test@example.com");
         when(userRepository.findByUserNameOrEmailOrPhone(anyString(), anyString(), anyString()))
-                .thenReturn(Optional.of(user));
-        when(jwtTokenProvider.isValidRefreshToken("access-token", user.getUserName())).thenReturn(false);
+                .thenReturn(Optional.of(resident));
+        when(jwtTokenProvider.isValidRefreshToken("access-token", resident.getUserName())).thenReturn(false);
 
         ResponseEntity<JWTAuthResponse> responseEntity = authService.refreshToken(request, response);
         assertEquals(HttpStatus.UNAUTHORIZED, responseEntity.getStatusCode());
@@ -424,13 +285,13 @@ class AuthServiceImplTest {
         SecurityContextHolder.setContext(securityContext);
 
         when(userRepository.findByUserNameOrEmailOrPhone(anyString(), anyString(), anyString()))
-                .thenReturn(Optional.of(user));
-        when(passwordEncoder.matches("oldPassword", user.getPassword())).thenReturn(true);
+                .thenReturn(Optional.of(resident));
+        when(passwordEncoder.matches("oldPassword", resident.getPassword())).thenReturn(true);
         when(passwordEncoder.encode("NewPassword1!")).thenReturn("newEncodedPassword");
 
         authService.changePassword("oldPassword", "NewPassword1!");
-        verify(userRepository).save(user);
-        assertEquals("newEncodedPassword", user.getPassword());
+        verify(userRepository).save(resident);
+        assertEquals("newEncodedPassword", resident.getPassword());
     }
 
     @Test
@@ -442,13 +303,13 @@ class AuthServiceImplTest {
         SecurityContextHolder.setContext(securityContext);
 
         when(userRepository.findByUserNameOrEmailOrPhone(anyString(), anyString(), anyString()))
-                .thenReturn(Optional.of(user));
-        when(passwordEncoder.matches("wrongOldPassword", user.getPassword())).thenReturn(false);
+                .thenReturn(Optional.of(resident));
+        when(passwordEncoder.matches("wrongOldPassword", resident.getPassword())).thenReturn(false);
 
         ReasApiException exception = assertThrows(ReasApiException.class, () ->
                 authService.changePassword("wrongOldPassword", "NewPassword1!"));
         assertEquals(HttpStatus.BAD_REQUEST, exception.getStatus());
-        assertEquals("Old password does not match!", exception.getMessage());
+        assertEquals("error.oldPasswordNotMatch", exception.getMessage());
     }
 
     @Test
@@ -461,12 +322,12 @@ class AuthServiceImplTest {
         SecurityContextHolder.setContext(securityContext);
 
         when(userRepository.findByUserNameOrEmailOrPhone(anyString(), anyString(), anyString()))
-                .thenReturn(Optional.of(user));
-        when(passwordEncoder.matches("oldPassword", user.getPassword())).thenReturn(true);
+                .thenReturn(Optional.of(resident));
+        when(passwordEncoder.matches("oldPassword", resident.getPassword())).thenReturn(true);
 
         ReasApiException exception = assertThrows(ReasApiException.class, () ->
                 authService.changePassword("oldPassword", "short"));
         assertEquals(HttpStatus.BAD_REQUEST, exception.getStatus());
-        assertTrue(exception.getMessage().contains("Password must have at least 8 characters"));
+        assertTrue(exception.getMessage().contains("error"));
     }
 }

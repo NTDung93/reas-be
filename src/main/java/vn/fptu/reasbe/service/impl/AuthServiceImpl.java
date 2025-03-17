@@ -25,7 +25,6 @@ import vn.fptu.reasbe.model.constant.AppConstants;
 import vn.fptu.reasbe.model.dto.auth.JWTAuthResponse;
 import vn.fptu.reasbe.model.dto.auth.LoginDto;
 import vn.fptu.reasbe.model.dto.auth.SignupDto;
-import vn.fptu.reasbe.model.dto.user.UserResponse;
 import vn.fptu.reasbe.model.entity.Role;
 import vn.fptu.reasbe.model.entity.Token;
 import vn.fptu.reasbe.model.entity.User;
@@ -45,7 +44,6 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import vn.fptu.reasbe.service.OtpService;
 import vn.fptu.reasbe.service.mongodb.UserMService;
-import vn.fptu.reasbe.utils.mapper.UserMapper;
 
 @Service
 @Transactional
@@ -60,7 +58,6 @@ public class AuthServiceImpl implements AuthService {
     private final EmailService emailService;
     private final UserMService userMService;
     private final OtpService otpService;
-    private final UserMapper userMapper;
     private final JwtTokenProvider jwtTokenProvider;
 
     RestTemplate restTemplate = new RestTemplate();
@@ -84,16 +81,16 @@ public class AuthServiceImpl implements AuthService {
     private String googleAuthUri;
 
     @Override
-    public JWTAuthResponse authenticateUser(LoginDto loginDto) {
+    public JWTAuthResponse authenticateUser (LoginDto dto) {
         User user = userRepository.findByUserNameOrEmailOrPhone(
-                loginDto.getUserNameOrEmailOrPhone(),
-                loginDto.getUserNameOrEmailOrPhone(),
-                loginDto.getUserNameOrEmailOrPhone()
-        ).orElseThrow(() -> new BadCredentialsException("Email is not exist!"));
+                dto.getUserNameOrEmailOrPhone(),
+                dto.getUserNameOrEmailOrPhone(),
+                dto.getUserNameOrEmailOrPhone()
+        ).orElseThrow(() -> new BadCredentialsException("error.emailNotExist"));
 
         try {
             Authentication authentication = authenticationManager.authenticate(
-                    new UsernamePasswordAuthenticationToken(loginDto.getUserNameOrEmailOrPhone(), loginDto.getPassword()));
+                    new UsernamePasswordAuthenticationToken(dto.getUserNameOrEmailOrPhone(), dto.getPassword()));
 
             SecurityContextHolder.getContext().setAuthentication(authentication);
 
@@ -103,10 +100,10 @@ public class AuthServiceImpl implements AuthService {
             revokeAllTokenByUser(user);
             saveUserToken(accessToken, refreshToken, user);
 
-            return new JWTAuthResponse(accessToken, refreshToken);
+            return new JWTAuthResponse(accessToken, refreshToken, user.getRole().getName());
 
         } catch (BadCredentialsException e) {
-            throw new BadCredentialsException("Incorrect password!");
+            throw new BadCredentialsException("error.incorrectPassword");
         }
     }
 
@@ -119,9 +116,9 @@ public class AuthServiceImpl implements AuthService {
     @Override
     public JWTAuthResponse signupVerifiedUser(SignupDto request) {
         Role userRole = roleRepository.findByName(RoleName.ROLE_RESIDENT)
-                .orElseThrow(() -> new ReasApiException(HttpStatus.BAD_REQUEST, "Role does not exist"));
+                .orElseThrow(() -> new ReasApiException(HttpStatus.BAD_REQUEST, "error.roleNotExist"));
         validateUser(request);
-        User user = getUser(request);
+        User user = prepareUserData(request);
         user.setRole(userRole);
         user = userRepository.save(user);
 
@@ -141,7 +138,7 @@ public class AuthServiceImpl implements AuthService {
 
         // send email to user
         sendMailToUser(user);
-        return new JWTAuthResponse(accessToken, refreshToken);
+        return new JWTAuthResponse(accessToken, refreshToken, user.getRole().getName());
     }
 
     @Override
@@ -164,6 +161,10 @@ public class AuthServiceImpl implements AuthService {
         googleAccessToken = getGoogleAccessToken(jsonData);
 
         userInfo = getGoogleUserData(googleAccessToken);
+
+        if (userInfo == null){
+            throw new ReasApiException(HttpStatus.BAD_REQUEST, "error.googleUserInfoNotFound");
+        }
 
         return prepareUserInfoForAuthentication(userInfo);
     }
@@ -191,11 +192,10 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
-    public UserResponse getUserInfo() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String userName = authentication.getName();
-        User user = userRepository.findByUserNameOrEmailOrPhone(userName, userName, userName).orElseThrow(() -> new ResourceNotFoundException("User"));
-        return userMapper.toUserResponse(user);
+    public User getCurrentUser() {
+        String username = SecurityContextHolder.getContext().getAuthentication().getName();
+        return userRepository.findByUserName(username)
+                .orElseThrow(() -> new ResourceNotFoundException("User", "username", username));
     }
 
     @Override
@@ -209,7 +209,7 @@ public class AuthServiceImpl implements AuthService {
         // get user from token
         String token = authHeader.substring(7);
         String username = jwtTokenProvider.getUsernameFromJwt(token);
-        User user = userRepository.findByUserNameOrEmailOrPhone(username, username, username).orElseThrow(() -> new RuntimeException("No user found"));
+        User user = userRepository.findByUserNameOrEmailOrPhone(username, username, username).orElseThrow(() -> new RuntimeException("error.userNotFound"));
 
         // check if the token is valid then generate new token
         if (jwtTokenProvider.isValidRefreshToken(token, user.getUserName())) {
@@ -219,7 +219,7 @@ public class AuthServiceImpl implements AuthService {
             revokeAllTokenByUser(user);
             saveUserToken(accessToken, refreshToken, user);
 
-            return new ResponseEntity<>(new JWTAuthResponse(accessToken, refreshToken), HttpStatus.OK);
+            return new ResponseEntity<>(new JWTAuthResponse(accessToken, refreshToken, user.getRole().getName()), HttpStatus.OK);
         }
 
         return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
@@ -228,12 +228,12 @@ public class AuthServiceImpl implements AuthService {
     @Override
     public void changePassword(String oldPassword, String newPassword) {
         String username = SecurityContextHolder.getContext().getAuthentication().getName();
-        User user = userRepository.findByUserNameOrEmailOrPhone(username, username, username).orElseThrow(() -> new ReasApiException(HttpStatus.NOT_FOUND, "User cannot found!"));
+        User user = userRepository.findByUserNameOrEmailOrPhone(username, username, username).orElseThrow(() -> new ReasApiException(HttpStatus.NOT_FOUND, "error.userNotFound"));
         if (!passwordEncoder.matches(oldPassword, user.getPassword())) {
-            throw new ReasApiException(HttpStatus.BAD_REQUEST, "Old password does not match!");
+            throw new ReasApiException(HttpStatus.BAD_REQUEST, "error.oldPasswordNotMatch");
         }
         if (!newPassword.matches(AppConstants.PASSWORD_REGEX))
-            throw new ReasApiException(HttpStatus.BAD_REQUEST, "Password must have at least 8 characters with at least one uppercase letter, one number, and one special character (!@#$%^&*).");
+            throw new ReasApiException(HttpStatus.BAD_REQUEST, "error.passwordNotMatchRegex");
         user.setPassword(passwordEncoder.encode(newPassword));
         if (user.isFirstLogin()) user.setFirstLogin(false);
         userRepository.save(user);
@@ -250,7 +250,7 @@ public class AuthServiceImpl implements AuthService {
 
         Optional<User> existingUser = userRepository.findByEmail(email);
         Role userRole = roleRepository.findByName(RoleName.ROLE_RESIDENT)
-                .orElseThrow(() -> new ReasApiException(HttpStatus.BAD_REQUEST, "Role does not exist"));
+                .orElseThrow(() -> new ReasApiException(HttpStatus.BAD_REQUEST, "error.roleNotExist"));
 
         if (existingUser.isEmpty()) {
             user.setEmail(email);
@@ -270,30 +270,24 @@ public class AuthServiceImpl implements AuthService {
     }
 
     private Map<String, Object> getGoogleUserData(String accessToken) {
-        Map<String, Object> userInfo;
         HttpHeaders headers = new HttpHeaders();
         headers.set("Authorization", "Bearer " + accessToken);
         HttpEntity<String> entity = new HttpEntity<>(headers);
 
         ResponseEntity<Map> userInfoResponse = restTemplate.exchange(googleUserInfoUri, HttpMethod.GET, entity, Map.class);
 
-        if (userInfoResponse.getStatusCode() == HttpStatus.OK) {
-            userInfo = userInfoResponse.getBody();
-        } else {
-            throw new ReasApiException(HttpStatus.BAD_REQUEST, "Failed to retrieve user info");
+        if (userInfoResponse.getStatusCode() != HttpStatus.OK || userInfoResponse.getBody() == null) {
+            throw new ReasApiException(HttpStatus.BAD_REQUEST, "error.googleUserInfoNotFound");
         }
-        if (userInfo == null) {
-            throw new ReasApiException(HttpStatus.NOT_FOUND, "Failed to retrieve user info: userInfo is null");
-        } else {
-            return userInfo;
-        }
+
+        return userInfoResponse.getBody();
     }
 
     private String getGoogleAccessToken(Map<String, Object> jsonData) {
         if (jsonData != null) {
             return (String) jsonData.get("access_token");
         } else {
-            throw new ReasApiException(HttpStatus.CONFLICT, "No access token retrieved from OAuth2");
+            throw new ReasApiException(HttpStatus.CONFLICT, "error.googleAccessTokenNotFound");
         }
     }
 
@@ -310,11 +304,11 @@ public class AuthServiceImpl implements AuthService {
 
     private void validateUser(SignupDto dto) {
         if (Boolean.TRUE.equals(userRepository.existsByEmail(dto.getEmail()))) {
-            throw new ReasApiException(HttpStatus.BAD_REQUEST, "Email is already exist!");
+            throw new ReasApiException(HttpStatus.BAD_REQUEST, "error.emailAlreadyExist");
         }
     }
 
-    private User getUser(SignupDto signupDto) {
+    private User prepareUserData(SignupDto signupDto) {
         return User.builder()
                 .email(signupDto.getEmail())
                 .userName(signupDto.getEmail().substring(0, signupDto.getEmail().indexOf("@")))

@@ -9,6 +9,9 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 
 /**
  *
@@ -29,5 +32,10 @@ public class BaseSearchPaginationResponse<T> {
 
     public static <T> BaseSearchPaginationResponse of(Page<T> page) {
         return new BaseSearchPaginationResponse<>(page.getNumber(), page.getSize(), page.getTotalPages(), page.getTotalElements(), page.isLast(), page.getContent());
+    }
+
+    public static Pageable getPageable(int pageNo, int pageSize, String sortBy, String sortDir){
+        Sort sort = sortDir.equalsIgnoreCase(Sort.Direction.ASC.name()) ? Sort.by(sortBy).ascending() : Sort.by(sortBy).descending();
+        return PageRequest.of(pageNo, pageSize, sort);
     }
 }

@@ -40,17 +40,11 @@ public class ExchangeHistory extends AbstractAuditableEntity {
     @Column(name = "SELLER_CONFIRMATION")
     private Boolean sellerConfirmation;
 
-    @Column(name = "BUYER_ITEM_IMAGE_URL")
-    private String buyerItemImageUrl;
+    @Column(name = "BUYER_IMAGE_URL")
+    private String buyerImageUrl;
 
-    @Column(name = "SELLER_ITEM_IMAGE_URL")
-    private String sellerItemImageUrl;
-
-    @Column(name = "BUYER_TRANSACTION_IMAGE_URL")
-    private String buyerTransactionImageUrl;
-
-    @Column(name = "SELLER_TRANSACTION_IMAGE_URL")
-    private String sellerTransactionImageUrl;
+    @Column(name = "SELLER_IMAGE_URL")
+    private String sellerImageUrl;
 
     @Column(name = "BUYER_ADDITIONAL_NOTES")
     private String buyerAdditionalNotes;

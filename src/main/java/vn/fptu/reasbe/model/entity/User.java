@@ -97,5 +97,8 @@ public class User extends AbstractAuditableEntity {
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<UserSubscription> userSubscriptions = new HashSet<>();
+
+    @OneToMany(mappedBy = "paidBy", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Set<ExchangeRequest> exchangeRequests = new HashSet<>();
 }
 

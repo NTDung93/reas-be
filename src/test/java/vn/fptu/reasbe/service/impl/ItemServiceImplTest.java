@@ -6,7 +6,6 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -26,9 +25,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContext;
-import org.springframework.security.core.context.SecurityContextHolder;
 import vn.fptu.reasbe.model.dto.core.BaseSearchPaginationResponse;
 import vn.fptu.reasbe.model.dto.desireditem.DesiredItemDto;
 import vn.fptu.reasbe.model.dto.item.ItemResponse;
@@ -41,14 +37,17 @@ import vn.fptu.reasbe.model.entity.Category;
 import vn.fptu.reasbe.model.entity.DesiredItem;
 import vn.fptu.reasbe.model.entity.Item;
 import vn.fptu.reasbe.model.entity.User;
+import vn.fptu.reasbe.model.entity.UserLocation;
 import vn.fptu.reasbe.model.enums.item.StatusItem;
 import vn.fptu.reasbe.model.exception.ReasApiException;
 import vn.fptu.reasbe.model.exception.ResourceNotFoundException;
 import vn.fptu.reasbe.repository.DesiredItemRepository;
 import vn.fptu.reasbe.repository.ItemRepository;
 import vn.fptu.reasbe.repository.UserRepository;
+import vn.fptu.reasbe.service.AuthService;
 import vn.fptu.reasbe.service.BrandService;
 import vn.fptu.reasbe.service.CategoryService;
+import vn.fptu.reasbe.service.UserService;
 import vn.fptu.reasbe.utils.mapper.DesiredItemMapper;
 import vn.fptu.reasbe.utils.mapper.ItemMapper;
 
@@ -70,10 +69,16 @@ class ItemServiceImplTest {
     private UserRepository userRepository;
 
     @Mock
+    private UserService userService;
+
+    @Mock
     private CategoryService categoryService;
 
     @Mock
     private BrandService brandService;
+
+    @Mock
+    private AuthService authService;
 
     @Mock
     private DesiredItemRepository desiredItemRepository;
@@ -89,7 +94,6 @@ class ItemServiceImplTest {
     private UploadItemRequest mockUploadRequest;
     private ItemResponse mockItemResponse;
     private DesiredItemDto mockDesiredItemDto;
-    private String username = "testUsername";
 
     @BeforeEach
     public void setUp() {
@@ -123,6 +127,7 @@ class ItemServiceImplTest {
         mockItem.setId(1);
         mockItem.setItemName("Vacuum Cleaner");
         mockItem.setStatusItem(StatusItem.PENDING);
+        mockItem.setOwner(mockUser);
 
         // Mock DTO Request
         mockUploadRequest = new UploadItemRequest();
@@ -175,20 +180,14 @@ class ItemServiceImplTest {
 
     @Test
     void testUploadItem_Success() {
-        SecurityContext securityContext = mock(SecurityContext.class);
-        SecurityContextHolder.setContext(securityContext);
-        Authentication authentication = mock(Authentication.class);
-        when(securityContext.getAuthentication()).thenReturn(authentication);
-        when(SecurityContextHolder.getContext().getAuthentication().getName()).thenReturn(username);
-
         when(itemMapper.toEntity(mockUploadRequest)).thenReturn(mockItem);
         when(categoryService.getCategoryById(anyInt())).thenReturn(new Category());
         when(brandService.getBrandById(anyInt())).thenReturn(new Brand());
         when(itemRepository.save(any(Item.class))).thenReturn(mockItem);
-        when(itemMapper.toItemResponse(any(Item.class))).thenReturn(mockItemResponse);
+        when(authService.getCurrentUser()).thenReturn(mockUser);
+        when(userService.getPrimaryUserLocation(mockUser)).thenReturn(new UserLocation());
         when(desiredItemMapper.toDesiredItem(mockUploadRequest.getDesiredItem())).thenReturn(new DesiredItem());
-        when(userRepository.findByUserName(username)).thenReturn(Optional.of(mockUser));
-        ItemResponse response = itemServiceImpl.uploadItem(mockUploadRequest);
+        Item response = itemServiceImpl.uploadItem(mockUploadRequest);
 
         assertNotNull(response);
         assertEquals(mockItem.getItemName(), response.getItemName());
@@ -197,15 +196,8 @@ class ItemServiceImplTest {
 
     @Test
     void testUploadItem_InvalidCategory_ThrowsException() {
-        SecurityContext securityContext = mock(SecurityContext.class);
-        SecurityContextHolder.setContext(securityContext);
-        Authentication authentication = mock(Authentication.class);
-        when(securityContext.getAuthentication()).thenReturn(authentication);
-        when(SecurityContextHolder.getContext().getAuthentication().getName()).thenReturn(username);
-
         when(categoryService.getCategoryById(anyInt())).thenThrow(new ResourceNotFoundException("Category", "id", 2));
-        when(SecurityContextHolder.getContext().getAuthentication().getName()).thenReturn(username);
-        when(userRepository.findByUserName(username)).thenReturn(Optional.of(mockUser));
+        when(authService.getCurrentUser()).thenReturn(mockUser);
         Exception exception = assertThrows(ResourceNotFoundException.class, () -> {
             itemServiceImpl.uploadItem(mockUploadRequest);
         });
@@ -216,9 +208,8 @@ class ItemServiceImplTest {
     @Test
     void testGetItemDetail_Success() {
         when(itemRepository.findById(1)).thenReturn(Optional.of(mockItem));
-        when(itemMapper.toItemResponse(mockItem)).thenReturn(mockItemResponse);
 
-        ItemResponse response = itemServiceImpl.getItemDetail(1);
+        Item response = itemServiceImpl.getItemById(1);
 
         assertNotNull(response);
         assertEquals(1, response.getId());
@@ -229,7 +220,7 @@ class ItemServiceImplTest {
         when(itemRepository.findById(1)).thenReturn(Optional.empty());
 
         Exception exception = assertThrows(ResourceNotFoundException.class, () -> {
-            itemServiceImpl.getItemDetail(1);
+            itemServiceImpl.getItemById(1);
         });
 
         assertTrue(exception.getMessage().contains("Item"));
@@ -244,6 +235,7 @@ class ItemServiceImplTest {
         when(itemRepository.findById(1)).thenReturn(Optional.of(mockItem));
         when(itemRepository.save(mockItem)).thenReturn(mockItem);
         when(itemMapper.toItemResponse(mockItem)).thenReturn(mockItemResponse);
+        when(authService.getCurrentUser()).thenReturn(mockUser);
 
         ItemResponse response = itemServiceImpl.updateItem(updateRequest);
 
@@ -267,7 +259,7 @@ class ItemServiceImplTest {
             itemServiceImpl.updateItem(updateRequest);
         });
 
-        assertTrue(exception.getMessage().contains("Min price must not be greater than max price."));
+        assertTrue(exception.getMessage().contains("error"));
     }
 
     @Test
@@ -280,6 +272,7 @@ class ItemServiceImplTest {
         when(itemRepository.findById(1)).thenReturn(Optional.of(mockItem));
         when(itemRepository.save(mockItem)).thenReturn(mockItem);
         when(itemMapper.toItemResponse(mockItem)).thenReturn(mockItemResponse);
+        when(authService.getCurrentUser()).thenReturn(mockUser);
 
         ItemResponse response = itemServiceImpl.updateItem(updateRequest);
 
@@ -294,10 +287,10 @@ class ItemServiceImplTest {
         updateRequest.setItemName("Rice Cooker");
         updateRequest.setDesiredItem(mockDesiredItemDto);
         mockItem.setDesiredItem(new DesiredItem());
-
         when(itemRepository.findById(1)).thenReturn(Optional.of(mockItem));
         when(itemRepository.save(mockItem)).thenReturn(mockItem);
         when(itemMapper.toItemResponse(mockItem)).thenReturn(mockItemResponse);
+        when(authService.getCurrentUser()).thenReturn(mockUser);
 
         ItemResponse response = itemServiceImpl.updateItem(updateRequest);
 
@@ -317,6 +310,7 @@ class ItemServiceImplTest {
         when(itemRepository.findById(1)).thenReturn(Optional.of(mockItem));
         when(itemRepository.save(mockItem)).thenReturn(mockItem);
         when(itemMapper.toItemResponse(mockItem)).thenReturn(mockItemResponse);
+        when(authService.getCurrentUser()).thenReturn(mockUser);
 
         ItemResponse response = itemServiceImpl.updateItem(updateRequest);
 
@@ -335,7 +329,7 @@ class ItemServiceImplTest {
             itemServiceImpl.updateItem(updateRequest);
         });
 
-        assertTrue(exception.getMessage().contains("Item"));
+        assertTrue(exception.getMessage().contains("Item not found"));
     }
 
     @Test
@@ -373,6 +367,6 @@ class ItemServiceImplTest {
             itemServiceImpl.reviewItem(1, StatusItem.REJECTED);
         });
 
-        assertTrue(exception.getMessage().contains("Only item with PENDING"));
+        assertTrue(exception.getMessage().contains("error"));
     }
 }

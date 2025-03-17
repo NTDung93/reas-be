@@ -5,10 +5,10 @@ import org.springframework.http.ResponseEntity;
 import vn.fptu.reasbe.model.dto.auth.JWTAuthResponse;
 import vn.fptu.reasbe.model.dto.auth.LoginDto;
 import vn.fptu.reasbe.model.dto.auth.SignupDto;
-import vn.fptu.reasbe.model.dto.user.UserResponse;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import vn.fptu.reasbe.model.entity.User;
 
 public interface AuthService {
     JWTAuthResponse authenticateUser(LoginDto loginDto);
@@ -21,7 +21,7 @@ public interface AuthService {
 
     JWTAuthResponse authenticateGoogleUser(String code);
 
-    UserResponse getUserInfo();
+    User getCurrentUser();
 
     ResponseEntity<JWTAuthResponse> refreshToken(HttpServletRequest request, HttpServletResponse response);
 
