@@ -17,4 +17,6 @@ public interface UserService {
     UserResponse updateStaff(UpdateStaffRequest request);
 
     Boolean deactivateStaff(Integer userId);
+
+    UserResponse loadDetailInfoUser(Integer userId);
 }

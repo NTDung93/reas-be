@@ -63,4 +63,10 @@ public class UserController {
     public ResponseEntity<Boolean> deactivateStaff(@PathVariable Integer userId) {
         return ResponseEntity.ok(userService.deactivateStaff(userId));
     }
+
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    @GetMapping("/{userId}")
+    public ResponseEntity<UserResponse> getUser(@PathVariable Integer userId) {
+        return ResponseEntity.ok(userService.loadDetailInfoUser(userId));
+    }
 }

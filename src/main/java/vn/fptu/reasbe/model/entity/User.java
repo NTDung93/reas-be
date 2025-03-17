@@ -4,6 +4,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 import org.hibernate.Length;
+import org.springframework.data.mongodb.core.mapping.Document;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.EnumType;
@@ -27,6 +28,7 @@ import vn.fptu.reasbe.model.enums.user.Gender;
 
 @Getter
 @Setter
+@Document
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
