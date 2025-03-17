@@ -25,6 +25,7 @@ import vn.fptu.reasbe.repository.UserLocationRepository;
 import vn.fptu.reasbe.repository.UserRepository;
 import vn.fptu.reasbe.service.EmailService;
 import vn.fptu.reasbe.service.UserService;
+import vn.fptu.reasbe.service.mongodb.UserMService;
 import vn.fptu.reasbe.utils.mapper.UserMapper;
 
 /**
@@ -40,6 +41,7 @@ public class UserServiceImpl implements UserService {
     private final PasswordEncoder passwordEncoder;
     private final EmailService emailService;
     private final UserLocationRepository userLocationRepository;
+    private final UserMService userMService;
 
     @Override
     public BaseSearchPaginationResponse<UserResponse> searchUserPagination(int pageNo, int pageSize, String sortBy, String sortDir, SearchUserRequest request) {
@@ -55,8 +57,19 @@ public class UserServiceImpl implements UserService {
         user.setPassword(passwordEncoder.encode(request.getPassword()));
         user.setRole(getStaffRole());
         User savedUser = userRepository.save(user);
+        createStaffMongoAccount(savedUser);
         sendAccountCreationEmail(savedUser, request.getPassword(), false);
         return userMapper.toUserResponse(savedUser);
+    }
+
+    private void createStaffMongoAccount(User user) {
+        vn.fptu.reasbe.model.mongodb.User userM = vn.fptu.reasbe.model.mongodb.User.builder()
+                .userName(user.getUserName())
+                .fullName(user.getFullName())
+                .statusOnline(vn.fptu.reasbe.model.enums.user.StatusOnline.ONLINE)
+                .refId(user.getId())
+                .build();
+        userMService.saveUser(userM);
     }
 
     @Override
@@ -66,8 +79,18 @@ public class UserServiceImpl implements UserService {
         userMapper.updateUser(user, request);
         user.setPassword(passwordEncoder.encode(request.getPassword()));
         User savedUser = userRepository.save(user);
+        updateStaffMongoAccount(savedUser);
         sendAccountCreationEmail(savedUser, request.getPassword(), true);
         return userMapper.toUserResponse(savedUser);
+    }
+
+    private void updateStaffMongoAccount(User user) {
+        vn.fptu.reasbe.model.mongodb.User userM = userMService.findByRefId(user.getId());
+        if (userM != null) {
+            userM.setUserName(user.getUserName());
+            userM.setFullName(user.getFullName());
+            userMService.saveUser(userM);
+        }
     }
 
     @Override
@@ -88,6 +111,11 @@ public class UserServiceImpl implements UserService {
     public UserLocation getPrimaryUserLocation(User user) {
         return userLocationRepository.findByIsPrimaryTrueAndUser(user)
                 .orElseThrow(() -> new ReasApiException(HttpStatus.BAD_REQUEST, "error.primaryLocationNotFound"));
+    }
+
+    @Override
+    public UserResponse loadDetailInfoUser(Integer userId) {
+        return userMapper.toUserResponse(getUserById(userId));
     }
 
     private Role getStaffRole() {

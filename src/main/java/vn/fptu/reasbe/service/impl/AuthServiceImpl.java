@@ -30,6 +30,7 @@ import vn.fptu.reasbe.model.entity.Role;
 import vn.fptu.reasbe.model.entity.Token;
 import vn.fptu.reasbe.model.entity.User;
 import vn.fptu.reasbe.model.enums.user.RoleName;
+import vn.fptu.reasbe.model.enums.user.StatusOnline;
 import vn.fptu.reasbe.model.exception.ReasApiException;
 import vn.fptu.reasbe.model.exception.ResourceNotFoundException;
 import vn.fptu.reasbe.repository.RoleRepository;
@@ -43,6 +44,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import vn.fptu.reasbe.service.OtpService;
+import vn.fptu.reasbe.service.mongodb.UserMService;
 
 @Service
 @Transactional
@@ -55,6 +57,7 @@ public class AuthServiceImpl implements AuthService {
     private final TokenRepository tokenRepository;
     private final PasswordEncoder passwordEncoder;
     private final EmailService emailService;
+    private final UserMService userMService;
     private final OtpService otpService;
     private final JwtTokenProvider jwtTokenProvider;
 
@@ -135,10 +138,21 @@ public class AuthServiceImpl implements AuthService {
         user.setRole(userRole);
         user = userRepository.save(user);
 
+        // save user to MongoDB
+        vn.fptu.reasbe.model.mongodb.User userM = vn.fptu.reasbe.model.mongodb.User.builder()
+                .refId(user.getId())
+                .userName(user.getUserName())
+                .fullName(user.getFullName())
+                .statusOnline(StatusOnline.OFFLINE)
+                .build();
+        userMService.saveUser(userM);
+
+        // save user token
         String accessToken = jwtTokenProvider.generateAccessToken(user);
         String refreshToken = jwtTokenProvider.generateRefreshToken(user);
         saveUserToken(accessToken, refreshToken, user);
 
+        // send email to user
         sendMailToUser(user);
         return new JWTAuthResponse(accessToken, refreshToken);
     }

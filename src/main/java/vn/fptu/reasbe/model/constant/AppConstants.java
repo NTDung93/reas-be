@@ -10,7 +10,7 @@ public class AppConstants {
     // regex
     public static final String EMAIL_REGEX = "^[^\\.][a-zA-Z0-9_+&*-]+(?:\\.[a-zA-Z0-9_+&*-]+)*@([a-zA-Z0-9-]+\\.)+[a-zA-Z]{2,7}$";
     public static final String PASSWORD_REGEX = "^(?=.*[A-Z])(?=.*\\d)(?=.*[!@#$%^&*])[A-Za-z\\d!@#$%^&*]{8,}$";
-    public static final String PHONE_REGEX = "(84|0[35789])([0-9]{8})\\b";
+    public static final String PHONE_REGEX = "^\\d{10,12}$";
     public static final String GENDER_REGEX = "^(Male|Female|Other)$";
 
     // auth

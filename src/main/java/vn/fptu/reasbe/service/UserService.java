@@ -23,4 +23,6 @@ public interface UserService {
     User getUserById(Integer id);
 
     UserLocation getPrimaryUserLocation(User user);
+
+    UserResponse loadDetailInfoUser(Integer userId);
 }
