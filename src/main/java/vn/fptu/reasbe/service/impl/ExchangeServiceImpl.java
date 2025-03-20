@@ -82,6 +82,11 @@ public class ExchangeServiceImpl implements ExchangeService {
             throw new ReasApiException(HttpStatus.BAD_REQUEST, "error.sellerItemNotAvailable");
         }
 
+        if (sellerItem.getMethodExchanges().stream()
+                .noneMatch(method -> method.equals(exchangeRequestRequest.getMethodExchange()))) {
+            throw new ReasApiException(HttpStatus.BAD_REQUEST, "error.methodExchangeNotMatch");
+        }
+
         ExchangeRequest request = exchangeMapper.toExchangeRequest(exchangeRequestRequest);
 
         if (exchangeRequestRequest.getBuyerItemId() != null) {
@@ -89,6 +94,10 @@ public class ExchangeServiceImpl implements ExchangeService {
             if (!buyerItem.getStatusItem().equals(StatusItem.AVAILABLE)) {
                 throw new ReasApiException(HttpStatus.BAD_REQUEST, "error.buyerItemNotAvailable");
             }
+            if (sellerItem.getOwner().equals(buyerItem.getOwner())){
+                throw new ReasApiException(HttpStatus.BAD_REQUEST, "error.sameOwnerWithSellerAndBuyerItem");
+            }
+
             request.setBuyerItem(buyerItem);
             request.getBuyerItem().setStatusItem(StatusItem.UNAVAILABLE);
         } else {
@@ -105,8 +114,11 @@ public class ExchangeServiceImpl implements ExchangeService {
         request.setNumberOfOffer(AppConstants.NUM_OF_OFFER);
         request.setStatusExchangeRequest(StatusExchangeRequest.PENDING);
 
+        request.setBuyerConfirmation(Boolean.TRUE);
+
         if (request.getEstimatePrice().equals(BigDecimal.ZERO)) {
             request.setSellerConfirmation(Boolean.TRUE);
+        } else {
             request.setSellerConfirmation(Boolean.FALSE);
         }
         //TODO: add push notification for resident
@@ -240,7 +252,7 @@ public class ExchangeServiceImpl implements ExchangeService {
                 .orElseThrow(() -> new ResourceNotFoundException("ExchangeHistory", "id", request.getExchangeHistoryId()));
 
         if (DateUtils.getCurrentDateTime().isBefore(exchangeHistory.getExchangeRequest().getExchangeDate())) {
-            throw new ReasApiException(HttpStatus.BAD_REQUEST, "error.cannotUploadEvidence");
+            throw new ReasApiException(HttpStatus.BAD_REQUEST, "error.notPassExchangeDateYet");
         }
 
         if (user.equals(exchangeHistory.getExchangeRequest().getSellerItem().getOwner())) { //checking if the current user is the seller -> upload on seller side
@@ -270,9 +282,7 @@ public class ExchangeServiceImpl implements ExchangeService {
     }
 
     @Scheduled(cron = "0 0 0,18 * * *", zone = "Asia/Ho_Chi_Minh")
-//    @Scheduled(cron = "0 * * * * *", zone = "Asia/Ho_Chi_Minh")
     public void checkEvidenceForExchange() {
-        //TODO: in testing
         LocalDateTime threeDaysAgo = DateUtils.getCurrentDateTime().minusDays(3);
 
         List<ExchangeRequest> notExchangedExchanges = exchangeRequestRepository.findAllExceedingDateExchanges(threeDaysAgo, StatusExchangeHistory.NOT_YET_EXCHANGE);
