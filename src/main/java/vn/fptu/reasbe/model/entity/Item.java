@@ -104,4 +104,7 @@ public class Item extends AbstractAuditableEntity {
     @OneToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "DESIRED_ITEM_ID")
     private DesiredItem desiredItem;
+
+    @OneToOne(mappedBy = "item", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Feedback feedback;
 }

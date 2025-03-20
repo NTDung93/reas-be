@@ -5,6 +5,7 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
@@ -36,13 +37,13 @@ public class Feedback extends AbstractAuditableEntity {
     @JoinColumn(name = "EXCHANGE_HISTORY_ID")
     private ExchangeHistory exchangeHistory;
 
-    @ManyToOne
+    @OneToOne
     @JoinColumn(name = "ITEM_ID")
     private Item item;
 
     @NotNull
     @Column(name = "RATING")
-    private float rating;
+    private Integer rating;
 
     @Column(name = "COMMENT")
     private String comment;

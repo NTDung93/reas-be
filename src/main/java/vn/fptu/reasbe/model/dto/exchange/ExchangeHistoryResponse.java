@@ -21,13 +21,9 @@ public class ExchangeHistoryResponse {
 
     Boolean sellerConfirmation;
 
-    String buyerItemImageUrl;
+    String buyerImageUrl;
 
-    String sellerItemImageUrl;
-
-    String buyerTransactionImageUrl;
-
-    String sellerTransactionImageUrl;
+    String sellerImageUrl;
 
     String buyerAdditionalNotes;
 

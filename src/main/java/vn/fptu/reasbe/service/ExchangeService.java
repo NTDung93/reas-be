@@ -3,7 +3,6 @@ package vn.fptu.reasbe.service;
 import vn.fptu.reasbe.model.dto.core.BaseSearchPaginationResponse;
 import vn.fptu.reasbe.model.dto.exchange.EvidenceExchangeRequest;
 import vn.fptu.reasbe.model.dto.exchange.ExchangeRequestRequest;
-import vn.fptu.reasbe.model.dto.exchange.ExchangeRequestResponse;
 import vn.fptu.reasbe.model.dto.exchange.ExchangeResponse;
 import vn.fptu.reasbe.model.enums.exchange.StatusExchangeHistory;
 import vn.fptu.reasbe.model.enums.exchange.StatusExchangeRequest;
@@ -15,9 +14,9 @@ public interface ExchangeService {
 
     ExchangeResponse getExchangeById(Integer id);
 
-    ExchangeRequestResponse createExchangeRequest(ExchangeRequestRequest exchangeRequestRequest);
+    ExchangeResponse createExchangeRequest(ExchangeRequestRequest exchangeRequestRequest);
 
-    ExchangeRequestResponse updateExchangeRequestPrice(Integer id, BigDecimal finalPrice);
+    ExchangeResponse updateExchangeRequestPrice(Integer id, BigDecimal finalPrice);
 
     ExchangeResponse reviewExchangeRequest(Integer id, StatusExchangeRequest statusExchangeRequest);
 
