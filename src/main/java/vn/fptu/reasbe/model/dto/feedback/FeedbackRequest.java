@@ -15,6 +15,7 @@ import org.hibernate.validator.constraints.Range;
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class FeedbackRequest {
+    Integer id;
 
     @NotNull(message = "Item must not be blank")
     Integer itemId;

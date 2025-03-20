@@ -21,7 +21,7 @@ import vn.fptu.reasbe.model.entity.Feedback;
 public interface FeedbackMapper {
     FeedbackResponse toFeedbackResponse(Feedback feedback);
 
-    Feedback toFeedback(FeedbackRequest feedbackResponse);
+    Feedback toFeedback(FeedbackRequest request);
 
-    void updateFeedback(@MappingTarget Feedback feedback, FeedbackRequest feedbackResponse);
+    void updateFeedback(@MappingTarget Feedback feedback, FeedbackRequest request);
 }

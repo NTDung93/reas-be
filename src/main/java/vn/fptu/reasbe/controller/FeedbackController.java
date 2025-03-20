@@ -49,8 +49,8 @@ public class FeedbackController {
 
     @PutMapping()
     @PreAuthorize("hasRole(T(vn.fptu.reasbe.model.constant.AppConstants).ROLE_RESIDENT)")
-    public ResponseEntity<FeedbackResponse> updateFeedback(@RequestParam Integer feedbackId, @RequestBody @Valid FeedbackRequest feedbackRequest) {
-        return ResponseEntity.ok(feedbackService.updateFeedback(feedbackId, feedbackRequest));
+    public ResponseEntity<FeedbackResponse> updateFeedback(@RequestBody @Valid FeedbackRequest feedbackRequest) {
+        return ResponseEntity.ok(feedbackService.updateFeedback(feedbackRequest));
     }
 
     @DeleteMapping()

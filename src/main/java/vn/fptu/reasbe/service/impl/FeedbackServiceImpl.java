@@ -76,10 +76,10 @@ public class FeedbackServiceImpl implements FeedbackService {
     }
 
     @Override
-    public FeedbackResponse updateFeedback(Integer feedbackId, FeedbackRequest feedbackRequest) {
+    public FeedbackResponse updateFeedback(FeedbackRequest feedbackRequest) {
         User user = authService.getCurrentUser();
 
-        Feedback feedback = getFeedbackById(feedbackId);
+        Feedback feedback = getFeedbackById(feedbackRequest.getId());
 
         if (feedback.getLastModificationDate() != null) {
             throw new ReasApiException(HttpStatus.BAD_REQUEST, "error.onlyUpdateFeedbackOnce");

@@ -11,7 +11,7 @@ public interface FeedbackService {
 
     FeedbackResponse createFeedback(FeedbackRequest feedbackRequest);
 
-    FeedbackResponse updateFeedback(Integer feedbackId, FeedbackRequest feedbackRequest);
+    FeedbackResponse updateFeedback(FeedbackRequest feedbackRequest);
 
     Boolean deleteFeedback(Integer feedbackId);
 }
