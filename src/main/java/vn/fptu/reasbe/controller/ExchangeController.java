@@ -16,7 +16,6 @@ import vn.fptu.reasbe.model.constant.AppConstants;
 import vn.fptu.reasbe.model.dto.core.BaseSearchPaginationResponse;
 import vn.fptu.reasbe.model.dto.exchange.EvidenceExchangeRequest;
 import vn.fptu.reasbe.model.dto.exchange.ExchangeRequestRequest;
-import vn.fptu.reasbe.model.dto.exchange.ExchangeRequestResponse;
 import vn.fptu.reasbe.model.dto.exchange.ExchangeResponse;
 import vn.fptu.reasbe.model.enums.exchange.StatusExchangeHistory;
 import vn.fptu.reasbe.model.enums.exchange.StatusExchangeRequest;
@@ -46,19 +45,19 @@ public class ExchangeController {
 
     @GetMapping("/{exchangeId}")
     @PreAuthorize("hasRole(T(vn.fptu.reasbe.model.constant.AppConstants).ROLE_RESIDENT)")
-    public ResponseEntity<ExchangeResponse> getExchangeById(@PathVariable Integer exchangeId) {
+    public ResponseEntity<ExchangeResponse> getExchangeDetail(@PathVariable Integer exchangeId) {
         return ResponseEntity.ok(exchangeService.getExchangeById(exchangeId));
     }
 
     @PostMapping
     @PreAuthorize("hasRole(T(vn.fptu.reasbe.model.constant.AppConstants).ROLE_RESIDENT)")
-    public ResponseEntity<ExchangeRequestResponse> makeAnExchange(@RequestBody @Valid ExchangeRequestRequest request) {
+    public ResponseEntity<ExchangeResponse> makeAnExchange(@RequestBody @Valid ExchangeRequestRequest request) {
         return ResponseEntity.ok(exchangeService.createExchangeRequest(request));
     }
 
     @PutMapping("/negotiated-price")
     @PreAuthorize("hasRole(T(vn.fptu.reasbe.model.constant.AppConstants).ROLE_RESIDENT)")
-    public ResponseEntity<ExchangeRequestResponse> updateExchangeRequestPrice(@RequestParam Integer exchangeId, @RequestParam BigDecimal negotiatedPrice) {
+    public ResponseEntity<ExchangeResponse> updateExchangeRequestPrice(@RequestParam Integer exchangeId, @RequestParam BigDecimal negotiatedPrice) {
         return ResponseEntity.ok(exchangeService.updateExchangeRequestPrice(exchangeId, negotiatedPrice));
     }
 

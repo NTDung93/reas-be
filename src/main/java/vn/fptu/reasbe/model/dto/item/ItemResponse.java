@@ -11,6 +11,7 @@ import vn.fptu.reasbe.model.dto.category.CategoryDto;
 import vn.fptu.reasbe.model.dto.desireditem.DesiredItemResponse;
 import vn.fptu.reasbe.model.dto.user.UserResponse;
 import vn.fptu.reasbe.model.dto.userlocation.UserLocationDto;
+import vn.fptu.reasbe.model.enums.item.ConditionItem;
 import vn.fptu.reasbe.model.enums.item.MethodExchange;
 import vn.fptu.reasbe.model.enums.item.StatusItem;
 
@@ -29,8 +30,9 @@ public class ItemResponse {
     String description;
     BigDecimal price;
     String imageUrl;
-    StatusItem statusItem;
     Boolean moneyAccepted;
+    StatusItem statusItem;
+    ConditionItem conditionItem;
     String termsAndConditionsExchange;
     LocalDateTime expiredTime;
     LocalDateTime approvedTime;

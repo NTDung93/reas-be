@@ -11,7 +11,6 @@ import vn.fptu.reasbe.model.constant.AppConstants;
 import vn.fptu.reasbe.model.dto.core.BaseSearchPaginationResponse;
 import vn.fptu.reasbe.model.dto.exchange.EvidenceExchangeRequest;
 import vn.fptu.reasbe.model.dto.exchange.ExchangeRequestRequest;
-import vn.fptu.reasbe.model.dto.exchange.ExchangeRequestResponse;
 import vn.fptu.reasbe.model.dto.exchange.ExchangeResponse;
 import vn.fptu.reasbe.model.entity.ExchangeHistory;
 import vn.fptu.reasbe.model.entity.ExchangeRequest;
@@ -29,7 +28,7 @@ import vn.fptu.reasbe.service.ExchangeService;
 import vn.fptu.reasbe.service.ItemService;
 import vn.fptu.reasbe.service.UserService;
 import vn.fptu.reasbe.utils.common.DateUtils;
-import vn.fptu.reasbe.utils.mapper.ExchangeMapper;
+import vn.fptu.reasbe.utils.mapper.ExchangeRequestMapper;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -48,7 +47,7 @@ public class ExchangeServiceImpl implements ExchangeService {
     private final AuthService authService;
     private final ExchangeRequestRepository exchangeRequestRepository;
     private final ExchangeHistoryRepository exchangeHistoryRepository;
-    private final ExchangeMapper exchangeMapper;
+    private final ExchangeRequestMapper exchangeMapper;
 
     @Override
     public BaseSearchPaginationResponse<ExchangeResponse> getAllExchangeByStatusOfCurrentUser(int pageNo, int pageSize, String sortBy, String sortDir,
@@ -69,12 +68,22 @@ public class ExchangeServiceImpl implements ExchangeService {
 
     @Override
     public ExchangeResponse getExchangeById(Integer id) {
-        ExchangeRequest exchangeRequest = getExchangeRequestById(id);
-        return exchangeMapper.toExchangeResponse(exchangeRequest);
+        User user = authService.getCurrentUser();
+        ExchangeRequest request = getExchangeRequestById(id);
+
+        boolean isSeller = request.getSellerItem().getOwner().equals(user);
+        boolean isBuyer = request.getBuyerItem() != null && request.getBuyerItem().getOwner().equals(user);
+        boolean isPayer = request.getPaidBy().equals(user);
+
+        if (!(isSeller || isBuyer || isPayer)) {
+            throw new ReasApiException(HttpStatus.BAD_REQUEST, "error.userNotAllowed");
+        }
+
+        return exchangeMapper.toExchangeResponse(request);
     }
 
     @Override
-    public ExchangeRequestResponse createExchangeRequest(ExchangeRequestRequest exchangeRequestRequest) {
+    public ExchangeResponse createExchangeRequest(ExchangeRequestRequest exchangeRequestRequest) {
         validateExchangeRequest(exchangeRequestRequest);
 
         Item sellerItem = itemService.getItemById(exchangeRequestRequest.getSellerItemId());
@@ -114,11 +123,11 @@ public class ExchangeServiceImpl implements ExchangeService {
         request.setNumberOfOffer(AppConstants.NUM_OF_OFFER);
         request.setStatusExchangeRequest(StatusExchangeRequest.PENDING);
 
-        request.setBuyerConfirmation(Boolean.TRUE);
-
-        if (request.getEstimatePrice().equals(BigDecimal.ZERO)) {
+        if (sellerItem.getPrice().equals(BigDecimal.ZERO)) {
             request.setSellerConfirmation(Boolean.TRUE);
+            request.setBuyerConfirmation(Boolean.TRUE);
         } else {
+            request.setBuyerConfirmation(Boolean.FALSE);
             request.setSellerConfirmation(Boolean.FALSE);
         }
         //TODO: add push notification for resident
@@ -127,7 +136,7 @@ public class ExchangeServiceImpl implements ExchangeService {
     }
 
     @Override
-    public ExchangeRequestResponse updateExchangeRequestPrice(Integer id, BigDecimal finalPrice) {
+    public ExchangeResponse updateExchangeRequestPrice(Integer id, BigDecimal finalPrice) {
         User user = authService.getCurrentUser();
 
         ExchangeRequest request = getExchangeRequestById(id);

@@ -14,7 +14,7 @@ import vn.fptu.reasbe.model.entity.Feedback;
         nullValueCheckStrategy = NullValueCheckStrategy.ALWAYS,
         uses = {
                 UserMapper.class,
-                ExchangeMapper.class
+                ExchangeHistoryMapper.class
         }
 )
 @Component
