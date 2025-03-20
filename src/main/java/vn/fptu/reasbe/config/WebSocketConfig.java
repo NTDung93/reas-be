@@ -36,14 +36,10 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
                 .withSockJS();
     }
 
-    // Increase STOMP buffer sizes and send limits
     @Override
     public void configureWebSocketTransport(WebSocketTransportRegistration registry) {
-        // Increase the message size limit to 512KB (524288 bytes)
         registry.setMessageSizeLimit(524288);
-        // Increase the send buffer size limit to 1MB (1048576 bytes)
         registry.setSendBufferSizeLimit(1048576);
-        // Set send time limit (in milliseconds)
         registry.setSendTimeLimit(20000);
     }
 
