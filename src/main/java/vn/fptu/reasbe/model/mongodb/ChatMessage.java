@@ -28,4 +28,5 @@ public class ChatMessage {
     String recipientName;
     String content;
     Date timestamp;
+    String contentType;
 }
