@@ -64,7 +64,6 @@ public class UserController {
         return ResponseEntity.ok(userService.deactivateStaff(userId));
     }
 
-    @PreAuthorize("hasRole(T(vn.fptu.reasbe.model.constant.AppConstants).ROLE_ADMIN)")
     @GetMapping("/{userId}")
     public ResponseEntity<UserResponse> getUser(@PathVariable Integer userId) {
         return ResponseEntity.ok(userService.loadDetailInfoUser(userId));

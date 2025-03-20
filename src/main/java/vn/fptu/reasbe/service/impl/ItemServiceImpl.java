@@ -165,9 +165,8 @@ public class ItemServiceImpl implements ItemService {
         return itemMapper.toItemResponse(itemRepository.save(pendingItem));
     }
 
-    @Scheduled(cron = "0 0 0 * * *")
-    private void checkExpiredItems(){
-        //TODO: in testing
+    @Scheduled(cron = "0 0 0 * * *", zone = "Asia/Ho_Chi_Minh")
+    public void checkExpiredItems(){
         List<Item> expiredItems = itemRepository.findAllByExpiredTimeBeforeAndStatusItem(DateUtils.getCurrentDateTime(), StatusItem.AVAILABLE);
         expiredItems.forEach(expiredItem -> expiredItem.setStatusItem(StatusItem.EXPIRED));
         itemRepository.saveAll(expiredItems);

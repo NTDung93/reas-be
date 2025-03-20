@@ -12,6 +12,7 @@ import vn.fptu.reasbe.model.dto.user.UpdateStaffRequest;
 import vn.fptu.reasbe.model.dto.user.UserResponse;
 import vn.fptu.reasbe.model.entity.ExchangeRequest;
 import vn.fptu.reasbe.model.entity.Feedback;
+import vn.fptu.reasbe.model.entity.Item;
 import vn.fptu.reasbe.model.entity.User;
 import vn.fptu.reasbe.model.enums.exchange.StatusExchangeHistory;
 
@@ -64,14 +65,10 @@ public interface UserMapper {
     default Integer mapNumOfFeedbacks(User user) {
         if (user.getItems() == null) return 0;
 
-        return user.getItems().stream()
-                //checking if the user has any exchangeRequest as a seller
-                .flatMap(item -> item.getSellerExchangeRequests() != null ? item.getSellerExchangeRequests().stream() : Stream.empty())
-                .map(ExchangeRequest::getExchangeHistory)
-                .filter(Objects::nonNull)
-                //count all available feedbacks
-                .mapToInt(eh -> eh.getFeedbacks() != null ? eh.getFeedbacks().size() : 0)
-                .sum();
+        return (int) user.getItems().stream()
+                .map(Item::getFeedback) // Lấy Feedback từ Item
+                .filter(Objects::nonNull) // Lọc bỏ Feedback null
+                .count(); // Đếm số lượng Feedback
     }
 
     // Calculate average rating only from seller transactions
@@ -79,14 +76,10 @@ public interface UserMapper {
         if (user.getItems() == null) return 0.0;
 
         return user.getItems().stream()
-                //checking if the user has any exchangeRequest as a seller
-                .flatMap(item -> item.getSellerExchangeRequests() != null ? item.getSellerExchangeRequests().stream() : Stream.empty())
-                .map(ExchangeRequest::getExchangeHistory)
-                .filter(Objects::nonNull)
-                //get the feedback of user
-                .flatMap(eh -> eh.getFeedbacks() != null ? eh.getFeedbacks().stream() : Stream.empty())
-                .mapToDouble(Feedback::getRating)
-                .average() // calculate the average
+                .map(Item::getFeedback) // Lấy Feedback trực tiếp từ Item
+                .filter(Objects::nonNull) // Lọc bỏ Feedback null
+                .mapToDouble(Feedback::getRating) // Lấy rating từ Feedback
+                .average() // Tính trung bình
                 .orElse(0.0);
     }
 }
