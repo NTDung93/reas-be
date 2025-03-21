@@ -9,10 +9,11 @@ import org.springframework.stereotype.Service;
 
 import lombok.RequiredArgsConstructor;
 import vn.fptu.reasbe.model.mongodb.ChatMessage;
-import vn.fptu.reasbe.model.mongodb.ChatNotification;
+import vn.fptu.reasbe.model.mongodb.Notification;
 import vn.fptu.reasbe.repository.mongodb.ChatMessageRepository;
 import vn.fptu.reasbe.service.mongodb.ChatMessageService;
 import vn.fptu.reasbe.service.mongodb.ChatRoomService;
+import vn.fptu.reasbe.service.mongodb.NotificationService;
 
 @Service
 @RequiredArgsConstructor
@@ -22,20 +23,27 @@ public class ChatMessageServiceImpl implements ChatMessageService {
 
     private final ChatMessageRepository repository;
     private final ChatRoomService chatRoomService;
+    private final NotificationService notificationService;
     private final SimpMessagingTemplate messagingTemplate;
 
     @Override
     public void processMessage(ChatMessage chatMessage) {
+        validateMessage(chatMessage);
         ChatMessage savedMsg = saveMessage(chatMessage);
-        messagingTemplate.convertAndSendToUser(
-                chatMessage.getRecipientId(), QUEUE_MESSAGES, // john/queue/messages
-                new ChatNotification(
-                        savedMsg.getId(),
-                        savedMsg.getSenderId(),
-                        savedMsg.getRecipientId(),
-                        savedMsg.getContent()
-                )
-        );
+        Notification savedNotification = notificationService.createNotification(prepateNotification(savedMsg));
+        messagingTemplate.convertAndSendToUser(chatMessage.getRecipientId(), QUEUE_MESSAGES, savedNotification);
+    }
+
+    private Notification prepateNotification(ChatMessage savedMsg) {
+        return Notification.builder()
+                .id(savedMsg.getId())
+                .senderId(savedMsg.getSenderId())
+                .recipientId(savedMsg.getRecipientId())
+                .content(savedMsg.getContent())
+                .timestamp(savedMsg.getTimestamp())
+                .contentType(savedMsg.getContentType())
+                .notificationType("message")
+                .build();
     }
 
     public ChatMessage saveMessage(ChatMessage chatMessage) {
@@ -69,5 +77,23 @@ public class ChatMessageServiceImpl implements ChatMessageService {
                 .stream()
                 .flatMap(java.util.Optional::stream)
                 .toList();
+    }
+
+    private void validateMessage(ChatMessage chatMessage) {
+        if (chatMessage.getSenderId() == null || chatMessage.getSenderId().isEmpty()) {
+            throw new IllegalArgumentException("error.chat.required.senderId");
+        }
+        if (chatMessage.getRecipientId() == null || chatMessage.getRecipientId().isEmpty()) {
+            throw new IllegalArgumentException("error.chat.required.recipientId");
+        }
+        if (chatMessage.getContent() == null || chatMessage.getContent().isEmpty()) {
+            throw new IllegalArgumentException("error.chat.required.content");
+        }
+        if (chatMessage.getContentType() == null || chatMessage.getContentType().isEmpty()) {
+            throw new IllegalArgumentException("error.chat.required.contentType");
+        }
+        if (chatMessage.getTimestamp() == null) {
+            throw new IllegalArgumentException("error.notification.required.timestamp");
+        }
     }
 }
