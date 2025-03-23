@@ -1,7 +1,6 @@
 package vn.fptu.reasbe.model.entity;
 
 import java.math.BigDecimal;
-
 import jakarta.persistence.AttributeOverride;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -49,6 +48,9 @@ public class DesiredItem extends AbstractAuditableEntity {
 
     @Column(name = "MAX_PRICE")
     private BigDecimal maxPrice;
+//
+//    @Column(name = "EMBEDDING", columnDefinition = "vector(1536)")
+//    private float[] embedding;
 
     @OneToOne(mappedBy = "desiredItem")
     private Item item;

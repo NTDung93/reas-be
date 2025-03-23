@@ -79,6 +79,9 @@ public class Item extends AbstractAuditableEntity {
     @Column(name = "APPROVED_TIME")
     private LocalDateTime approvedTime;
 
+//    @Column(name = "EMBEDDING", columnDefinition = "vector(1536)")
+//    private float[] embedding;
+
     @ManyToOne
     @JoinColumn(name = "CATEGORY_ID")
     private Category category;
