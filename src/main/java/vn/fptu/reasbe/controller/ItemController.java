@@ -26,7 +26,7 @@ public class ItemController {
     private final ItemService itemService;
     private final ItemMapper itemMapper;
 
-    @GetMapping("/search")
+    @PostMapping("/search")
     public ResponseEntity<BaseSearchPaginationResponse<SearchItemResponse>> searchItemPagination(
             @RequestParam(name = "pageNo", defaultValue = AppConstants.DEFAULT_PAGE_NUMBER, required = false) int pageNo,
             @RequestParam(name = "pageSize", defaultValue = AppConstants.DEFAULT_PAGE_SIZE, required = false) int pageSize,

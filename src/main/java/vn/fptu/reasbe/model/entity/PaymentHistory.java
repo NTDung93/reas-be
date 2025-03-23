@@ -34,6 +34,10 @@ import vn.fptu.reasbe.model.enums.payment.StatusPayment;
 public class PaymentHistory extends AbstractAuditableEntity {
 
     @NotNull
+    @Column(name = "TRANSACTION_ID")
+    private String transactionId;
+
+    @NotNull
     @Column(name = "AMOUNT")
     private BigDecimal amount;
 

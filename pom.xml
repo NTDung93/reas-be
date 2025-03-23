@@ -28,6 +28,7 @@
         <lombok.version>1.18.30</lombok.version>
         <log4j.version>1.2.17</log4j.version>
         <common-lang.version>3.14.0</common-lang.version>
+        <payos.version>1.0.3</payos.version>
     </properties>
     <dependencies>
         <!-- Spring Boot Dependencies -->
@@ -176,6 +177,13 @@
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-lang3</artifactId>
             <version>${common-lang.version}</version>
+        </dependency>
+
+        <!-- Payment Dependencies -->
+        <dependency>
+            <groupId>vn.payos</groupId>
+            <artifactId>payos-java</artifactId>
+            <version>${payos.version}</version>
         </dependency>
     </dependencies>
 
