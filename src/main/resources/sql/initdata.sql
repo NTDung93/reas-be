@@ -135,7 +135,9 @@ VALUES
     ('ACTIVE', 'admin', NOW(), NULL, NULL, 0, 'ducanh@reas.vn', 'Duc Anh', 'MALE', 'abc', false, 'password123', '0922334455', 'ducanh', 3),
     ('ACTIVE', 'admin', NOW(), NULL, NULL, 0, 'trangthao@reas.vn', 'Trang Thao', 'FEMALE', 'abc', false, 'password123', '0933445566', 'trangthao', 3),
     ('ACTIVE', 'admin', NOW(), NULL, NULL, 0, 'minhquan@reas.vn', 'Minh Quan', 'FEMALE', 'abc', false, 'password123', '0944556677', 'minhquan', 3),
-    ('ACTIVE', 'admin', NOW(), NULL, NULL, 0, 'hiennhu@reas.vn', 'Hien Nhu', 'MALE', 'abc', false, 'password123', '0955667788', 'hiennhu', 3);
+    ('ACTIVE', 'admin', NOW(), NULL, NULL, 0, 'hiennhu@reas.vn', 'Hien Nhu', 'MALE', 'abc', false, 'password123', '0955667788', 'hiennhu', 3),
+    ('ACTIVE', 'admin', NOW(), NULL, NULL, 0, 'nguyentiendung2003@gmail.com', 'Nguyen Van Long', 'MALE', 'abc', false, '$2a$10$.U5VdTwq8wyVyqhJc.rhI.dLaX4b1Ohc9O3Zq.4qeXuxuemf6tY6W', '0955667788', 'nguyentiendung2003', 3),
+    ('ACTIVE', 'admin', NOW(), NULL, NULL, 0, 'dungntse171710@fpt.edu.vn', 'Nguyen Van Duc', 'MALE', 'abc', false, '$2a$10$Lnw6uGVznXJ8v08ejBpZuepIoFfc0wlwCjI7WKpnmxFQSCyA0KqZa', '0955667788', 'dungntse171710', 3);
 
 -- Insert data into the LOCATION table
 INSERT INTO public."LOCATION"
@@ -175,8 +177,8 @@ VALUES
 INSERT INTO public."ITEM"
 ("STATUS_ENTITY", "USR_LOG_I", "DTE_LOG_I", "DTE_LOG_U", "USR_LOG_U", "VERSION", "ITEM_NAME", "DESCRIPTION", "EXPIRED_TIME", "CONDITION_ITEM", "STATUS_ITEM", "CATEGORY_ID", "BRAND_ID", "IMAGE_URL", "OWNER_ID", "USER_LOCATION_ID", "TYPE_EXCHANGE", "PRICE", "DESIRED_ITEM_ID", "IS_MONEY_ACCEPTED")
 VALUES
-    ('ACTIVE', 'admin', NOW(), NULL, NULL, 0, 'Philips Air Fryer', 'Oil-free fryer with rapid air technology.', '2025-04-13 12:00:00', 'EXCE', 'AVAI', 1, 1, 'https://pisces.bbystatic.com/image2/BestBuy_US/images/products/6369/6369449_rd.jpg', 3, 1, 'OPEN', 250000, NULL, TRUE),
-    ('ACTIVE', 'admin', NOW(), NULL, NULL, 0, 'Samsung Front Load Washer', '9kg washing machine with eco-bubble technology.', '2025-04-28 12:00:00', 'LNEW', 'AVAI', 2, 2, 'https://pisces.bbystatic.com/image2/BestBuy_US/images/products/6323/6323149_sd.jpg', 3, 2, 'OPEN', 7500000, NULL, TRUE),
+    ('ACTIVE', 'admin', NOW(), NULL, NULL, 0, 'Philips Air Fryer', 'Oil-free fryer with rapid air technology.', '2025-04-13 12:00:00', 'EXCE', 'AVAI', 1, 1, 'https://pisces.bbystatic.com/image2/BestBuy_US/images/products/6369/6369449_rd.jpg', 8, 1, 'OPEN', 250000, NULL, TRUE),
+    ('ACTIVE', 'admin', NOW(), NULL, NULL, 0, 'Samsung Front Load Washer', '9kg washing machine with eco-bubble technology.', '2025-04-28 12:00:00', 'LNEW', 'AVAI', 2, 2, 'https://pisces.bbystatic.com/image2/BestBuy_US/images/products/6323/6323149_sd.jpg', 9, 2, 'OPEN', 7500000, NULL, TRUE),
     ('ACTIVE', 'admin', NOW(), NULL, NULL, 0, 'Dyson Air Purifier', 'Removes 99.97% of allergens and pollutants.', '2025-05-13 12:00:00', 'GOOD', 'PEND', 3, 3, 'https://dyson-h.assetsadobe2.com/is/image/content/dam/dyson/leap-petite-global/markets/thai/products/ec/tp07-bn-hepa13-pdp.png', 3, 3, 'OPEN', 4500000, NULL, FALSE),
     ('ACTIVE', 'admin', NOW(), NULL, NULL, 0, 'Sony Bluetooth Speaker', 'Portable speaker with deep bass and 12-hour battery life.', '2025-04-13 12:00:00', 'EXCE', 'AVAI', 4, 4, 'https://static.bhphoto.com/images/images500x500/1590584805_1566561.jpg', 4, 5, 'OPEN', 1500000, NULL, TRUE),
     ('ACTIVE', 'admin', NOW(), NULL, NULL, 0, 'Xiaomi Smart LED Bulb', 'Dimmable LED bulb with smart home integration.', '2025-04-03 12:00:00', 'LNEW', 'NLFE', 5, 5, 'https://www.mistorechile.cl/wp-content/uploads/2024/03/led-bulb-white-and-color-4-0021c55c-7990-4996-8b36-857ca8236398.png', 4, 6, 'OPEN', 200000, NULL, FALSE),
