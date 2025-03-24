@@ -30,11 +30,11 @@ public class ChatMessageServiceImpl implements ChatMessageService {
     public void processMessage(ChatMessage chatMessage) {
         validateMessage(chatMessage);
         ChatMessage savedMsg = saveMessage(chatMessage);
-        Notification savedNotification = notificationService.createNotification(prepateNotification(savedMsg));
+        Notification savedNotification = notificationService.createNotification(prepareNotification(savedMsg));
         messagingTemplate.convertAndSendToUser(chatMessage.getRecipientId(), QUEUE_MESSAGES, savedNotification);
     }
 
-    private Notification prepateNotification(ChatMessage savedMsg) {
+    private Notification prepareNotification(ChatMessage savedMsg) {
         return Notification.builder()
                 .id(savedMsg.getId())
                 .senderId(savedMsg.getSenderId())
