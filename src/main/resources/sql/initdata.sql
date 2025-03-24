@@ -205,3 +205,11 @@ INSERT INTO public."ITEM_METHODEXCHANGES" ("ITEM_ITEM_ID", "METHOD_EXCHANGE") VA
                                                                                   (9, 'DELI'),
                                                                                   (10, 'DELI'),
                                                                                   (10, 'PICK');
+
+INSERT INTO public."SUBSCRIPTION_PLAN"
+("SUBSCRIPTION_PLAN_ID", "STATUS_ENTITY", "USR_LOG_I", "DTE_LOG_I", "DTE_LOG_U", "USR_LOG_U", "VERSION", "DESCRIPTION", "DURATION", "IMAGE_URL", "NAME", "PRICE", "TYPE_SUBSCRIPTION_PLAN")
+VALUES
+    (1, 'ACTIVE', 'ngoccuong', '2025-03-24 22:14:05.890', '2025-03-25 00:03:43.882', 'ngoccuong', 5, 'This premium plan will last 1 month', 1, 'abc', 'Premium plan 1 month', 299000, 'PREM'),
+    (2, 'ACTIVE', 'ngoccuong', '2025-03-25 00:01:01.318', '2025-03-25 00:01:01.318', NULL, 0, 'This premium plan will last 6 months', 6, 'abc', 'Premium plan 6 months', 1499000, 'PREM'),
+    (3, 'ACTIVE', 'ngoccuong', '2025-03-25 00:04:31.695', '2025-03-25 00:05:27.811', 'ngoccuong', 2, 'This premium plan will last 12 months', 12, 'abc', 'Premium plan 12 months', 2999000, 'PREM'),
+    (4, 'ACTIVE', 'ngoccuong', '2025-03-25 00:20:36.583', '2025-03-25 00:20:36.583', NULL, 0, 'This plan will extend item for 2 more weeks', 0.5, 'abc', 'Extension plan 2 weeks', 39000, 'IEXT');

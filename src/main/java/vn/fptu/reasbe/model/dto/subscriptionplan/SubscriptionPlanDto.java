@@ -2,7 +2,6 @@ package vn.fptu.reasbe.model.dto.subscriptionplan;
 
 import java.math.BigDecimal;
 
-import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -33,7 +32,7 @@ public class SubscriptionPlanDto {
     String name;
 
     @NotBlank(message = "Description cannot be blank")
-    @Size(min = 20, message = "Description must have at least 20 characters")
+    @Size(min = 10, message = "Description must have at least 20 characters")
     String description;
 
     @NotNull(message = "Price cannot be null")

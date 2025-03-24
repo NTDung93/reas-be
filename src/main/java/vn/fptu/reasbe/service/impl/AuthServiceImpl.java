@@ -28,6 +28,7 @@ import vn.fptu.reasbe.model.dto.auth.SignupDto;
 import vn.fptu.reasbe.model.entity.Role;
 import vn.fptu.reasbe.model.entity.Token;
 import vn.fptu.reasbe.model.entity.User;
+import vn.fptu.reasbe.model.enums.core.StatusEntity;
 import vn.fptu.reasbe.model.enums.user.RoleName;
 import vn.fptu.reasbe.model.enums.user.StatusOnline;
 import vn.fptu.reasbe.model.exception.ReasApiException;
@@ -303,7 +304,7 @@ public class AuthServiceImpl implements AuthService {
     }
 
     private void validateUser(SignupDto dto) {
-        if (Boolean.TRUE.equals(userRepository.existsByEmail(dto.getEmail()))) {
+        if (Boolean.TRUE.equals(userRepository.existsByEmailAndStatusEntityEquals(dto.getEmail(), StatusEntity.ACTIVE))) {
             throw new ReasApiException(HttpStatus.BAD_REQUEST, "error.emailAlreadyExist");
         }
     }

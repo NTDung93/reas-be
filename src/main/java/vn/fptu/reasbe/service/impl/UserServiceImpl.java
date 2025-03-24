@@ -75,6 +75,9 @@ public class UserServiceImpl implements UserService {
     @Override
     public UserResponse updateStaff(UpdateStaffRequest request) {
         User user = getUserById(request.getId());
+        if (user.getStatusEntity() == StatusEntity.INACTIVE) {
+            throw new ReasApiException(HttpStatus.BAD_REQUEST, "error.user.inactive");
+        }
         validateUpdateStaffRequest(request);
         userMapper.updateUser(user, request);
         user.setPassword(passwordEncoder.encode(request.getPassword()));
@@ -96,6 +99,9 @@ public class UserServiceImpl implements UserService {
     @Override
     public Boolean deactivateStaff(Integer userId) {
         User user = getUserById(userId);
+        if (user.getStatusEntity() == StatusEntity.INACTIVE) {
+            throw new ReasApiException(HttpStatus.BAD_REQUEST, "error.user.inactive");
+        }
         user.setStatusEntity(StatusEntity.INACTIVE);
         userRepository.save(user);
         return true;
@@ -150,10 +156,10 @@ public class UserServiceImpl implements UserService {
     }
 
     private void validateCreateStaffRequest(CreateStaffRequest request) {
-        if (Boolean.TRUE.equals(userRepository.existsByUserName(request.getUserName()))) {
+        if (Boolean.TRUE.equals(userRepository.existsByUserNameAndStatusEntityEquals(request.getUserName(), StatusEntity.ACTIVE))) {
             throw new ReasApiException(HttpStatus.BAD_REQUEST, "error.usernameExist");
         }
-        if (Boolean.TRUE.equals(userRepository.existsByEmail(request.getEmail()))) {
+        if (Boolean.TRUE.equals(userRepository.existsByEmailAndStatusEntityEquals(request.getEmail(), StatusEntity.ACTIVE))) {
             throw new ReasApiException(HttpStatus.BAD_REQUEST, "error.emailExist");
         }
         if (!request.getConfirmPassword().equals(request.getPassword())) {
@@ -162,10 +168,10 @@ public class UserServiceImpl implements UserService {
     }
 
     private void validateUpdateStaffRequest(UpdateStaffRequest request) {
-        if (Boolean.TRUE.equals(userRepository.existsByUserNameAndIdIsNot(request.getUserName(), request.getId()))) {
+        if (Boolean.TRUE.equals(userRepository.existsByUserNameAndStatusEntityEqualsAndIdIsNot(request.getUserName(), StatusEntity.ACTIVE, request.getId()))) {
             throw new ReasApiException(HttpStatus.BAD_REQUEST, "error.usernameExist");
         }
-        if (Boolean.TRUE.equals(userRepository.existsByEmailAndIdIsNot(request.getEmail(), request.getId()))) {
+        if (Boolean.TRUE.equals(userRepository.existsByEmailAndStatusEntityEqualsAndIdIsNot(request.getEmail(), StatusEntity.ACTIVE, request.getId()))) {
             throw new ReasApiException(HttpStatus.BAD_REQUEST, "error.emailExist");
         }
         if (!request.getConfirmPassword().equals(request.getPassword())) {
