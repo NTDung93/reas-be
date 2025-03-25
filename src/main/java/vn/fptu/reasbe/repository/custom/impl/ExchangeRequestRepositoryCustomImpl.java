@@ -63,7 +63,7 @@ public class ExchangeRequestRepositoryCustomImpl extends AbstractRepositoryCusto
     // ✅ Convert findByExchangeRequestStatusAndUser to QueryDSL
     @Override
     public Page<ExchangeRequest> findByExchangeRequestStatusAndUser(StatusExchangeRequest status, User user, Pageable pageable) {
-        QExchangeRequest exchangeRequest = QExchangeRequest.exchangeRequest;
+        QExchangeRequest exchangeRequest = getEntityPath();
 
         BooleanBuilder builder = new BooleanBuilder();
         builder.and(exchangeRequest.statusExchangeRequest.eq(status))
@@ -80,10 +80,27 @@ public class ExchangeRequestRepositoryCustomImpl extends AbstractRepositoryCusto
 
     @Override
     public Page<ExchangeRequest> findByExchangeHistoryStatusAndUser(StatusExchangeHistory status, User user, Pageable pageable) {
-        QExchangeRequest exchangeRequest = QExchangeRequest.exchangeRequest;
+        QExchangeRequest exchangeRequest = getEntityPath();
 
         BooleanBuilder builder = new BooleanBuilder();
         builder.and(exchangeRequest.exchangeHistory.statusExchangeHistory.eq(status))
+                .and(exchangeRequest.sellerItem.owner.eq(user)
+                        .or(exchangeRequest.buyerItem.owner.eq(user))
+                        .or(exchangeRequest.paidBy.eq(user)));
+
+        JPAQuery<ExchangeRequest> query = new JPAQuery<ExchangeRequest>(em)
+                .from(getEntityPath())
+                .where(builder);
+
+        return getPage(query, pageable);
+    }
+
+    @Override
+    public Page<ExchangeRequest> findByExchangeHistoryStatusInAndUser(List<StatusExchangeHistory> statuses, User user, Pageable pageable) {
+        QExchangeRequest exchangeRequest = getEntityPath();
+
+        BooleanBuilder builder = new BooleanBuilder();
+        builder.and(exchangeRequest.exchangeHistory.statusExchangeHistory.in(statuses))
                 .and(exchangeRequest.sellerItem.owner.eq(user)
                         .or(exchangeRequest.buyerItem.owner.eq(user))
                         .or(exchangeRequest.paidBy.eq(user)));

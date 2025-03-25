@@ -82,6 +82,6 @@ public class ExchangeController {
     @PutMapping("/cancel")
     @PreAuthorize("hasRole(T(vn.fptu.reasbe.model.constant.AppConstants).ROLE_RESIDENT)")
     public ResponseEntity<ExchangeResponse> cancelApprovedExchange(@RequestParam Integer exchangeId) {
-        return ResponseEntity.ok(exchangeService.cancelApprovedExchange(exchangeId));
+        return ResponseEntity.ok(exchangeService.cancelExchange(exchangeId));
     }
 }

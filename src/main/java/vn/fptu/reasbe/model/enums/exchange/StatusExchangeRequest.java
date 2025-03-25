@@ -7,5 +7,6 @@ package vn.fptu.reasbe.model.enums.exchange;
 public enum StatusExchangeRequest {
     PENDING,
     APPROVED,
-    REJECTED
+    REJECTED,
+    CANCELLED,
 }

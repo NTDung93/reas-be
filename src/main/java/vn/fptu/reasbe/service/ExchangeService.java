@@ -20,7 +20,7 @@ public interface ExchangeService {
 
     ExchangeResponse reviewExchangeRequest(Integer id, StatusExchangeRequest statusExchangeRequest);
 
-    ExchangeResponse cancelApprovedExchange(Integer id);
+    ExchangeResponse cancelExchange(Integer id);
 
     Boolean confirmNegotiatedPrice(Integer id);
 
