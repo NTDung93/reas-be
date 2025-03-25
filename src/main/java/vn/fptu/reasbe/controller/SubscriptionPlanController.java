@@ -43,19 +43,19 @@ public class SubscriptionPlanController {
         return ResponseEntity.ok(subscriptionPlanService.searchSubscriptionPlanPagination(pageNo, pageSize, sortBy, sortDir, request));
     }
 
-    @PreAuthorize("hasRole(T(vn.fptu.reasbe.model.constant.AppConstants).ROLE_ADMIN) or hasRole(T(vn.fptu.reasbe.model.constant.AppConstants).ROLE_STAFF)")
+    @PreAuthorize("hasRole(T(vn.fptu.reasbe.model.constant.AppConstants).ROLE_ADMIN)")
     @PostMapping
     public ResponseEntity<SubscriptionPlanDto> createNewSubscriptionPlan(@RequestBody @Valid SubscriptionPlanDto request) {
         return ResponseEntity.ok(subscriptionPlanService.createSubscriptionPlan(request));
     }
 
-    @PreAuthorize("hasRole(T(vn.fptu.reasbe.model.constant.AppConstants).ROLE_ADMIN) or hasRole(T(vn.fptu.reasbe.model.constant.AppConstants).ROLE_STAFF)")
+    @PreAuthorize("hasRole(T(vn.fptu.reasbe.model.constant.AppConstants).ROLE_ADMIN)")
     @PutMapping
     public ResponseEntity<SubscriptionPlanDto> updateSubscriptionPlan(@RequestBody @Valid SubscriptionPlanDto request) {
         return ResponseEntity.ok(subscriptionPlanService.updateSubscriptionPlan(request));
     }
 
-    @PreAuthorize("hasRole(T(vn.fptu.reasbe.model.constant.AppConstants).ROLE_ADMIN) or hasRole(T(vn.fptu.reasbe.model.constant.AppConstants).ROLE_STAFF)")
+    @PreAuthorize("hasRole(T(vn.fptu.reasbe.model.constant.AppConstants).ROLE_ADMIN)")
     @DeleteMapping("/{id}")
     public ResponseEntity<Boolean> deactivateSubscriptionPlan(@PathVariable Integer id) {
         return ResponseEntity.ok(subscriptionPlanService.deactivateSubscriptionPlan(id));

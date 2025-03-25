@@ -32,7 +32,7 @@ public class SubscriptionPlanDto {
     String name;
 
     @NotBlank(message = "Description cannot be blank")
-    @Size(min = 10, message = "Description must have at least 20 characters")
+    @Size(min = 10, message = "Description must have at least 10 characters")
     String description;
 
     @NotNull(message = "Price cannot be null")
