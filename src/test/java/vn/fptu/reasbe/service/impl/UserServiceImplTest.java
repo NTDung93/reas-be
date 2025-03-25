@@ -33,6 +33,7 @@ import vn.fptu.reasbe.model.dto.user.UpdateStaffRequest;
 import vn.fptu.reasbe.model.dto.user.UserResponse;
 import vn.fptu.reasbe.model.entity.Role;
 import vn.fptu.reasbe.model.entity.User;
+import vn.fptu.reasbe.model.enums.core.StatusEntity;
 import vn.fptu.reasbe.model.enums.user.Gender;
 import vn.fptu.reasbe.model.enums.user.RoleName;
 import vn.fptu.reasbe.model.exception.ReasApiException;
@@ -144,8 +145,8 @@ class UserServiceImplTest {
     @Test
     void testCreateNewStaff() {
         // Arrange
-        when(userRepository.existsByUserName(createStaffRequest.getUserName())).thenReturn(false);
-        when(userRepository.existsByEmail(createStaffRequest.getEmail())).thenReturn(false);
+        when(userRepository.existsByUserNameAndStatusEntityEquals(createStaffRequest.getUserName(), StatusEntity.ACTIVE)).thenReturn(false);
+        when(userRepository.existsByUserNameAndStatusEntityEquals(createStaffRequest.getEmail(), StatusEntity.ACTIVE)).thenReturn(false);
         when(passwordEncoder.encode(createStaffRequest.getPassword())).thenReturn("hashedPassword");
         when(roleRepository.findByName(RoleName.ROLE_STAFF)).thenReturn(Optional.of(role));
         when(userMapper.toUser(any(CreateStaffRequest.class))).thenReturn(user);
@@ -161,8 +162,8 @@ class UserServiceImplTest {
         assertEquals("john.doe@example.com", response.getEmail());
         assertEquals("1234567890", response.getPhone());
 
-        verify(userRepository, times(1)).existsByUserName(createStaffRequest.getUserName());
-        verify(userRepository, times(1)).existsByEmail(createStaffRequest.getEmail());
+        verify(userRepository, times(1)).existsByUserNameAndStatusEntityEquals(createStaffRequest.getUserName(), StatusEntity.ACTIVE);
+        verify(userRepository, times(1)).existsByUserNameAndStatusEntityEquals(createStaffRequest.getEmail(), StatusEntity.ACTIVE);
         verify(passwordEncoder, times(1)).encode(createStaffRequest.getPassword());
         verify(roleRepository, times(1)).findByName(RoleName.ROLE_STAFF);
         verify(userRepository, times(1)).save(any(User.class));
@@ -173,7 +174,7 @@ class UserServiceImplTest {
     @Test
     void testCreateNewStaff_UserNameExists() {
         // Arrange
-        when(userRepository.existsByUserName(createStaffRequest.getUserName())).thenReturn(true);
+        when(userRepository.existsByUserNameAndStatusEntityEquals(createStaffRequest.getUserName(), StatusEntity.ACTIVE)).thenReturn(true);
 
         // Act & Assert
         ReasApiException exception = assertThrows(ReasApiException.class, () -> {
@@ -183,14 +184,14 @@ class UserServiceImplTest {
         assertEquals(HttpStatus.BAD_REQUEST, exception.getStatus());
         assertEquals("error.usernameExist", exception.getMessage());
 
-        verify(userRepository, times(1)).existsByUserName(createStaffRequest.getUserName());
+        verify(userRepository, times(1)).existsByUserNameAndStatusEntityEquals(createStaffRequest.getUserName(), StatusEntity.ACTIVE);
     }
 
     @Test
     void testCreateNewStaff_EmailExists() {
         // Arrange
-        when(userRepository.existsByUserName(createStaffRequest.getUserName())).thenReturn(false);
-        when(userRepository.existsByEmail(createStaffRequest.getEmail())).thenReturn(true);
+        when(userRepository.existsByUserNameAndStatusEntityEquals(createStaffRequest.getUserName(), StatusEntity.ACTIVE)).thenReturn(false);
+        when(userRepository.existsByEmailAndStatusEntityEquals(createStaffRequest.getEmail(), StatusEntity.ACTIVE)).thenReturn(true);
 
         // Act & Assert
         ReasApiException exception = assertThrows(ReasApiException.class, () -> {
@@ -200,8 +201,8 @@ class UserServiceImplTest {
         assertEquals(HttpStatus.BAD_REQUEST, exception.getStatus());
         assertEquals("error.emailExist", exception.getMessage());
 
-        verify(userRepository, times(1)).existsByUserName(createStaffRequest.getUserName());
-        verify(userRepository, times(1)).existsByEmail(createStaffRequest.getEmail());
+        verify(userRepository, times(1)).existsByUserNameAndStatusEntityEquals(createStaffRequest.getUserName(), StatusEntity.ACTIVE);
+        verify(userRepository, times(1)).existsByEmailAndStatusEntityEquals(createStaffRequest.getEmail(), StatusEntity.ACTIVE);
     }
 
     @Test
@@ -222,8 +223,8 @@ class UserServiceImplTest {
     void testUpdateStaff() {
         // Arrange
         when(userRepository.findById(updateStaffRequest.getId())).thenReturn(Optional.of(user));
-        when(userRepository.existsByUserNameAndIdIsNot(updateStaffRequest.getUserName(), updateStaffRequest.getId())).thenReturn(false);
-        when(userRepository.existsByEmailAndIdIsNot(updateStaffRequest.getEmail(), updateStaffRequest.getId())).thenReturn(false);
+        when(userRepository.existsByUserNameAndStatusEntityEqualsAndIdIsNot(updateStaffRequest.getUserName(), StatusEntity.ACTIVE, updateStaffRequest.getId())).thenReturn(false);
+        when(userRepository.existsByUserNameAndStatusEntityEqualsAndIdIsNot(updateStaffRequest.getEmail(), StatusEntity.ACTIVE, updateStaffRequest.getId())).thenReturn(false);
         when(passwordEncoder.encode(updateStaffRequest.getPassword())).thenReturn("newHashedPassword");
 
         // Create an updated user object
@@ -257,8 +258,8 @@ class UserServiceImplTest {
         assertEquals("0987654321", response.getPhone());
 
         verify(userRepository, times(1)).findById(updateStaffRequest.getId());
-        verify(userRepository, times(1)).existsByUserNameAndIdIsNot(updateStaffRequest.getUserName(), updateStaffRequest.getId());
-        verify(userRepository, times(1)).existsByEmailAndIdIsNot(updateStaffRequest.getEmail(), updateStaffRequest.getId());
+        verify(userRepository, times(1)).existsByUserNameAndStatusEntityEqualsAndIdIsNot(updateStaffRequest.getUserName(), StatusEntity.ACTIVE, updateStaffRequest.getId());
+        verify(userRepository, times(1)).existsByEmailAndStatusEntityEqualsAndIdIsNot(updateStaffRequest.getEmail(), StatusEntity.ACTIVE, updateStaffRequest.getId());
         verify(passwordEncoder, times(1)).encode(updateStaffRequest.getPassword());
         verify(userRepository, times(1)).save(any(User.class));
         verify(userMapper, times(1)).toUserResponse(any(User.class));
@@ -285,7 +286,7 @@ class UserServiceImplTest {
     void testUpdateStaff_UserNameExists() {
         // Arrange
         when(userRepository.findById(updateStaffRequest.getId())).thenReturn(Optional.of(user));
-        when(userRepository.existsByUserNameAndIdIsNot(updateStaffRequest.getUserName(), updateStaffRequest.getId())).thenReturn(true);
+        when(userRepository.existsByUserNameAndStatusEntityEqualsAndIdIsNot(updateStaffRequest.getUserName(), StatusEntity.ACTIVE, updateStaffRequest.getId())).thenReturn(true);
 
         // Act & Assert
         ReasApiException exception = assertThrows(ReasApiException.class, () -> {
@@ -296,14 +297,14 @@ class UserServiceImplTest {
         assertEquals("error.usernameExist", exception.getMessage());
 
         verify(userRepository, times(1)).findById(updateStaffRequest.getId());
-        verify(userRepository, times(1)).existsByUserNameAndIdIsNot(updateStaffRequest.getUserName(), updateStaffRequest.getId());
+        verify(userRepository, times(1)).existsByUserNameAndStatusEntityEqualsAndIdIsNot(updateStaffRequest.getUserName(), StatusEntity.ACTIVE, updateStaffRequest.getId());
     }
 
     @Test
     void testUpdateStaff_EmailExists() {
         // Arrange
         when(userRepository.findById(updateStaffRequest.getId())).thenReturn(Optional.of(user));
-        when(userRepository.existsByEmailAndIdIsNot(updateStaffRequest.getEmail(), updateStaffRequest.getId())).thenReturn(true);
+        when(userRepository.existsById( updateStaffRequest.getId())).thenReturn(true);
 
         // Act & Assert
         ReasApiException exception = assertThrows(ReasApiException.class, () -> {
@@ -314,7 +315,7 @@ class UserServiceImplTest {
         assertEquals("error.emailExist", exception.getMessage());
 
         verify(userRepository, times(1)).findById(updateStaffRequest.getId());
-        verify(userRepository, times(1)).existsByEmailAndIdIsNot(updateStaffRequest.getEmail(), updateStaffRequest.getId());
+        verify(userRepository, times(1)).existsByEmailAndStatusEntityEqualsAndIdIsNot(updateStaffRequest.getEmail(), StatusEntity.ACTIVE, updateStaffRequest.getId());
     }
 
     @Test

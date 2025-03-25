@@ -20,6 +20,7 @@ import vn.fptu.reasbe.model.dto.core.BaseSearchPaginationResponse;
 import vn.fptu.reasbe.model.dto.subscriptionplan.SearchSubscriptionPlanRequest;
 import vn.fptu.reasbe.model.dto.subscriptionplan.SubscriptionPlanDto;
 import vn.fptu.reasbe.service.SubscriptionPlanService;
+import vn.fptu.reasbe.utils.mapper.SubscriptionPlanMapper;
 
 /**
  *
@@ -31,6 +32,7 @@ import vn.fptu.reasbe.service.SubscriptionPlanService;
 public class SubscriptionPlanController {
 
     private final SubscriptionPlanService subscriptionPlanService;
+    private final SubscriptionPlanMapper subscriptionPlanMapper;
 
     @PostMapping("/search")
     public ResponseEntity<BaseSearchPaginationResponse<SubscriptionPlanDto>> searchSubscriptionPlanPagination(
@@ -63,6 +65,6 @@ public class SubscriptionPlanController {
 
     @GetMapping("/{id}")
     public ResponseEntity<SubscriptionPlanDto> getSubscriptionPlanById(@PathVariable Integer id) {
-        return ResponseEntity.ok(subscriptionPlanService.getSubscriptionPlanById(id));
+        return ResponseEntity.ok(subscriptionPlanMapper.toDto(subscriptionPlanService.getSubscriptionPlanByPlanId(id)));
     }
 }

@@ -62,14 +62,10 @@ public class SubscriptionPlanServiceImpl implements SubscriptionPlanService {
         return mapper.toDto(subscriptionPlanRepository.save(subscriptionPlan));
     }
 
-    private SubscriptionPlan getSubscriptionPlanByPlanId(Integer id) {
+    @Override
+    public SubscriptionPlan getSubscriptionPlanByPlanId(Integer id) {
         return subscriptionPlanRepository.findSubscriptionPlanById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("error.subscriptionPlan.notFound"));
-    }
-
-    @Override
-    public SubscriptionPlanDto getSubscriptionPlanById(Integer id) {
-        return mapper.toDto(getSubscriptionPlanByPlanId(id));
     }
 
     @Override

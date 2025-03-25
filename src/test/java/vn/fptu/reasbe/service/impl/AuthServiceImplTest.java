@@ -26,6 +26,7 @@ import vn.fptu.reasbe.model.dto.auth.LoginDto;
 import vn.fptu.reasbe.model.dto.auth.SignupDto;
 import vn.fptu.reasbe.model.entity.Role;
 import vn.fptu.reasbe.model.entity.User;
+import vn.fptu.reasbe.model.enums.core.StatusEntity;
 import vn.fptu.reasbe.model.enums.user.RoleName;
 import vn.fptu.reasbe.model.exception.ReasApiException;
 import vn.fptu.reasbe.repository.RoleRepository;
@@ -150,7 +151,7 @@ class AuthServiceImplTest {
     // --- Tests for validateAndSendOtp() ---
     @Test
     void validateAndSendOtp_Success() {
-        when(userRepository.existsByEmail(signupDto.getEmail())).thenReturn(false);
+        when(userRepository.existsByEmailAndStatusEntityEquals(signupDto.getEmail(), StatusEntity.ACTIVE)).thenReturn(false);
         when(otpService.generateAndSendOtp(signupDto.getEmail(), signupDto.getFullName()))
                 .thenReturn("123456");
 
@@ -160,7 +161,7 @@ class AuthServiceImplTest {
 
     @Test
     void validateAndSendOtp_EmailAlreadyExists() {
-        when(userRepository.existsByEmail(signupDto.getEmail())).thenReturn(true);
+        when(userRepository.existsByEmailAndStatusEntityEquals(signupDto.getEmail(), StatusEntity.ACTIVE));
 
         ReasApiException exception = assertThrows(ReasApiException.class, () ->
                 authService.validateAndSendOtp(signupDto));

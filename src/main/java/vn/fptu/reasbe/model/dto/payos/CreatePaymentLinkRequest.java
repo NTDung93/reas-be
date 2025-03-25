@@ -20,7 +20,7 @@ public class CreatePaymentLinkRequest {
     private String description;
 
     @NotNull(message = "Subscription plan can not be null!")
-    private SubscriptionPlanDto subscriptionPlan;
+    private Integer subscriptionPlanId;
 
     @NotBlank(message = "Return Url cannot be blank!")
     private String returnUrl;

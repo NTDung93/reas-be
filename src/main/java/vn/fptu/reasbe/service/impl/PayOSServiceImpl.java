@@ -2,7 +2,6 @@ package vn.fptu.reasbe.service.impl;
 
 import java.time.Duration;
 import java.time.Instant;
-import java.util.Date;
 
 import org.springframework.stereotype.Service;
 
@@ -10,10 +9,13 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import vn.fptu.reasbe.model.dto.payos.CreatePaymentLinkRequest;
 import vn.fptu.reasbe.model.dto.payos.WebhookUrlDto;
+import vn.fptu.reasbe.model.entity.SubscriptionPlan;
 import vn.fptu.reasbe.model.entity.User;
 import vn.fptu.reasbe.model.exception.PayOSException;
 import vn.fptu.reasbe.service.AuthService;
 import vn.fptu.reasbe.service.PayOSService;
+import vn.fptu.reasbe.service.SubscriptionPlanService;
+import vn.fptu.reasbe.utils.common.PaymentCodeHelper;
 import vn.payos.PayOS;
 import vn.payos.type.CheckoutResponseData;
 import vn.payos.type.ItemData;
@@ -32,31 +34,34 @@ public class PayOSServiceImpl implements PayOSService {
 
     private final PayOS payOS;
     private final AuthService authService;
+    private final SubscriptionPlanService subscriptionPlanService;
 
     @Override
     public CheckoutResponseData createPayment(CreatePaymentLinkRequest createPaymentLinkRequest) {
         User currentUser = authService.getCurrentUser();
 
+        // Create item data
+        SubscriptionPlan subscriptionPlan = subscriptionPlanService.getSubscriptionPlanByPlanId(createPaymentLinkRequest.getSubscriptionPlanId());
+
+        ItemData item = ItemData.builder()
+                .name(subscriptionPlan.getName())
+                .price(subscriptionPlan.getPrice().toBigInteger().intValue())
+                .quantity(1)
+                .build();
+
         // Gen order code
-        String currentTimeString = String.valueOf(String.valueOf(new Date().getTime()));
-        long orderCode = Long.parseLong(currentTimeString.substring(currentTimeString.length() - 6));
+        String orderCode = PaymentCodeHelper.generateOrderCode(createPaymentLinkRequest.getSubscriptionPlanId());
 
         // Set expiration time
         Instant now = Instant.now();
         Instant expirationTime = now.plus(Duration.ofMinutes(EXPIRED_TIME));
         long expirationTimestamp = expirationTime.getEpochSecond();
 
-        ItemData item = ItemData.builder()
-                .name(createPaymentLinkRequest.getSubscriptionPlan().getName())
-                .price(createPaymentLinkRequest.getSubscriptionPlan().getPrice().toBigInteger().intValue())
-                .quantity(1)
-                .build();
-
         PaymentData paymentData = PaymentData.builder()
-                .orderCode(orderCode)
+                .orderCode(Long.valueOf(orderCode))
                 .buyerName(currentUser.getFullName())
                 .description(createPaymentLinkRequest.getDescription())
-                .amount(createPaymentLinkRequest.getSubscriptionPlan().getPrice().toBigInteger().intValue())
+                .amount(subscriptionPlan.getPrice().toBigInteger().intValue())
                 .item(item)
                 .returnUrl(createPaymentLinkRequest.getReturnUrl())
                 .cancelUrl(createPaymentLinkRequest.getCancelUrl())
