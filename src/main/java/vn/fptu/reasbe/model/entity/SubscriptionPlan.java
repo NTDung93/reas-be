@@ -17,6 +17,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import vn.fptu.reasbe.model.entity.core.AbstractAuditableEntity;
+import vn.fptu.reasbe.model.enums.subscriptionplan.TypeSubscriptionPlan;
 
 /**
  *
@@ -49,12 +50,12 @@ public class SubscriptionPlan extends AbstractAuditableEntity {
     private String imageUrl;
 
     @NotNull
-    @Column(name = "TYPE_SUBSCRIPTION_PLAN")
-    private String typeSubscriptionPlan; // TODO: ntig change to enum TypeSubscriptionPlan later
+    @Column(name = "TYPE_SUBSCRIPTION_PLAN", length = 4)
+    private TypeSubscriptionPlan typeSubscriptionPlan;
 
     @NotNull
     @Column(name = "DURATION")
-    private int duration; // count by month
+    private Float duration; // count by month
 
     @OneToMany(mappedBy = "subscriptionPlan", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<UserSubscription> userSubscriptions = new HashSet<>();

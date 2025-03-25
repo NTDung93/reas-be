@@ -1,0 +1,542 @@
+{
+	"info": {
+		"_postman_id": "012da222-1d07-4c0c-ba71-c5d50d337481",
+		"name": "reas",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "20104645",
+		"_collection_link": "https://dark-zodiac-76463.postman.co/workspace/TestApisAllProjects~641169b4-1a03-47c3-8f03-2bfb8d5f86b0/collection/20104645-012da222-1d07-4c0c-ba71-c5d50d337481?action=share&source=collection_link&creator=20104645"
+	},
+	"item": [
+		{
+			"name": "item",
+			"item": [
+				{
+					"name": "search-pagination",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"statusItems\": [\"AVAILABLE\"]\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{API_LOCAL}}/item/search?pageNo=0&pageSize=5&sortBy=id&sortDir=asc",
+							"host": [
+								"{{API_LOCAL}}"
+							],
+							"path": [
+								"item",
+								"search"
+							],
+							"query": [
+								{
+									"key": "pageNo",
+									"value": "0"
+								},
+								{
+									"key": "pageSize",
+									"value": "5"
+								},
+								{
+									"key": "sortBy",
+									"value": "id"
+								},
+								{
+									"key": "sortDir",
+									"value": "asc"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "auth",
+			"item": [
+				{
+					"name": "login",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"userNameOrEmailOrPhone\": \"ngoccuong\",\r\n  \"password\": \"cuong@123\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{API_LOCAL}}/auth/login",
+							"host": [
+								"{{API_LOCAL}}"
+							],
+							"path": [
+								"auth",
+								"login"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "user",
+			"item": [
+				{
+					"name": "search-pagination",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzM4NCJ9.eyJzdWIiOiJuZ29jY3VvbmciLCJpYXQiOjE3NDAzMjYyNTUsImV4cCI6MTc0MDQxMjY1NX0.hh6oRqcV_rWlthnTMOiPSNCoCkabJIb-njYm8XgvkpNPTOBkf64s3V-nvFYizvOv",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"userName\": \"\",\r\n  \"fullName\": \"\",\r\n  \"email\": \"\",\r\n  \"phone\": \"\",\r\n  \"genders\": [\"MALE\", \"FEMALE\", \"OTHER\"],\r\n  \"statusEntities\": [\"ACTIVE\"],\r\n  \"roleNames\": [\"ROLE_USER\"]\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{API_LOCAL}}/user/search?pageNo=0&pageSize=10&sortBy=id&sortDir=asc",
+							"host": [
+								"{{API_LOCAL}}"
+							],
+							"path": [
+								"user",
+								"search"
+							],
+							"query": [
+								{
+									"key": "pageNo",
+									"value": "0"
+								},
+								{
+									"key": "pageSize",
+									"value": "10"
+								},
+								{
+									"key": "sortBy",
+									"value": "id"
+								},
+								{
+									"key": "sortDir",
+									"value": "asc"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "create-staff",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzM4NCJ9.eyJzdWIiOiJuZ29jY3VvbmciLCJpYXQiOjE3NDAwNjY5MjcsImV4cCI6MTc0MDE1MzMyN30.qSi6FzSujFXWqYNCy2FVhRB0Qh13S_rl-PQjJn_zQayb6xRs5ZzvhkPIa98FtD2Z",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"userName\": \"vunguyen\",\r\n  \"fullName\": \"Vu Nguyen\",\r\n  \"email\": \"nguyentiendung2003@gmail.com\",\r\n  \"phone\": \"0987654321\",\r\n  \"gender\": \"MALE\",\r\n  \"image\": \"https://example.com/profile.jpg\",\r\n  \"password\": \"Password@123\",\r\n  \"confirmPassword\": \"Password@123\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{API_LOCAL}}/user/create-new-staff",
+							"host": [
+								"{{API_LOCAL}}"
+							],
+							"path": [
+								"user",
+								"create-new-staff"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "update-staff",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzM4NCJ9.eyJzdWIiOiJuZ29jY3VvbmciLCJpYXQiOjE3NDA4OTI0MTIsImV4cCI6MTc0MDk3ODgxMn0.38YQpO73LiDYMzjGANU6xzbxg5aExNfm14t_q1cyWxp7Irog68w6RVnzzPOU_mxD",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"id\": 9, \r\n  \"userName\": \"huylinh1232\",\r\n  \"fullName\": \"Vu Nguyen\",\r\n  \"email\": \"nguyentiendung2003@gmail.com\",\r\n  \"phone\": \"0987654321\",\r\n  \"gender\": \"MALE\",\r\n  \"image\": \"https://example.com/profile.jpg\",\r\n  \"password\": \"Password@123\",\r\n  \"confirmPassword\": \"Password@123\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{API_LOCAL}}/user/update-staff",
+							"host": [
+								"{{API_LOCAL}}"
+							],
+							"path": [
+								"user",
+								"update-staff"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "deactivate-staff",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzM4NCJ9.eyJzdWIiOiJuZ29jY3VvbmciLCJpYXQiOjE3NDA5MzY3OTQsImV4cCI6MTc0MTAyMzE5NH0.cOJRWbdB6EqOR1-ituTYU7MfRdibOXhh5zHmIxv8nkXgU79CNTyhupwAX8MH4lbF",
+									"type": "string"
+								}
+							]
+						},
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{API_LOCAL}}/user/deactivate-staff/9",
+							"host": [
+								"{{API_LOCAL}}"
+							],
+							"path": [
+								"user",
+								"deactivate-staff",
+								"9"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "view-detail-staff",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzM4NCJ9.eyJzdWIiOiJuZ29jY3VvbmciLCJpYXQiOjE3NDI3MTk3NzksImV4cCI6MTc0MjgwNjE3OX0.KGd92_QvtdV4h07jZmSwnnU-8h4-LM1SZtS2556ijtCJXCFYLhjSCpMNb5w8-yJM",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{API_LOCAL}}/user/10",
+							"host": [
+								"{{API_LOCAL}}"
+							],
+							"path": [
+								"user",
+								"10"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "chat",
+			"item": [
+				{
+					"name": "load-conversations",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{API_LOCAL}}/conversations/nguyentiendung2003",
+							"host": [
+								"{{API_LOCAL}}"
+							],
+							"path": [
+								"conversations",
+								"nguyentiendung2003"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "load-messages-of-conversation",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{API_LOCAL}}/messages/nguyentiendung2003/dungntse171710",
+							"host": [
+								"{{API_LOCAL}}"
+							],
+							"path": [
+								"messages",
+								"nguyentiendung2003",
+								"dungntse171710"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "payos",
+			"item": [
+				{
+					"name": "create-payment-link",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzM4NCJ9.eyJzdWIiOiJuZ3V5ZW50aWVuZHVuZzIwMDMiLCJpYXQiOjE3NDI3MjI4MzcsImV4cCI6MTc0MjgwOTIzN30.2G4DbP5T_cx0wuwH0U4vJhOPHTyCaYLvjlC2gxjneM_l1ve0vzRnbrGT8iJAiBqg",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"description\": \"Thanh toán gói\",\n    \"subscriptionPlan\": {\n        \"name\": \"Goi vip\",\n        \"descripion\": \"dep\",\n        \"price\": 5000,\n        \"imageUrl\": \"abc\",\n        \"typeSubcsriptionPlan\": \"PREMIUM_PLAN\",\n        \"duration\": 1\n    },\n    \"returnUrl\": \"https://mpos.vn/public/media?fpath=MjAyMTA2MDQtQURNSU4tbXBvczoxMDAwLTAtYnVvYzQy.png\",\n    \"cancelUrl\": \"https://www.youtube.com/watch?v=eqHzPdf_mrU&list=RDGMEMCMFH2exzjBeE_zAHHJOdxgVMIcq1mZFekTg&index=2\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{API_LOCAL}}/payos/create-payment-link",
+							"host": [
+								"{{API_LOCAL}}"
+							],
+							"path": [
+								"payos",
+								"create-payment-link"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "subscriptionplan",
+			"item": [
+				{
+					"name": "search-pagination",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"premium\",\n    \"description\": \"plan\",\n    \"fromPrice\": 300000,\n    \"typeSubscriptionPlans\": [\"PREMIUM_PLAN\", \"ITEM_EXTENSION\"],\n    \"toDuration\": 7\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{API_LOCAL}}/subscription-plan/search?pageNo=0&pageSize=5&sortBy=id&sortDir=asc",
+							"host": [
+								"{{API_LOCAL}}"
+							],
+							"path": [
+								"subscription-plan",
+								"search"
+							],
+							"query": [
+								{
+									"key": "pageNo",
+									"value": "0"
+								},
+								{
+									"key": "pageSize",
+									"value": "5"
+								},
+								{
+									"key": "sortBy",
+									"value": "id"
+								},
+								{
+									"key": "sortDir",
+									"value": "asc"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "create-subscription-plan",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzM4NCJ9.eyJzdWIiOiJuZ29jY3VvbmciLCJpYXQiOjE3NDI4MjkyMzQsImV4cCI6MTc0MjkxNTYzNH0.9_TkqgF9nIsfyZb0i5StUhctgQXaGSPnFFOWygxDhOtyODdZyj-VjccOexZxcSUJ",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"Extension plan 2 weeks\",\n    \"description\": \"This plan will extend item for 2 more weeks\",\n    \"price\": 39000,\n    \"imageUrl\": \"abc\",\n    \"typeSubscriptionPlan\": \"ITEM_EXTENSION\",\n    \"duration\": 0.5\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{API_LOCAL}}/subscription-plan",
+							"host": [
+								"{{API_LOCAL}}"
+							],
+							"path": [
+								"subscription-plan"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "update-subscription-plan",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzM4NCJ9.eyJzdWIiOiJuZ29jY3VvbmciLCJpYXQiOjE3NDI4MjkyMzQsImV4cCI6MTc0MjkxNTYzNH0.9_TkqgF9nIsfyZb0i5StUhctgQXaGSPnFFOWygxDhOtyODdZyj-VjccOexZxcSUJ",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"id\": 4,\n    \"name\": \"Extend\",\n    \"description\": \"This premium plan will last 12 months\",\n    \"price\": 0,\n    \"imageUrl\": \"abc\",\n    \"typeSubscriptionPlan\": \"PREMIUM_PLAN\",\n    \"duration\": 6\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{API_LOCAL}}/subscription-plan",
+							"host": [
+								"{{API_LOCAL}}"
+							],
+							"path": [
+								"subscription-plan"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "deactivate-subscription-plan",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzM4NCJ9.eyJzdWIiOiJuZ29jY3VvbmciLCJpYXQiOjE3NDI4MzMzOTUsImV4cCI6MTc0MjkxOTc5NX0.dW-xFKyX5OYH59-af9AovArqLTBzmPqyxi8SYQF50d1u2zpwFS0wT-hshcHtkhjV",
+									"type": "string"
+								}
+							]
+						},
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{API_LOCAL}}/subscription-plan/1",
+							"host": [
+								"{{API_LOCAL}}"
+							],
+							"path": [
+								"subscription-plan",
+								"1"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "get-subscription-plan-by-id",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{API_LOCAL}}/subscription-plan/2",
+							"host": [
+								"{{API_LOCAL}}"
+							],
+							"path": [
+								"subscription-plan",
+								"2"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	]
+}

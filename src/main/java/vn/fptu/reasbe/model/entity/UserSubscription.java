@@ -38,10 +38,6 @@ public class UserSubscription extends AbstractAuditableEntity {
     @Column(name = "END_DATE")
     private String endDate;
 
-    @NotNull
-    @Column(name = "STATUS_SUBSCRIPTION")
-    private String statusSubscription; // TODO: ntig change to enum StatusSubscription later
-
     @ManyToOne
     @JoinColumn(name = "USER_ID")
     private User user;
