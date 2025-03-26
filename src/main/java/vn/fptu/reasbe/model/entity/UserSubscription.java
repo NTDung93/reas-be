@@ -1,5 +1,7 @@
 package vn.fptu.reasbe.model.entity;
 
+import java.time.LocalDateTime;
+
 import jakarta.persistence.AttributeOverride;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
@@ -32,11 +34,11 @@ public class UserSubscription extends AbstractAuditableEntity {
 
     @NotNull
     @Column(name = "START_DATE")
-    private String startDate;
+    private LocalDateTime startDate;
 
     @NotNull
     @Column(name = "END_DATE")
-    private String endDate;
+    private LocalDateTime endDate;
 
     @ManyToOne
     @JoinColumn(name = "USER_ID")
