@@ -9,6 +9,6 @@ import vn.fptu.reasbe.model.entity.PaymentHistory;
  * @author dungnguyen
  */
 public interface PaymentHistoryService {
-    Boolean payOsTransferHandler(ObjectNode body) throws Exception;
+    void payOsTransferHandler(ObjectNode body) throws Exception;
     PaymentHistory getPaymentHistoryById(Integer id);
 }

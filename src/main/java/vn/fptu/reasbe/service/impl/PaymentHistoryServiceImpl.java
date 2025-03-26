@@ -37,8 +37,8 @@ public class PaymentHistoryServiceImpl implements PaymentHistoryService {
     private final UserSubscriptionService userSubscriptionService;
 
     @Override
-    public Boolean payOsTransferHandler(ObjectNode body){
-        try{
+    public void payOsTransferHandler(ObjectNode body) {
+        try {
             ObjectMapper objectMapper = new ObjectMapper();
             Webhook webhookBody = objectMapper.treeToValue(body, Webhook.class);
             WebhookData data = payOS.verifyPaymentWebhookData(webhookBody);
@@ -58,8 +58,6 @@ public class PaymentHistoryServiceImpl implements PaymentHistoryService {
             if (Boolean.TRUE.equals(webhookBody.getSuccess())) {
                 userSubscriptionService.createUserSubscription(subscriptionPlanId, savedPaymentHistory);
             }
-
-            return true;
         } catch (Exception e) {
             throw new PayOSException(e.getMessage());
         }
