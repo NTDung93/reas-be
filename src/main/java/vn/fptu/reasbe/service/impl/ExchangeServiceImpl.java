@@ -227,7 +227,7 @@ public class ExchangeServiceImpl implements ExchangeService {
     }
 
     @Override
-    public Boolean confirmNegotiatedPrice(Integer id) {
+    public ExchangeResponse confirmNegotiatedPrice(Integer id) {
         User user = authService.getCurrentUser();
 
         ExchangeRequest request = getExchangeRequestById(id);
@@ -244,8 +244,7 @@ public class ExchangeServiceImpl implements ExchangeService {
             throw new ReasApiException(HttpStatus.BAD_REQUEST, "error.userNotAllowed");
         }
 
-        exchangeRequestRepository.save(request);
-        return true;
+        return exchangeMapper.toExchangeResponse(exchangeRequestRepository.save(request));
     }
 
     @Override

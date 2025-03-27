@@ -63,7 +63,7 @@ public class ExchangeController {
 
     @PutMapping("/negotiated-price/confirm")
     @PreAuthorize("hasRole(T(vn.fptu.reasbe.model.constant.AppConstants).ROLE_RESIDENT)")
-    public ResponseEntity<Boolean> confirmNegotiatedPrice(@RequestParam Integer exchangeId) {
+    public ResponseEntity<ExchangeResponse> confirmNegotiatedPrice(@RequestParam Integer exchangeId) {
         return ResponseEntity.ok(exchangeService.confirmNegotiatedPrice(exchangeId));
     }
 
@@ -81,7 +81,7 @@ public class ExchangeController {
 
     @PutMapping("/cancel")
     @PreAuthorize("hasRole(T(vn.fptu.reasbe.model.constant.AppConstants).ROLE_RESIDENT)")
-    public ResponseEntity<ExchangeResponse> cancelApprovedExchange(@RequestParam Integer exchangeId) {
+    public ResponseEntity<ExchangeResponse> cancelExchange(@RequestParam Integer exchangeId) {
         return ResponseEntity.ok(exchangeService.cancelExchange(exchangeId));
     }
 }

@@ -22,7 +22,7 @@ public interface ExchangeService {
 
     ExchangeResponse cancelExchange(Integer id);
 
-    Boolean confirmNegotiatedPrice(Integer id);
+    ExchangeResponse confirmNegotiatedPrice(Integer id);
 
     ExchangeResponse uploadEvidence(EvidenceExchangeRequest request);
 }
