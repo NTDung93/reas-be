@@ -27,11 +27,13 @@ import vn.fptu.reasbe.service.AuthService;
 import vn.fptu.reasbe.service.ExchangeService;
 import vn.fptu.reasbe.service.ItemService;
 import vn.fptu.reasbe.service.UserService;
+import vn.fptu.reasbe.service.VectorStoreService;
 import vn.fptu.reasbe.utils.common.DateUtils;
 import vn.fptu.reasbe.utils.mapper.ExchangeRequestMapper;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 import static vn.fptu.reasbe.model.dto.core.BaseSearchPaginationResponse.getPageable;
@@ -194,12 +196,24 @@ public class ExchangeServiceImpl implements ExchangeService {
                 throw new ReasApiException(HttpStatus.BAD_REQUEST, "error.notYetConfirmFinalPrice");
             }
             request.getSellerItem().setStatusItem(StatusItem.UNAVAILABLE);
-            request.getBuyerItem().setStatusItem(StatusItem.UNAVAILABLE);
+
+//            List<Item> deletedItemsFromVectorStore = new ArrayList<>();
+//            deletedItemsFromVectorStore.add(request.getSellerItem());
+
+            if (request.getBuyerItem() != null) {
+                request.getBuyerItem().setStatusItem(StatusItem.UNAVAILABLE);
+//                deletedItemsFromVectorStore.add(request.getBuyerItem());
+            }
 
             ExchangeHistory exchangeHistory = new ExchangeHistory();
             exchangeHistory.setSellerConfirmation(Boolean.FALSE);
             exchangeHistory.setBuyerConfirmation(Boolean.FALSE);
             exchangeHistory.setStatusExchangeHistory(StatusExchangeHistory.NOT_YET_EXCHANGE);
+
+            cancelOtherExchangeRequests(request.getSellerItem(), request.getBuyerItem());
+
+//            vectorStoreService.deleteItem(deletedItemsFromVectorStore);
+
             request.setExchangeHistory(exchangeHistoryRepository.save(exchangeHistory));
         } else {
             request.setStatusExchangeRequest(statusExchangeRequest);
@@ -213,7 +227,8 @@ public class ExchangeServiceImpl implements ExchangeService {
     public ExchangeResponse cancelExchange(Integer id) {
         ExchangeRequest request = getExchangeRequestById(id);
 
-        if (!request.getBuyerItem().getOwner().equals(authService.getCurrentUser())) {
+        if ((request.getBuyerItem() != null && !request.getBuyerItem().getOwner().equals(authService.getCurrentUser())) ||
+                (!request.getPaidBy().equals(authService.getCurrentUser()))) {
             throw new ReasApiException(HttpStatus.BAD_REQUEST, "error.userNotAllowed");
         }
 
@@ -371,5 +386,16 @@ public class ExchangeServiceImpl implements ExchangeService {
         if (!request.getStatusExchangeRequest().equals(StatusExchangeRequest.PENDING)) {
             throw new ReasApiException(HttpStatus.BAD_REQUEST, "error.exchangeRequestNotPending");
         }
+    }
+
+    private void cancelOtherExchangeRequests(Item sellerItem, Item buyerItem) {
+        List<ExchangeRequest> requests = exchangeRequestRepository
+                .findAllByStatusAndSellerItemOrBuyerItem(StatusExchangeRequest.PENDING, sellerItem, buyerItem);
+
+        for (ExchangeRequest relatedRequest : requests) {
+            relatedRequest.setStatusExchangeRequest(StatusExchangeRequest.CANCELLED);
+        }
+
+        exchangeRequestRepository.saveAll(requests);
     }
 }

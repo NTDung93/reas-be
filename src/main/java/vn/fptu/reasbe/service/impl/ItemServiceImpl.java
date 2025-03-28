@@ -23,6 +23,7 @@ import vn.fptu.reasbe.model.entity.DesiredItem;
 import vn.fptu.reasbe.model.entity.Item;
 import vn.fptu.reasbe.model.entity.User;
 import vn.fptu.reasbe.model.enums.item.StatusItem;
+import vn.fptu.reasbe.model.enums.item.TypeExchange;
 import vn.fptu.reasbe.model.exception.ReasApiException;
 import vn.fptu.reasbe.model.exception.ResourceNotFoundException;
 import vn.fptu.reasbe.repository.DesiredItemRepository;
@@ -36,6 +37,7 @@ import vn.fptu.reasbe.utils.common.DateUtils;
 import vn.fptu.reasbe.utils.mapper.DesiredItemMapper;
 import vn.fptu.reasbe.utils.mapper.ItemMapper;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import static vn.fptu.reasbe.model.dto.core.BaseSearchPaginationResponse.getPageable;
@@ -94,9 +96,12 @@ public class ItemServiceImpl implements ItemService {
         newItem.setUserLocation(userService.getPrimaryUserLocation(currentUser));
 
         if (request.getDesiredItem() != null) {
+            newItem.setTypeExchange(TypeExchange.EXCHANGE_WITH_DESIRED_ITEM);
             DesiredItem newDesiredItem = desiredItemMapper.toDesiredItem(request.getDesiredItem());
             prepareDesiredItem(newDesiredItem, request.getDesiredItem());
             newItem.setDesiredItem(desiredItemRepository.save(newDesiredItem));
+        } else {
+            newItem.setTypeExchange(TypeExchange.OPEN_EXCHANGE);
         }
         return itemRepository.save(newItem);
     }
@@ -109,7 +114,13 @@ public class ItemServiceImpl implements ItemService {
             throw new ReasApiException(HttpStatus.BAD_REQUEST, "error.invalidOwner");
         }
 
+        if (!existedItem.getStatusItem().equals(StatusItem.PENDING) && !existedItem.getStatusItem().equals(StatusItem.AVAILABLE)) {
+            throw new ReasApiException(HttpStatus.BAD_REQUEST, "error.cannotUpdateItem");
+        }
+
         itemMapper.updateItem(existedItem, request);
+
+        existedItem.setStatusItem(StatusItem.PENDING);
 
         DesiredItem existedDesiredItem = existedItem.getDesiredItem();
         DesiredItemDto desiredItemDto = request.getDesiredItem();
@@ -117,6 +128,7 @@ public class ItemServiceImpl implements ItemService {
         if (desiredItemDto == null) {
             // If there's an existing item, remove it
             if (existedDesiredItem != null) {
+                existedItem.setTypeExchange(TypeExchange.OPEN_EXCHANGE);
                 desiredItemRepository.delete(existedDesiredItem);
                 existedItem.setDesiredItem(null);
             }
@@ -131,6 +143,7 @@ public class ItemServiceImpl implements ItemService {
                 desiredItemRepository.save(existedDesiredItem);
             } else {
                 // Create new desired item
+                existedItem.setTypeExchange(TypeExchange.EXCHANGE_WITH_DESIRED_ITEM);
                 DesiredItem newDesiredItem = desiredItemMapper.toDesiredItem(desiredItemDto);
                 prepareDesiredItem(newDesiredItem, desiredItemDto);
                 existedItem.setDesiredItem(desiredItemRepository.save(newDesiredItem));
@@ -166,7 +179,7 @@ public class ItemServiceImpl implements ItemService {
     }
 
     @Scheduled(cron = "0 0 0 * * *", zone = "Asia/Ho_Chi_Minh")
-    public void checkExpiredItems(){
+    public void checkExpiredItems() {
         List<Item> expiredItems = itemRepository.findAllByExpiredTimeBeforeAndStatusItem(DateUtils.getCurrentDateTime(), StatusItem.AVAILABLE);
         expiredItems.forEach(expiredItem -> expiredItem.setStatusItem(StatusItem.EXPIRED));
         itemRepository.saveAll(expiredItems);
