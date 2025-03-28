@@ -1,6 +1,8 @@
 package vn.fptu.reasbe.model.mongodb;
 
 import java.util.Date;
+import java.util.List;
+import java.util.Map;
 
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -22,4 +24,9 @@ public class Notification {
     Date timestamp;
     String contentType;
     String notificationType;
+    Map<String, String> data;
+    /**
+     * FCM registration token
+     */
+    List<String> registrationTokens;
 }
