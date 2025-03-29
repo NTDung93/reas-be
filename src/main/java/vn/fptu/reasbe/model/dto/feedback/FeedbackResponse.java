@@ -30,4 +30,6 @@ public class FeedbackResponse {
     String comment;
 
     String imageUrl;
+
+    boolean isUpdated;
 }

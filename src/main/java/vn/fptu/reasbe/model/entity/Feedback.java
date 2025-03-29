@@ -33,7 +33,7 @@ public class Feedback extends AbstractAuditableEntity {
     @JoinColumn(name = "USER_ID")
     private User user;
 
-    @ManyToOne
+    @OneToOne
     @JoinColumn(name = "EXCHANGE_HISTORY_ID")
     private ExchangeHistory exchangeHistory;
 
@@ -50,4 +50,8 @@ public class Feedback extends AbstractAuditableEntity {
 
     @Column(name = "IMAGE_URL")
     private String imageUrl;
+
+    @NotNull
+    @Column(name = "IS_UPDATED")
+    private boolean isUpdated;
 }

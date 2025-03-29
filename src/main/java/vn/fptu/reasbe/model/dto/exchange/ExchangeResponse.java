@@ -52,4 +52,6 @@ public class ExchangeResponse {
     LocalDateTime creationDate;
 
     ExchangeHistoryResponse exchangeHistory;
+
+    Integer feedbackId;
 }

@@ -72,6 +72,7 @@ public class FeedbackServiceImpl implements FeedbackService {
         feedback.setUser(user);
         feedback.setItem(item);
         feedback.setExchangeHistory(exchangeHistory);
+        feedback.setUpdated(Boolean.FALSE);
         return feedbackMapper.toFeedbackResponse(feedbackRepository.save(feedback));
     }
 
@@ -81,7 +82,7 @@ public class FeedbackServiceImpl implements FeedbackService {
 
         Feedback feedback = getFeedbackById(feedbackRequest.getId());
 
-        if (feedback.getLastModificationDate() != null) {
+        if (feedback.isUpdated()) {
             throw new ReasApiException(HttpStatus.BAD_REQUEST, "error.onlyUpdateFeedbackOnce");
         }
 
@@ -89,6 +90,7 @@ public class FeedbackServiceImpl implements FeedbackService {
             throw new ReasApiException(HttpStatus.BAD_REQUEST, "error.userNotAllowed");
         }
 
+        feedback.setUpdated(Boolean.TRUE);
         feedbackMapper.updateFeedback(feedback, feedbackRequest);
         return feedbackMapper.toFeedbackResponse(feedbackRepository.save(feedback));
     }

@@ -305,24 +305,13 @@ public class ExchangeServiceImpl implements ExchangeService {
 
         List<ExchangeRequest> notExchangedExchanges = exchangeRequestRepository.findAllExceedingDateExchanges(threeDaysAgo, StatusExchangeHistory.NOT_YET_EXCHANGE);
         List<ExchangeRequest> pendingEvidenceExchanges = exchangeRequestRepository.findAllExceedingDateExchanges(threeDaysAgo, StatusExchangeHistory.PENDING_EVIDENCE);
+        List<ExchangeRequest> pendingExchanges = exchangeRequestRepository.findAllByStatusExchangeRequestAndExchangeDateAfter(StatusExchangeRequest.PENDING, DateUtils.getCurrentDateTime());
 
-        if (!notExchangedExchanges.isEmpty()) {
-            notExchangedExchanges.forEach(request -> {
-                request.getExchangeHistory().setStatusExchangeHistory(StatusExchangeHistory.FAILED);
+        notExchangedExchangesCronJob(notExchangedExchanges);
 
-                Item sellerItem = request.getSellerItem();
-                Item buyerItem = request.getBuyerItem();
+        pendingEvidenceExchangesCronJob(pendingEvidenceExchanges);
 
-                checkExpiredItemAfterFailedExchange(sellerItem);
-                if (buyerItem != null) {
-                    checkExpiredItemAfterFailedExchange(buyerItem);
-                }
-            });
-            exchangeRequestRepository.saveAll(notExchangedExchanges);
-            log.info("Updated {} not exchanged exchange(s) requests to FAILED.", notExchangedExchanges.size());
-        } else {
-            log.info("No not exchanged exchanges found.");
-        }
+        pendingExchangeRequestsCronJob(pendingExchanges);
 
         if (!pendingEvidenceExchanges.isEmpty()) {
             pendingEvidenceExchanges.forEach(request -> request.getExchangeHistory()
@@ -370,6 +359,47 @@ public class ExchangeServiceImpl implements ExchangeService {
         }
         if (exchangeRequestRequest.getSellerItemId().equals(exchangeRequestRequest.getBuyerItemId())) {
             throw new ReasApiException(HttpStatus.BAD_REQUEST, "error.duplicateSellerAndBuyerItem");
+        }
+    }
+
+    private void pendingExchangeRequestsCronJob(List<ExchangeRequest> pendingExchanges) {
+        if (!pendingExchanges.isEmpty()) {
+            pendingExchanges.forEach(request -> request.setStatusExchangeRequest(StatusExchangeRequest.PENDING));
+            exchangeRequestRepository.saveAll(pendingExchanges);
+            log.info("Updated {} pending exchange request(s) to CANCELLED.", pendingExchanges.size());
+        } else {
+            log.info("No pending exchanges found.");
+        }
+    }
+
+    private void pendingEvidenceExchangesCronJob(List<ExchangeRequest> pendingEvidenceExchanges) {
+        if (!pendingEvidenceExchanges.isEmpty()) {
+            pendingEvidenceExchanges.forEach(request -> request.getExchangeHistory()
+                    .setStatusExchangeHistory(StatusExchangeHistory.SUCCESSFUL));
+            exchangeRequestRepository.saveAll(pendingEvidenceExchanges);
+            log.info("Updated {} pending evidence exchange request(s) to SUCCESSFUL.", pendingEvidenceExchanges.size());
+        } else {
+            log.info("No pending evidence exchanges found.");
+        }
+    }
+
+    private void notExchangedExchangesCronJob(List<ExchangeRequest> notExchangedExchanges) {
+        if (!notExchangedExchanges.isEmpty()) {
+            notExchangedExchanges.forEach(request -> {
+                request.getExchangeHistory().setStatusExchangeHistory(StatusExchangeHistory.FAILED);
+
+                Item sellerItem = request.getSellerItem();
+                Item buyerItem = request.getBuyerItem();
+
+                checkExpiredItemAfterFailedExchange(sellerItem);
+                if (buyerItem != null) {
+                    checkExpiredItemAfterFailedExchange(buyerItem);
+                }
+            });
+            exchangeRequestRepository.saveAll(notExchangedExchanges);
+            log.info("Updated {} not exchanged exchange request(s) to FAILED.", notExchangedExchanges.size());
+        } else {
+            log.info("No not exchanged exchanges found.");
         }
     }
 
