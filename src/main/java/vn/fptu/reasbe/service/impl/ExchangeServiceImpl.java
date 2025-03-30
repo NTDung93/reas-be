@@ -19,6 +19,7 @@ import vn.fptu.reasbe.model.entity.User;
 import vn.fptu.reasbe.model.enums.exchange.StatusExchangeHistory;
 import vn.fptu.reasbe.model.enums.exchange.StatusExchangeRequest;
 import vn.fptu.reasbe.model.enums.item.StatusItem;
+import vn.fptu.reasbe.model.enums.user.RoleName;
 import vn.fptu.reasbe.model.exception.ReasApiException;
 import vn.fptu.reasbe.model.exception.ResourceNotFoundException;
 import vn.fptu.reasbe.repository.ExchangeHistoryRepository;
@@ -70,6 +71,20 @@ public class ExchangeServiceImpl implements ExchangeService {
             return BaseSearchPaginationResponse.of(exchangeRequestRepository.findByExchangeRequestStatusAndUser(statusRequest, user, pageable)
                     .map(exchangeMapper::toExchangeResponse));
         }
+    }
+
+    @Override
+    public BaseSearchPaginationResponse<ExchangeResponse> getAllExchangeHistoryOfUser(int pageNo, int pageSize, String sortBy, String sortDir, Integer userId) {
+        User resident = userService.getUserById(userId);
+
+        if (!resident.getRole().getName().equals(RoleName.ROLE_RESIDENT)) {
+            throw new ReasApiException(HttpStatus.BAD_REQUEST, "error.userNotResident");
+        }
+
+        Pageable pageable = getPageable(pageNo, pageSize, sortBy, sortDir);
+
+        return BaseSearchPaginationResponse.of(exchangeRequestRepository.findByExchangeRequestStatusAndUser(StatusExchangeRequest.APPROVED, resident, pageable)
+                .map(exchangeMapper::toExchangeResponse));
     }
 
     @Override
