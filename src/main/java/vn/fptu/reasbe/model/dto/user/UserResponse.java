@@ -12,6 +12,7 @@ import lombok.Setter;
 import vn.fptu.reasbe.model.enums.user.Gender;
 import vn.fptu.reasbe.model.enums.user.RoleName;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Getter
@@ -32,5 +33,6 @@ public class UserResponse {
     StatusEntity statusEntity;
     String image;
     RoleName roleName;
+    LocalDateTime creationDate;
     List<UserLocationDto> userLocations;
 }

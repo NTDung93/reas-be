@@ -10,6 +10,8 @@ import vn.fptu.reasbe.model.dto.exchange.ExchangeHistoryResponse;
 import vn.fptu.reasbe.model.dto.item.ItemResponse;
 import vn.fptu.reasbe.model.dto.user.UserResponse;
 
+import java.time.LocalDateTime;
+
 @Getter
 @Setter
 @NoArgsConstructor
@@ -30,6 +32,8 @@ public class FeedbackResponse {
     String comment;
 
     String imageUrl;
+
+    LocalDateTime creationDate;
 
     boolean isUpdated;
 }
