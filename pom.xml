@@ -27,8 +27,8 @@
         <lombok.version>1.18.30</lombok.version>
         <log4j.version>1.2.17</log4j.version>
         <common-lang.version>3.14.0</common-lang.version>
-        <pgvector.version>1.0.0-M6</pgvector.version>
-        <spring-ai-openai.version>1.0.0-M6</spring-ai-openai.version>
+        <pgvector.version>1.0.0-M5</pgvector.version>
+        <spring-ai-openai.version>1.0.0-M5</spring-ai-openai.version>
     </properties>
     <dependencies>
         <!-- Spring Boot Dependencies -->

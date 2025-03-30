@@ -16,13 +16,13 @@ public class AppConstants {
     // auth
     public static final String AUTH_ATTR_NAME = "Authorization";
     public static final String AUTH_VALUE_PREFIX = "Bearer ";
-    public static final String SEC_REQ_NAME = "Bear Authentication";
     public static final String ROLE_RESIDENT = "ROLE_RESIDENT";
     public static final String ROLE_ADMIN = "ROLE_ADMIN";
     public static final String ROLE_STAFF = "ROLE_STAFF";
 
     //item
     public static final int EXPIRED_TIME_WEEKS = 2;
+    public static final String LIST_RECOMMENDED_LIMIT = "5";
 
     //exchange
     public static final int NUM_OF_OFFER = 3;

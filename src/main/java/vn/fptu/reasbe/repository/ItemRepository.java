@@ -15,6 +15,7 @@ import java.util.List;
 /**
  * @author ntig
  */
+
 public interface ItemRepository extends JpaRepository<Item, Integer>, QuerydslPredicateExecutor<Item>, ItemRepositoryCustom {
     Page<Item> findAllByStatusItem(StatusItem statusItem, Pageable pageable);
 
@@ -22,5 +23,5 @@ public interface ItemRepository extends JpaRepository<Item, Integer>, QuerydslPr
 
     List<Item> findAllByExpiredTimeBeforeAndStatusItem(LocalDateTime currDateTime, StatusItem statusItem);
 
-
+    List<Item> findAllByStatusItem(StatusItem statusItem);
 }

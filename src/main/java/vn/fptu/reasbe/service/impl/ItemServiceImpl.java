@@ -1,6 +1,7 @@
 package vn.fptu.reasbe.service.impl;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.ai.document.Document;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -33,14 +34,22 @@ import vn.fptu.reasbe.service.BrandService;
 import vn.fptu.reasbe.service.CategoryService;
 import vn.fptu.reasbe.service.ItemService;
 import vn.fptu.reasbe.service.UserService;
+import vn.fptu.reasbe.service.VectorStoreService;
 import vn.fptu.reasbe.utils.common.DateUtils;
 import vn.fptu.reasbe.utils.mapper.DesiredItemMapper;
 import vn.fptu.reasbe.utils.mapper.ItemMapper;
 
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import static vn.fptu.reasbe.model.dto.core.BaseSearchPaginationResponse.getPageable;
+
 /**
  * @author ntig
  */
@@ -53,6 +62,7 @@ public class ItemServiceImpl implements ItemService {
     private final BrandService brandService;
     private final UserService userService;
     private final AuthService authService;
+    private final VectorStoreService vectorStoreService;
     private final ItemRepository itemRepository;
     private final DesiredItemRepository desiredItemRepository;
     private final ItemMapper itemMapper;
@@ -149,6 +159,7 @@ public class ItemServiceImpl implements ItemService {
                 existedItem.setDesiredItem(desiredItemRepository.save(newDesiredItem));
             }
         }
+        vectorStoreService.deleteItem(List.of(existedItem));
 
         return itemMapper.toItemResponse(itemRepository.save(existedItem));
     }
@@ -171,11 +182,56 @@ public class ItemServiceImpl implements ItemService {
             pendingItem.setStatusItem(StatusItem.AVAILABLE);
             pendingItem.setApprovedTime(DateUtils.getCurrentDateTime().toLocalDate().atStartOfDay());
             pendingItem.setExpiredTime(pendingItem.getApprovedTime().plusWeeks(AppConstants.EXPIRED_TIME_WEEKS));
+
+            vectorStoreService.addNewItem(List.of(pendingItem));
+
         } else if (status.equals(StatusItem.REJECTED)) {
             pendingItem.setStatusItem(StatusItem.REJECTED);
         }
 
         return itemMapper.toItemResponse(itemRepository.save(pendingItem));
+    }
+
+    @Override
+    public List<ItemResponse> getRecommendedItems(Integer itemId, int limit) {
+        User curr = authService.getCurrentUser();
+
+        Item item = getItemById(itemId);
+
+        if (!item.getOwner().equals(curr)) {
+            throw new ReasApiException(HttpStatus.BAD_REQUEST, "error.invalidOwner");
+        }
+
+        DesiredItem desiredItem = item.getDesiredItem();
+
+        if (desiredItem == null) {
+            throw new ReasApiException(HttpStatus.BAD_REQUEST, "error.desiredItemEmpty");
+        }
+
+        String filter = buildFilterForRecommendedItem(desiredItem);
+
+        List<Document> documents = vectorStoreService.searchSimilarItems(desiredItem.getDescription(), filter, limit);
+
+        return mapToItemResponses(documents);
+    }
+
+    @Override
+    public List<ItemResponse> getRecommendedItemsInExchange(Integer itemId, int limit) {
+        User currBuyer = authService.getCurrentUser();
+
+        Item sellerItem = getItemById(itemId);
+
+        DesiredItem desiredItem = sellerItem.getDesiredItem();
+
+        if (desiredItem == null) {
+            throw new ReasApiException(HttpStatus.BAD_REQUEST, "error.desiredItemEmpty");
+        }
+
+        String filter = buildFilterForRecommendedItemInExchange(desiredItem, currBuyer.getId());
+
+        List<Document> documents = vectorStoreService.searchSimilarItems(desiredItem.getDescription(), filter, limit);
+
+        return mapToItemResponses(documents);
     }
 
     @Scheduled(cron = "0 0 0 * * *", zone = "Asia/Ho_Chi_Minh")
@@ -199,5 +255,60 @@ public class ItemServiceImpl implements ItemService {
         if (dto.getMinPrice().compareTo(dto.getMaxPrice()) > 0) {
             throw new ReasApiException(HttpStatus.BAD_REQUEST, "error.minPriceGreaterThanMaxPrice");
         }
+    }
+
+    private List<ItemResponse> mapToItemResponses(List<Document> documents) {
+        if (documents == null || documents.isEmpty()) {
+            return new ArrayList<>();
+        }
+
+        // Dùng Set để loại bỏ ID trùng lặp
+        Set<Integer> itemIds = documents.stream()
+                .map(doc -> Integer.valueOf(doc.getMetadata().get("itemId").toString()))
+                .collect(Collectors.toCollection(LinkedHashSet::new)); // Bảo toàn thứ tự
+
+        // Lấy tất cả items từ DB
+        Map<Integer, ItemResponse> itemResponseMap = itemRepository.findAllById(itemIds).stream()
+                .collect(Collectors.toMap(Item::getId, itemMapper::toItemResponse, (a, b) -> a, LinkedHashMap::new));
+
+        // Đảm bảo trả về theo đúng thứ tự itemIds ban đầu
+        return itemIds.stream()
+                .map(itemResponseMap::get)
+                .filter(Objects::nonNull)
+                .toList();
+    }
+
+
+
+    private String buildFilterForRecommendedItemInExchange(DesiredItem desiredItem, Integer buyerId) {
+        StringBuilder filter = new StringBuilder("ownerId == " + buyerId);
+
+        return getCommonItemFilter(desiredItem, filter);
+    }
+
+    private String buildFilterForRecommendedItem(DesiredItem desiredItem) {
+        StringBuilder filter = new StringBuilder("ownerId != " + desiredItem.getItem().getOwner().getId());
+
+        return getCommonItemFilter(desiredItem, filter);
+    }
+
+    private String getCommonItemFilter(DesiredItem desiredItem, StringBuilder filter) {
+        if (desiredItem.getBrand() != null) {
+            filter.append(" && brandName == '").append(desiredItem.getBrand().getBrandName()).append("'");
+        }
+        if (desiredItem.getCategory() != null) {
+            filter.append(" && categoryName == '").append(desiredItem.getCategory().getCategoryName()).append("'");
+        }
+        if (desiredItem.getConditionItem() != null) {
+            filter.append(" && conditionItem == ").append(desiredItem.getConditionItem().getCode());
+        }
+        if (desiredItem.getMinPrice() != null) {
+            filter.append(" && price >= ").append(desiredItem.getMinPrice());
+        }
+        if (desiredItem.getMaxPrice() != null) {
+            filter.append(" && price <= ").append(desiredItem.getMaxPrice());
+        }
+
+        return filter.toString();
     }
 }

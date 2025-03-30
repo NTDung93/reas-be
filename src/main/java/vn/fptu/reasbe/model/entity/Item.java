@@ -38,7 +38,7 @@ public class Item extends AbstractAuditableEntity {
     private String itemName;
 
     @NotNull
-    @Column(name = "DESCRIPTION")
+    @Column(name = "DESCRIPTION", length = Length.LOB_DEFAULT)
     private String description;
 
     @NotNull
@@ -78,9 +78,6 @@ public class Item extends AbstractAuditableEntity {
 
     @Column(name = "APPROVED_TIME")
     private LocalDateTime approvedTime;
-
-//    @Column(name = "EMBEDDING", columnDefinition = "vector(1536)")
-//    private float[] embedding;
 
     @ManyToOne
     @JoinColumn(name = "CATEGORY_ID")

@@ -20,11 +20,13 @@ public class DesiredItemResponse {
 
     String categoryName;
 
-    ConditionItem conditionItem;
-
     String brandName;
+
+    ConditionItem conditionItem;
 
     BigDecimal minPrice;
 
     BigDecimal maxPrice;
+
+    String description;
 }

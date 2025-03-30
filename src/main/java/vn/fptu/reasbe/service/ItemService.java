@@ -10,6 +10,8 @@ import vn.fptu.reasbe.model.dto.item.UploadItemRequest;
 import vn.fptu.reasbe.model.entity.Item;
 import vn.fptu.reasbe.model.enums.item.StatusItem;
 
+import java.util.List;
+
 /**
  * @author ntig
  */
@@ -29,4 +31,8 @@ public interface ItemService {
     BaseSearchPaginationResponse<ItemResponse> getAllPendingItem(int pageNo, int pageSize, String sortBy, String sortDir);
 
     ItemResponse reviewItem(Integer id, StatusItem status);
+
+    List<ItemResponse> getRecommendedItems(Integer itemId, int limit);
+
+    List<ItemResponse> getRecommendedItemsInExchange(Integer itemId, int limit);
 }

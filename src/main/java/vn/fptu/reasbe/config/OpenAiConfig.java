@@ -24,8 +24,8 @@ public class OpenAiConfig {
         return new OpenAiEmbeddingModel(aiApi,
                 MetadataMode.EMBED,
                 OpenAiEmbeddingOptions.builder()
-                .model(OPEN_AI_MODEL)
-                .build(),
+                        .model(OPEN_AI_MODEL)
+                        .build(),
                 RetryUtils.DEFAULT_RETRY_TEMPLATE);
     }
 }

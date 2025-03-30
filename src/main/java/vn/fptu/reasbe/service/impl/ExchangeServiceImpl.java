@@ -47,6 +47,7 @@ public class ExchangeServiceImpl implements ExchangeService {
     private final ItemService itemService;
     private final UserService userService;
     private final AuthService authService;
+    private final VectorStoreService vectorStoreService;
     private final ExchangeRequestRepository exchangeRequestRepository;
     private final ExchangeHistoryRepository exchangeHistoryRepository;
     private final ExchangeRequestMapper exchangeMapper;
@@ -197,12 +198,12 @@ public class ExchangeServiceImpl implements ExchangeService {
             }
             request.getSellerItem().setStatusItem(StatusItem.UNAVAILABLE);
 
-//            List<Item> deletedItemsFromVectorStore = new ArrayList<>();
-//            deletedItemsFromVectorStore.add(request.getSellerItem());
+            List<Item> deletedItemsFromVectorStore = new ArrayList<>();
+            deletedItemsFromVectorStore.add(request.getSellerItem());
 
             if (request.getBuyerItem() != null) {
                 request.getBuyerItem().setStatusItem(StatusItem.UNAVAILABLE);
-//                deletedItemsFromVectorStore.add(request.getBuyerItem());
+                deletedItemsFromVectorStore.add(request.getBuyerItem());
             }
 
             ExchangeHistory exchangeHistory = new ExchangeHistory();
@@ -212,7 +213,7 @@ public class ExchangeServiceImpl implements ExchangeService {
 
             cancelOtherExchangeRequests(request.getSellerItem(), request.getBuyerItem());
 
-//            vectorStoreService.deleteItem(deletedItemsFromVectorStore);
+            vectorStoreService.deleteItem(deletedItemsFromVectorStore);
 
             request.setExchangeHistory(exchangeHistoryRepository.save(exchangeHistory));
         } else {
@@ -313,14 +314,6 @@ public class ExchangeServiceImpl implements ExchangeService {
 
         pendingExchangeRequestsCronJob(pendingExchanges);
 
-        if (!pendingEvidenceExchanges.isEmpty()) {
-            pendingEvidenceExchanges.forEach(request -> request.getExchangeHistory()
-                    .setStatusExchangeHistory(StatusExchangeHistory.SUCCESSFUL));
-            exchangeRequestRepository.saveAll(pendingEvidenceExchanges);
-            log.info("Updated {} pending evidence exchange(s) requests to SUCCESSFUL.", pendingEvidenceExchanges.size());
-        } else {
-            log.info("No pending evidence exchanges found.");
-        }
         //TODO: add push notification for resident
     }
 
@@ -342,6 +335,14 @@ public class ExchangeServiceImpl implements ExchangeService {
         request.getExchangeHistory().setStatusExchangeHistory(StatusExchangeHistory.FAILED);
         request.getSellerItem().setStatusItem(StatusItem.AVAILABLE);
         request.getBuyerItem().setStatusItem(StatusItem.AVAILABLE);
+
+        List<Item> items = new ArrayList<>();
+        items.add(request.getSellerItem());
+        if (request.getBuyerItem() != null) {
+            items.add(request.getBuyerItem());
+        }
+        vectorStoreService.addNewItem(items);
+
         //TODO: add push notification for resident
 
         return exchangeRequestRepository.save(request);
@@ -409,6 +410,7 @@ public class ExchangeServiceImpl implements ExchangeService {
             log.info("Item {} expired. Change status to EXPIRED.", item.getId());
         } else {
             item.setStatusItem(StatusItem.AVAILABLE);
+            vectorStoreService.addNewItem(List.of(item));
         }
     }
 

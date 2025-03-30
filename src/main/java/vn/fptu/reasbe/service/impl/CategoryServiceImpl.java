@@ -20,8 +20,12 @@ public class CategoryServiceImpl implements CategoryService {
 
     @Override
     public Category getCategoryById(Integer id) {
-        return categoryRepository.getCategoryById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Category", "id", id));
+        if (id != null) {
+            return categoryRepository.getCategoryById(id)
+                    .orElseThrow(() -> new ResourceNotFoundException("Category", "id", id));
+        } else {
+            return null;
+        }
     }
 
     @Override

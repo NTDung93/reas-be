@@ -1,7 +1,7 @@
 services:
   # PgVector
   postgres:
-    image: ankane/pgvector
+    image: pgvector/pgvector:pg16
     container_name: postgres
     restart: always
     ports:
@@ -10,11 +10,9 @@ services:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: 12345678
       POSTGRES_DB: reas
-      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/reas
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./src/main/resources/sql/init.sql:/docker-entrypoint-initdb.d/init.sql
-#    command: [ "postgres", "-c", "shared_preload_libraries=vector" ]
     networks:
       - reas_network
 

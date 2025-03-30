@@ -1,6 +1,5 @@
 package vn.fptu.reasbe.controller;
 
-import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.lang.Nullable;
@@ -14,6 +13,8 @@ import vn.fptu.reasbe.model.dto.item.*;
 import vn.fptu.reasbe.model.enums.item.StatusItem;
 import vn.fptu.reasbe.service.ItemService;
 import vn.fptu.reasbe.utils.mapper.ItemMapper;
+
+import java.util.List;
 
 /**
  * @author ntig
@@ -66,21 +67,18 @@ public class ItemController {
         return ResponseEntity.ok(itemMapper.toItemResponse(itemService.getItemById(id)));
     }
 
-    @SecurityRequirement(name = AppConstants.SEC_REQ_NAME)
     @PreAuthorize("hasRole(T(vn.fptu.reasbe.model.constant.AppConstants).ROLE_RESIDENT)")
     @PostMapping()
     public ResponseEntity<ItemResponse> uploadItem(@Valid @RequestBody UploadItemRequest request) {
         return ResponseEntity.ok(itemMapper.toItemResponse(itemService.uploadItem(request)));
     }
 
-    @SecurityRequirement(name = AppConstants.SEC_REQ_NAME)
     @PreAuthorize("hasRole(T(vn.fptu.reasbe.model.constant.AppConstants).ROLE_RESIDENT)")
     @PutMapping()
     public ResponseEntity<ItemResponse> updateItem(@Valid @RequestBody UpdateItemRequest request) {
         return ResponseEntity.ok(itemService.updateItem(request));
     }
 
-    @SecurityRequirement(name = AppConstants.SEC_REQ_NAME)
     @PreAuthorize("hasRole(T(vn.fptu.reasbe.model.constant.AppConstants).ROLE_STAFF)")
     @GetMapping("/pending")
     public ResponseEntity<BaseSearchPaginationResponse<ItemResponse>> getAllPendingItem(
@@ -92,10 +90,27 @@ public class ItemController {
         return ResponseEntity.ok(itemService.getAllPendingItem(pageNo, pageSize, sortBy, sortDir));
     }
 
-    @SecurityRequirement(name = AppConstants.SEC_REQ_NAME)
     @PreAuthorize("hasRole(T(vn.fptu.reasbe.model.constant.AppConstants).ROLE_STAFF)")
     @PutMapping("/review")
     public ResponseEntity<ItemResponse> reviewItem(@RequestParam("id") Integer id, @RequestParam("statusItem") StatusItem statusItem) {
         return ResponseEntity.ok(itemService.reviewItem(id, statusItem));
+    }
+
+    @PreAuthorize("hasRole(T(vn.fptu.reasbe.model.constant.AppConstants).ROLE_RESIDENT)")
+    @GetMapping("/recommend")
+    public ResponseEntity<List<ItemResponse>> getRecommendedItems(
+            @RequestParam(name = "id") Integer id,
+            @RequestParam(name = "limit", defaultValue = AppConstants.LIST_RECOMMENDED_LIMIT, required = false) int limit
+    ) {
+        return ResponseEntity.ok(itemService.getRecommendedItems(id, limit));
+    }
+
+    @PreAuthorize("hasRole(T(vn.fptu.reasbe.model.constant.AppConstants).ROLE_RESIDENT)")
+    @GetMapping("/exchange/recommend")
+    public ResponseEntity<List<ItemResponse>> getRecommendedItemsInExchange(
+            @RequestParam(name = "sellerItemId") Integer sellerItemId,
+            @RequestParam(name = "limit", defaultValue = AppConstants.LIST_RECOMMENDED_LIMIT, required = false) int limit
+    ) {
+        return ResponseEntity.ok(itemService.getRecommendedItemsInExchange(sellerItemId, limit));
     }
 }
