@@ -2,7 +2,9 @@ package vn.fptu.reasbe.model.entity;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import jakarta.persistence.*;
 import org.hibernate.Length;
@@ -107,4 +109,7 @@ public class Item extends AbstractAuditableEntity {
 
     @OneToOne(mappedBy = "item", cascade = CascadeType.ALL, orphanRemoval = true)
     private Feedback feedback;
+
+    @OneToMany(mappedBy = "item", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Set<Favorite> favorites = new HashSet<>();
 }
