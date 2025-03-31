@@ -100,7 +100,7 @@ public class ItemController {
     @GetMapping("/recommend")
     public ResponseEntity<List<ItemResponse>> getRecommendedItems(
             @RequestParam(name = "id") Integer id,
-            @RequestParam(name = "limit", defaultValue = AppConstants.LIST_RECOMMENDED_LIMIT, required = false) int limit
+            @RequestParam(name = "limit", defaultValue = AppConstants.LIST_ITEM_LIMIT, required = false) int limit
     ) {
         return ResponseEntity.ok(itemService.getRecommendedItems(id, limit));
     }
@@ -109,8 +109,25 @@ public class ItemController {
     @GetMapping("/exchange/recommend")
     public ResponseEntity<List<ItemResponse>> getRecommendedItemsInExchange(
             @RequestParam(name = "sellerItemId") Integer sellerItemId,
-            @RequestParam(name = "limit", defaultValue = AppConstants.LIST_RECOMMENDED_LIMIT, required = false) int limit
+            @RequestParam(name = "limit", defaultValue = AppConstants.LIST_ITEM_LIMIT, required = false) int limit
     ) {
         return ResponseEntity.ok(itemService.getRecommendedItemsInExchange(sellerItemId, limit));
+    }
+
+    @GetMapping("/similar")
+    public ResponseEntity<List<ItemResponse>> getSimilarItems(
+            @RequestParam Integer itemId,
+            @RequestParam(name = "limit", defaultValue = AppConstants.LIST_ITEM_LIMIT, required = false) int limit
+    ) {
+        return ResponseEntity.ok(itemService.getSimilarItems(itemId, limit));
+    }
+
+    @GetMapping("/others")
+    public ResponseEntity<List<ItemResponse>> getOtherItemsOfUser(
+            @RequestParam Integer currItemId,
+            @RequestParam Integer userId,
+            @RequestParam(name = "limit", defaultValue = AppConstants.LIST_ITEM_LIMIT, required = false) int limit
+    ) {
+        return ResponseEntity.ok(itemService.getOtherItemsOfUser(currItemId, userId, limit));
     }
 }

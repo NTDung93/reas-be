@@ -234,6 +234,34 @@ public class ItemServiceImpl implements ItemService {
         return mapToItemResponses(documents);
     }
 
+    @Override
+    public List<ItemResponse> getSimilarItems(Integer itemId, int limit) {
+        Item item = getItemById(itemId);
+
+        String itemContent = String.format("Item: %s, Brand: %s, Category: %s, Price: %s, Description: %s, Condition: %s",
+                item.getItemName(),
+                item.getBrand().getBrandName(),
+                item.getCategory().getCategoryName(),
+                item.getPrice().toString(),
+                item.getDescription(),
+                item.getConditionItem().getCode());
+
+        String filter = "itemId != " + item.getId();
+
+        List<Document> documents = vectorStoreService.searchSimilarItems(itemContent, filter, limit);
+
+        return mapToItemResponses(documents);
+    }
+
+    @Override
+    public List<ItemResponse> getOtherItemsOfUser(Integer currItemId, Integer userId, int limit) {
+        Pageable pageable = PageRequest.of(0, limit);
+        return itemRepository.findByStatusItemAndOwnerIdAndIdNotOrderByApprovedTimeDesc(StatusItem.AVAILABLE, userId, currItemId, pageable)
+                .stream()
+                .map(itemMapper::toItemResponse)
+                .toList();
+    }
+
     @Scheduled(cron = "0 0 0 * * *", zone = "Asia/Ho_Chi_Minh")
     public void checkExpiredItems() {
         List<Item> expiredItems = itemRepository.findAllByExpiredTimeBeforeAndStatusItem(DateUtils.getCurrentDateTime(), StatusItem.AVAILABLE);

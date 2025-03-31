@@ -3,10 +3,10 @@ package vn.fptu.reasbe.utils.mapper;
 import org.mapstruct.CollectionMappingStrategy;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
+import org.mapstruct.MappingConstants;
 import org.mapstruct.MappingTarget;
 import org.mapstruct.NullValueCheckStrategy;
 
-import org.springframework.stereotype.Component;
 import vn.fptu.reasbe.model.dto.user.CreateStaffRequest;
 import vn.fptu.reasbe.model.dto.user.UpdateStaffRequest;
 import vn.fptu.reasbe.model.dto.user.UserResponse;
@@ -23,6 +23,7 @@ import java.util.stream.Stream;
  * @author ntig
  */
 @Mapper(
+        componentModel = MappingConstants.ComponentModel.SPRING,
         collectionMappingStrategy = CollectionMappingStrategy.SETTER_PREFERRED,
         nullValueCheckStrategy = NullValueCheckStrategy.ALWAYS,
         uses = {
@@ -30,7 +31,6 @@ import java.util.stream.Stream;
                 UserLocationMapper.class
         }
 )
-@Component
 public interface UserMapper {
     @Mapping(target = "roleName", source = "role.name")
     @Mapping(target = "numOfExchangedItems", expression = "java(mapNumOfExchangedItems(user))")

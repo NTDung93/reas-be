@@ -7,6 +7,8 @@ import java.util.List;
 
 public interface VectorStoreService {
     void addNewItem(List<Item> items);
+
     List<Document> searchSimilarItems(String query, String filter, int limit);
+
     void deleteItem(List<Item> items);
 }

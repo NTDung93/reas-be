@@ -24,4 +24,5 @@ public interface ItemRepository extends JpaRepository<Item, Integer>, QuerydslPr
     List<Item> findAllByExpiredTimeBeforeAndStatusItem(LocalDateTime currDateTime, StatusItem statusItem);
 
     List<Item> findAllByStatusItem(StatusItem statusItem);
-}
+
+    List<Item> findByStatusItemAndOwnerIdAndIdNotOrderByApprovedTimeDesc(StatusItem statusItem, Integer ownerId, Integer itemId, Pageable pageable);}

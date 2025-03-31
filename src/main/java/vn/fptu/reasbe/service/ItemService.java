@@ -35,4 +35,8 @@ public interface ItemService {
     List<ItemResponse> getRecommendedItems(Integer itemId, int limit);
 
     List<ItemResponse> getRecommendedItemsInExchange(Integer itemId, int limit);
+
+    List<ItemResponse> getSimilarItems(Integer itemId, int limit);
+
+    List<ItemResponse> getOtherItemsOfUser(Integer itemId, Integer userId, int limit);
 }

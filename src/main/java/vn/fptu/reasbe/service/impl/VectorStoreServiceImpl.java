@@ -24,6 +24,11 @@ public class VectorStoreServiceImpl implements VectorStoreService {
     @Override
     public void addNewItem(List<Item> items) {
         for (Item item : items) {
+
+            if (existItem(item.getId())) {
+                continue; // Bỏ qua nếu đã tồn tại trong vector database
+            }
+
             Document newItemDocs = new Document(prepareItemContent(item),
                     Map.of("itemId", item.getId(),
                             "itemName", item.getItemName(),
@@ -62,6 +67,21 @@ public class VectorStoreServiceImpl implements VectorStoreService {
             vectorStore.delete(documents);
         }
     }
+
+    private boolean existItem(Integer itemId) {
+        String filter = "itemId == " + itemId;
+
+        List<Document> documents = vectorStore.similaritySearch(
+                SearchRequest.builder()
+                        .query(filter) // Dummy query vì ta dùng filter để tìm
+                        .filterExpression(filter)
+                        .topK(1) // Chỉ cần kiểm tra xem có ít nhất 1 item hay không
+                        .build()
+        );
+
+        return documents != null && !documents.isEmpty();
+    }
+
 
     private List<String> getDocumentIdsByItemId(List<Item> items) {
         StringBuilder filter = new StringBuilder();

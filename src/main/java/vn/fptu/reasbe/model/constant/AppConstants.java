@@ -22,7 +22,7 @@ public class AppConstants {
 
     //item
     public static final int EXPIRED_TIME_WEEKS = 2;
-    public static final String LIST_RECOMMENDED_LIMIT = "5";
+    public static final String LIST_ITEM_LIMIT = "5";
 
     //exchange
     public static final int NUM_OF_OFFER = 3;
