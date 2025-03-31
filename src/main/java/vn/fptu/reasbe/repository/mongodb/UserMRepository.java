@@ -16,4 +16,6 @@ public interface UserMRepository extends MongoRepository<User, String> {
     List<User> findAllByStatusOnline(StatusOnline statusOnline);
 
     Optional<User> findUserByRefIdIs(Integer refId);
+
+    Optional<User> findUserByUserName(String userName);
 }

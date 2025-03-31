@@ -13,10 +13,10 @@ import vn.fptu.reasbe.repository.custom.UserRepositoryCustom;
 public interface UserRepository extends JpaRepository<User, Integer>, QuerydslPredicateExecutor<User>, UserRepositoryCustom {
     Optional<User> findByUserNameOrEmailOrPhone(String email, String userName, String phone);
     List<User> findByRoleName(String name);
-    Boolean existsByUserName(String userName);
-    Boolean existsByUserNameAndIdIsNot(String userName, Integer id);
-    Boolean existsByEmail(String email);
-    Boolean existsByEmailAndIdIsNot(String email, Integer id);
+    Boolean existsByUserNameAndStatusEntityEquals(String userName, StatusEntity status);
+    Boolean existsByUserNameAndStatusEntityEqualsAndIdIsNot(String userName, StatusEntity status, Integer id);
+    Boolean existsByEmailAndStatusEntityEquals(String email, StatusEntity status);
+    Boolean existsByEmailAndStatusEntityEqualsAndIdIsNot(String email, StatusEntity status, Integer id);
     Optional<User> findByUserName(String username);
     List<User> findAllByRoleName(String roleName);
     int countUsersByStatusEntityEqualsAndRoleNameEquals(StatusEntity status, String roleName);

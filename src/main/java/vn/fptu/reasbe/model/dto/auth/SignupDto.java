@@ -1,5 +1,7 @@
 package vn.fptu.reasbe.model.dto.auth;
 
+import java.util.List;
+
 import vn.fptu.reasbe.model.constant.AppConstants;
 
 import jakarta.validation.constraints.Email;
@@ -26,4 +28,6 @@ public class SignupDto {
 
     @NotBlank(message = "FullName cannot be blank")
     private String fullName;
+
+    private List<String> registrationTokens;
 }

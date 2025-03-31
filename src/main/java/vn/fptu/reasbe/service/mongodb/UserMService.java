@@ -13,4 +13,5 @@ public interface UserMService {
     void disconnect(User user);
     List<User> findConnectedUsers();
     User findByRefId(Integer refId);
+    User findByUsername(String username);
 }

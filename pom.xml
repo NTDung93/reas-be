@@ -29,6 +29,8 @@
         <common-lang.version>3.14.0</common-lang.version>
         <pgvector.version>1.0.0-M5</pgvector.version>
         <spring-ai-openai.version>1.0.0-M5</spring-ai-openai.version>
+        <payos.version>1.0.3</payos.version>
+        <firebase-admin.version>9.4.3</firebase-admin.version>
     </properties>
     <dependencies>
         <!-- Spring Boot Dependencies -->
@@ -55,6 +57,10 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-data-mongodb</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.security</groupId>
+            <artifactId>spring-security-messaging</artifactId>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -180,6 +186,20 @@
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-lang3</artifactId>
             <version>${common-lang.version}</version>
+        </dependency>
+
+        <!-- Payment Dependencies -->
+        <dependency>
+            <groupId>vn.payos</groupId>
+            <artifactId>payos-java</artifactId>
+            <version>${payos.version}</version>
+        </dependency>
+
+        <!-- Firebase cloud messaging dependencies-->
+        <dependency>
+            <groupId>com.google.firebase</groupId>
+            <artifactId>firebase-admin</artifactId>
+            <version>${firebase-admin.version}</version>
         </dependency>
     </dependencies>
 

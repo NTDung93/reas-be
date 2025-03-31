@@ -1,6 +1,7 @@
 package vn.fptu.reasbe.model.entity;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 
 import jakarta.persistence.AttributeOverride;
 import jakarta.persistence.Column;
@@ -34,8 +35,20 @@ import vn.fptu.reasbe.model.enums.payment.StatusPayment;
 public class PaymentHistory extends AbstractAuditableEntity {
 
     @NotNull
+    @Column(name = "TRANSACTION_ID")
+    private Long transactionId;
+
+    @NotNull
     @Column(name = "AMOUNT")
     private BigDecimal amount;
+
+    @NotNull
+    @Column(name = "DESCRIPTION")
+    private String description; // noi dung chuyen khoan
+
+    @NotNull
+    @Column(name = "TRANSACTION_DATE_TIME")
+    private LocalDateTime transactionDateTime;
 
     @NotNull
     @Column(name = "STATUS_PAYMENT")

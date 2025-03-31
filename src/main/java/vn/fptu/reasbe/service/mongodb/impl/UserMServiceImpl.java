@@ -24,7 +24,7 @@ public class UserMServiceImpl implements UserMService {
 
     @Override
     public void disconnect(User user) {
-        User storedUser = repository.findById(user.getUserName() ).orElse(null);
+        User storedUser = repository.findById(user.getUserName()).orElse(null);
         if (storedUser != null) {
             storedUser.setStatusOnline(StatusOnline.OFFLINE);
             repository.save(storedUser);
@@ -39,5 +39,10 @@ public class UserMServiceImpl implements UserMService {
     @Override
     public User findByRefId(Integer refId) {
         return repository.findUserByRefIdIs(refId).orElse(null);
+    }
+
+    @Override
+    public User findByUsername(String username) {
+        return repository.findUserByUserName(username).orElse(null);
     }
 }
