@@ -69,6 +69,11 @@ public class NotificationServiceImpl implements NotificationService {
         return batchResponse;
     }
 
+    @Override
+    public List<Notification> findAllByUsername(String username) {
+        return notificationRepository.findByRecipientId(username);
+    }
+
     private void validateNotification(Notification notification) {
         if (notification.getRecipientId() == null || notification.getRecipientId().isEmpty()) {
             throw new IllegalArgumentException("error.notification.required.recipientId");

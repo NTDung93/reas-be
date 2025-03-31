@@ -10,10 +10,12 @@ import org.springframework.stereotype.Service;
 import lombok.RequiredArgsConstructor;
 import vn.fptu.reasbe.model.mongodb.ChatMessage;
 import vn.fptu.reasbe.model.mongodb.Notification;
+import vn.fptu.reasbe.model.mongodb.User;
 import vn.fptu.reasbe.repository.mongodb.ChatMessageRepository;
 import vn.fptu.reasbe.service.mongodb.ChatMessageService;
 import vn.fptu.reasbe.service.mongodb.ChatRoomService;
 import vn.fptu.reasbe.service.mongodb.NotificationService;
+import vn.fptu.reasbe.service.mongodb.UserMService;
 
 @Service
 @RequiredArgsConstructor
@@ -24,17 +26,20 @@ public class ChatMessageServiceImpl implements ChatMessageService {
     private final ChatMessageRepository repository;
     private final ChatRoomService chatRoomService;
     private final NotificationService notificationService;
+    private final UserMService userMService;
     private final SimpMessagingTemplate messagingTemplate;
 
     @Override
     public void processMessage(ChatMessage chatMessage) {
         validateMessage(chatMessage);
         ChatMessage savedMsg = saveMessage(chatMessage);
-        Notification savedNotification = notificationService.createNotification(prepareNotification(savedMsg));
+        User recipient = userMService.findByUsername(chatMessage.getRecipientId());
+        Notification savedNotification = notificationService.createNotification(prepareNotification(savedMsg, recipient));
+        notificationService.sendNotification(savedNotification);
         messagingTemplate.convertAndSendToUser(chatMessage.getRecipientId(), QUEUE_MESSAGES, savedNotification);
     }
 
-    private Notification prepareNotification(ChatMessage savedMsg) {
+    private Notification prepareNotification(ChatMessage savedMsg, User recipient) {
         return Notification.builder()
                 .id(savedMsg.getId())
                 .senderId(savedMsg.getSenderId())
@@ -43,6 +48,7 @@ public class ChatMessageServiceImpl implements ChatMessageService {
                 .timestamp(savedMsg.getTimestamp())
                 .contentType(savedMsg.getContentType())
                 .notificationType("message")
+                .registrationTokens(recipient.getRegistrationTokens())
                 .build();
     }
 

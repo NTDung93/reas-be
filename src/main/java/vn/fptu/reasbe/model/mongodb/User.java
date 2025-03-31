@@ -1,5 +1,7 @@
 package vn.fptu.reasbe.model.mongodb;
 
+import java.util.List;
+
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
@@ -25,4 +27,5 @@ public class User {
     String fullName;
     StatusOnline statusOnline = StatusOnline.OFFLINE;
     Integer refId;
+    List<String> registrationTokens;
 }
