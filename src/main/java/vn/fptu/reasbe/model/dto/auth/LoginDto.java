@@ -1,5 +1,7 @@
 package vn.fptu.reasbe.model.dto.auth;
 
+import java.util.List;
+
 import jakarta.validation.constraints.NotEmpty;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -16,4 +18,11 @@ public class LoginDto {
 
     @NotEmpty(message = "Password cannot be blank")
     private String password;
+
+    private List<String> registrationTokens;
+
+    public LoginDto(String userNameOrEmailOrPhone, String password) {
+        this.userNameOrEmailOrPhone = userNameOrEmailOrPhone;
+        this.password = password;
+    }
 }
