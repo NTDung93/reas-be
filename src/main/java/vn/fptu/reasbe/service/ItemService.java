@@ -22,7 +22,7 @@ public interface ItemService {
 
     Item uploadItem(UploadItemRequest request);
 
-    BaseSearchPaginationResponse<ItemResponse> getAllItemOfUser(int pageNo, int pageSize, String sortBy, String sortDir, Integer userId, StatusItem statusItem);
+    BaseSearchPaginationResponse<ItemResponse> getAllItemOfUserByStatus(int pageNo, int pageSize, String sortBy, String sortDir, Integer userId, StatusItem statusItem);
 
     BaseSearchPaginationResponse<ItemResponse> getAllItemOfCurrentUserByStatusItem(int pageNo, int pageSize, String sortBy, String sortDir, StatusItem statusItem);
 
@@ -39,4 +39,6 @@ public interface ItemService {
     List<ItemResponse> getSimilarItems(Integer itemId, int limit);
 
     List<ItemResponse> getOtherItemsOfUser(Integer itemId, Integer userId, int limit);
+
+    ItemResponse changeItemStatus(Integer itemId, StatusItem status);
 }

@@ -39,7 +39,7 @@ public class ItemController {
     }
 
     @GetMapping("/user")
-    public ResponseEntity<BaseSearchPaginationResponse<ItemResponse>> getAllAvailableItemOfUser(
+    public ResponseEntity<BaseSearchPaginationResponse<ItemResponse>> getAllItemOfUserByStatus(
             @RequestParam(name = "pageNo", defaultValue = AppConstants.DEFAULT_PAGE_NUMBER, required = false) int pageNo,
             @RequestParam(name = "pageSize", defaultValue = AppConstants.DEFAULT_PAGE_SIZE, required = false) int pageSize,
             @RequestParam(name = "sortBy", defaultValue = AppConstants.DEFAULT_SORT_BY, required = false) String sortBy,
@@ -47,7 +47,7 @@ public class ItemController {
             @RequestParam(value = "userId") Integer userId,
             @RequestParam(value = "statusItem") StatusItem statusItem)
     {
-        return ResponseEntity.ok(itemService.getAllItemOfUser(pageNo, pageSize, sortBy, sortDir, userId, statusItem));
+        return ResponseEntity.ok(itemService.getAllItemOfUserByStatus(pageNo, pageSize, sortBy, sortDir, userId, statusItem));
     }
 
     @GetMapping("/current-user")
@@ -129,5 +129,11 @@ public class ItemController {
             @RequestParam(name = "limit", defaultValue = AppConstants.LIST_ITEM_LIMIT, required = false) int limit
     ) {
         return ResponseEntity.ok(itemService.getOtherItemsOfUser(currItemId, userId, limit));
+    }
+
+    @PreAuthorize("hasRole(T(vn.fptu.reasbe.model.constant.AppConstants).ROLE_RESIDENT)")
+    @PutMapping("/status")
+    public ResponseEntity<ItemResponse> changeItemStatus(@RequestParam Integer itemId, @RequestParam StatusItem statusItem) {
+        return ResponseEntity.ok(itemService.changeItemStatus(itemId, statusItem));
     }
 }

@@ -44,7 +44,8 @@ public class ExchangeController {
     }
 
     @GetMapping("/history")
-    @PreAuthorize("hasRole(T(vn.fptu.reasbe.model.constant.AppConstants).ROLE_STAFF) or hasRole(T(vn.fptu.reasbe.model.constant.AppConstants).ROLE_ADMIN)")
+    @PreAuthorize("hasRole(T(vn.fptu.reasbe.model.constant.AppConstants).ROLE_STAFF) or " +
+            "hasRole(T(vn.fptu.reasbe.model.constant.AppConstants).ROLE_ADMIN)")
     public ResponseEntity<BaseSearchPaginationResponse<ExchangeResponse>> getAllExchangeHistoryOfUser(
             @RequestParam(name = "pageNo", defaultValue = AppConstants.DEFAULT_PAGE_NUMBER, required = false) int pageNo,
             @RequestParam(name = "pageSize", defaultValue = AppConstants.DEFAULT_PAGE_SIZE, required = false) int pageSize,
@@ -56,7 +57,9 @@ public class ExchangeController {
     }
 
     @GetMapping("/{exchangeId}")
-    @PreAuthorize("hasRole(T(vn.fptu.reasbe.model.constant.AppConstants).ROLE_RESIDENT)")
+    @PreAuthorize("hasRole(T(vn.fptu.reasbe.model.constant.AppConstants).ROLE_RESIDENT) or " +
+            "hasRole(T(vn.fptu.reasbe.model.constant.AppConstants).ROLE_STAFF) or " +
+            "hasRole(T(vn.fptu.reasbe.model.constant.AppConstants).ROLE_ADMIN)")
     public ResponseEntity<ExchangeResponse> getExchangeDetail(@PathVariable Integer exchangeId) {
         return ResponseEntity.ok(exchangeService.getExchangeById(exchangeId));
     }

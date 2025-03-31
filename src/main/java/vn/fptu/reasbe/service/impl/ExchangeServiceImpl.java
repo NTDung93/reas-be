@@ -92,12 +92,14 @@ public class ExchangeServiceImpl implements ExchangeService {
         User user = authService.getCurrentUser();
         ExchangeRequest request = getExchangeRequestById(id);
 
-        boolean isSeller = request.getSellerItem().getOwner().equals(user);
-        boolean isBuyer = request.getBuyerItem() != null && request.getBuyerItem().getOwner().equals(user);
-        boolean isPayer = request.getPaidBy().equals(user);
+        if (user.getRole().getName().equals(RoleName.ROLE_RESIDENT)) {
+            boolean isSeller = request.getSellerItem().getOwner().equals(user);
+            boolean isBuyer = request.getBuyerItem() != null && request.getBuyerItem().getOwner().equals(user);
+            boolean isPayer = request.getPaidBy().equals(user);
 
-        if (!(isSeller || isBuyer || isPayer)) {
-            throw new ReasApiException(HttpStatus.BAD_REQUEST, "error.userNotAllowed");
+            if (!(isSeller || isBuyer || isPayer)) {
+                throw new ReasApiException(HttpStatus.BAD_REQUEST, "error.userNotAllowed");
+            }
         }
 
         return exchangeMapper.toExchangeResponse(request);
@@ -306,6 +308,10 @@ public class ExchangeServiceImpl implements ExchangeService {
         if (Boolean.TRUE.equals(exchangeHistory.getBuyerConfirmation()) &&
                 Boolean.TRUE.equals(exchangeHistory.getSellerConfirmation())) {
             exchangeHistory.setStatusExchangeHistory(StatusExchangeHistory.SUCCESSFUL);
+            exchangeHistory.getExchangeRequest().getSellerItem().setStatusItem(StatusItem.SOLD);
+            if (exchangeHistory.getExchangeRequest().getBuyerItem() != null) {
+                exchangeHistory.getExchangeRequest().getBuyerItem().setStatusItem(StatusItem.SOLD);
+            }
         } else {
             exchangeHistory.setStatusExchangeHistory(StatusExchangeHistory.PENDING_EVIDENCE);
         }
@@ -390,8 +396,13 @@ public class ExchangeServiceImpl implements ExchangeService {
 
     private void pendingEvidenceExchangesCronJob(List<ExchangeRequest> pendingEvidenceExchanges) {
         if (!pendingEvidenceExchanges.isEmpty()) {
-            pendingEvidenceExchanges.forEach(request -> request.getExchangeHistory()
-                    .setStatusExchangeHistory(StatusExchangeHistory.SUCCESSFUL));
+            pendingEvidenceExchanges.forEach(request -> {
+                request.getExchangeHistory().setStatusExchangeHistory(StatusExchangeHistory.SUCCESSFUL);
+                request.getSellerItem().setStatusItem(StatusItem.SOLD);
+                if (request.getBuyerItem() != null) {
+                    request.getBuyerItem().setStatusItem(StatusItem.SOLD);
+                }
+            });
             exchangeRequestRepository.saveAll(pendingEvidenceExchanges);
             log.info("Updated {} pending evidence exchange request(s) to SUCCESSFUL.", pendingEvidenceExchanges.size());
         } else {

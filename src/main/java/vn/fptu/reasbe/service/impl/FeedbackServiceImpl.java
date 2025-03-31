@@ -38,10 +38,21 @@ public class FeedbackServiceImpl implements FeedbackService {
     private final FeedbackMapper feedbackMapper;
 
     @Override
-    public BaseSearchPaginationResponse<FeedbackResponse> getAllFeedbackOfUser(int pageNo, int pageSize, String sortBy, String sortDir, Integer userId) {
+    public BaseSearchPaginationResponse<FeedbackResponse> getAllFeedbackOfUser(int pageNo, int pageSize, String sortBy, String sortDir, Integer userId, Integer rating) {
         User user = userService.getUserById(userId);
 
-        Page<Feedback> feedbacks = feedbackRepository.getAllByItemOwner(user, getPageable(pageNo, pageSize, sortBy, sortDir));
+        Page<Feedback> feedbacks;
+
+        if (rating != null) {
+            if (rating < 1 || rating > 5) {
+                throw new ReasApiException(HttpStatus.BAD_REQUEST, "error.invalidRating");
+            } else {
+                feedbacks = feedbackRepository.getAllByItemOwnerAndRating(user, rating, getPageable(pageNo, pageSize, sortBy, sortDir));
+            }
+        } else {
+            feedbacks = feedbackRepository.getAllByItemOwner(user, getPageable(pageNo, pageSize, sortBy, sortDir));
+
+        }
 
         return BaseSearchPaginationResponse.of(feedbacks.map(feedbackMapper::toFeedbackResponse));
     }

@@ -74,8 +74,8 @@ public class ItemServiceImpl implements ItemService {
     }
 
     @Override
-    public BaseSearchPaginationResponse<ItemResponse> getAllItemOfUser(int pageNo, int pageSize, String sortBy, String sortDir, Integer userId, StatusItem statusItem) {
-        if (statusItem.equals(StatusItem.AVAILABLE) || statusItem.equals(StatusItem.NO_LONGER_FOR_EXCHANGE)) {
+    public BaseSearchPaginationResponse<ItemResponse> getAllItemOfUserByStatus(int pageNo, int pageSize, String sortBy, String sortDir, Integer userId, StatusItem statusItem) {
+        if (statusItem.equals(StatusItem.AVAILABLE) || statusItem.equals(StatusItem.SOLD)) {
             return BaseSearchPaginationResponse.of(getAllItemByUserIdAndStatusItem(userId, statusItem, getPageable(pageNo, pageSize, sortBy, sortDir)).map(itemMapper::toItemResponse));
         } else {
             throw new ReasApiException(HttpStatus.BAD_REQUEST, "error.invalidStatusItem");
@@ -262,6 +262,21 @@ public class ItemServiceImpl implements ItemService {
                 .toList();
     }
 
+    @Override
+    public ItemResponse changeItemStatus(Integer itemId, StatusItem status) {
+        User user = authService.getCurrentUser();
+
+        Item item = getItemById(itemId);
+
+        if (!item.getOwner().equals(user)) {
+            throw new ReasApiException(HttpStatus.BAD_REQUEST, "error.invalidOwner");
+        }
+
+        item.setStatusItem(status);
+
+        return itemMapper.toItemResponse(itemRepository.save(item));
+    }
+
     @Scheduled(cron = "0 0 0 * * *", zone = "Asia/Ho_Chi_Minh")
     public void checkExpiredItems() {
         List<Item> expiredItems = itemRepository.findAllByExpiredTimeBeforeAndStatusItem(DateUtils.getCurrentDateTime(), StatusItem.AVAILABLE);
@@ -305,8 +320,6 @@ public class ItemServiceImpl implements ItemService {
                 .filter(Objects::nonNull)
                 .toList();
     }
-
-
 
     private String buildFilterForRecommendedItemInExchange(DesiredItem desiredItem, Integer buyerId) {
         StringBuilder filter = new StringBuilder("ownerId == " + buyerId);
