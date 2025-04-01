@@ -139,7 +139,6 @@ public class ExchangeRequestRepositoryCustomImpl extends AbstractRepositoryCusto
                     .or(exchangeRequest.buyerItem.eq(buyerItem));
         }
 
-
         builder.and(exchangeRequest.statusExchangeRequest.eq(status))
                 .and(filter);
 

@@ -23,7 +23,6 @@ import java.util.List;
 import static vn.fptu.reasbe.model.dto.core.BaseSearchPaginationResponse.getPageable;
 
 @Service
-
 @RequiredArgsConstructor
 public class FavoriteServiceImpl implements FavoriteService {
 
@@ -70,7 +69,7 @@ public class FavoriteServiceImpl implements FavoriteService {
         Favorite favorite = favoriteRepository.findByItemId(itemId)
                 .orElseThrow(() -> new ReasApiException(HttpStatus.BAD_REQUEST, "error.itemNotExistsInFavorite"));
 
-        if (!favorite.getUser().equals(user)) {
+        if (favorite.getUser() == null || !favorite.getUser().equals(user)) {
             throw new ReasApiException(HttpStatus.BAD_REQUEST, "error.invalidUser");
         }
 
