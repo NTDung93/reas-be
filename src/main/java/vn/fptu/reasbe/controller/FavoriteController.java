@@ -40,7 +40,7 @@ public class FavoriteController {
 
     @PreAuthorize("hasRole(T(vn.fptu.reasbe.model.constant.AppConstants).ROLE_RESIDENT)")
     @DeleteMapping
-    public ResponseEntity<Boolean> deleteFromFavorite(@RequestParam Integer id) {
-        return ResponseEntity.ok(favoriteService.deleteFromFavorite(id));
+    public ResponseEntity<Boolean> deleteFromFavorite(@RequestParam Integer itemId) {
+        return ResponseEntity.ok(favoriteService.deleteFromFavorite(itemId));
     }
 }

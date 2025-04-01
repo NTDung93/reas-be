@@ -51,6 +51,10 @@ public class FavoriteServiceImpl implements FavoriteService {
             throw new ReasApiException(HttpStatus.BAD_REQUEST, "error.cannotAddToFavorite");
         }
 
+        if (user.getFavorites() != null && user.getFavorites().stream().anyMatch(favorite -> favorite.getItem().equals(item))) {
+            throw new ReasApiException(HttpStatus.BAD_REQUEST, "error.itemExistsInFavorite");
+        }
+
         Favorite favoriteItem = Favorite.builder()
                 .item(item)
                 .user(user)
@@ -60,11 +64,11 @@ public class FavoriteServiceImpl implements FavoriteService {
     }
 
     @Override
-    public Boolean deleteFromFavorite(Integer favoriteId) {
+    public Boolean deleteFromFavorite(Integer itemId) {
         User user = authService.getCurrentUser();
 
-        Favorite favorite = favoriteRepository.findById(favoriteId)
-                .orElseThrow(() -> new ReasApiException(HttpStatus.BAD_REQUEST, "error.cannotDeleteFromFavorite"));
+        Favorite favorite = favoriteRepository.findByItemId(itemId)
+                .orElseThrow(() -> new ReasApiException(HttpStatus.BAD_REQUEST, "error.itemNotExistsInFavorite"));
 
         if (!favorite.getUser().equals(user)) {
             throw new ReasApiException(HttpStatus.BAD_REQUEST, "error.invalidUser");
