@@ -162,7 +162,7 @@ class ItemServiceImplTest {
         Page<Item> itemPage = new PageImpl<>(items);
 
         when(itemRepository.searchItemPagination(any(SearchItemRequest.class), any(Pageable.class))).thenReturn(itemPage);
-        when(itemMapper.toSearchItemResponse(any(Item.class))).thenReturn(searchItemResponse);
+        when(itemMapper.toSearchItemResponse(any(Item.class), List.of())).thenReturn(searchItemResponse);
 
         // Act
         BaseSearchPaginationResponse<SearchItemResponse> response = itemServiceImpl.searchItemPagination(pageNo, pageSize, sortBy, sortDir, searchItemRequest);
@@ -175,7 +175,7 @@ class ItemServiceImplTest {
         assertEquals("http://example.com/image.jpg", response.getContent().get(0).getImageUrl());
 
         verify(itemRepository, times(1)).searchItemPagination(any(SearchItemRequest.class), any(Pageable.class));
-        verify(itemMapper, times(1)).toSearchItemResponse(any(Item.class));
+        verify(itemMapper, times(1)).toSearchItemResponse(any(Item.class), List.of());
     }
 
     @Test
@@ -198,9 +198,7 @@ class ItemServiceImplTest {
     void testUploadItem_InvalidCategory_ThrowsException() {
         when(categoryService.getCategoryById(anyInt())).thenThrow(new ResourceNotFoundException("Category", "id", 2));
         when(authService.getCurrentUser()).thenReturn(mockUser);
-        Exception exception = assertThrows(ResourceNotFoundException.class, () -> {
-            itemServiceImpl.uploadItem(mockUploadRequest);
-        });
+        Exception exception = assertThrows(ResourceNotFoundException.class, () -> itemServiceImpl.uploadItem(mockUploadRequest));
 
         assertTrue(exception.getMessage().contains("Category"));
     }
@@ -219,9 +217,7 @@ class ItemServiceImplTest {
     void testGetItemDetail_ItemNotFound_ThrowsException() {
         when(itemRepository.findById(1)).thenReturn(Optional.empty());
 
-        Exception exception = assertThrows(ResourceNotFoundException.class, () -> {
-            itemServiceImpl.getItemById(1);
-        });
+        Exception exception = assertThrows(ResourceNotFoundException.class, () -> itemServiceImpl.getItemById(1));
 
         assertTrue(exception.getMessage().contains("Item"));
     }
@@ -255,9 +251,7 @@ class ItemServiceImplTest {
 
         when(itemRepository.findById(1)).thenReturn(Optional.of(mockItem));
 
-        Exception exception = assertThrows(ReasApiException.class, () -> {
-            itemServiceImpl.updateItem(updateRequest);
-        });
+        Exception exception = assertThrows(ReasApiException.class, () -> itemServiceImpl.updateItem(updateRequest));
 
         assertTrue(exception.getMessage().contains("error"));
     }
@@ -325,9 +319,7 @@ class ItemServiceImplTest {
 
         when(itemRepository.findById(1)).thenReturn(Optional.empty());
 
-        Exception exception = assertThrows(ResourceNotFoundException.class, () -> {
-            itemServiceImpl.updateItem(updateRequest);
-        });
+        Exception exception = assertThrows(ResourceNotFoundException.class, () -> itemServiceImpl.updateItem(updateRequest));
 
         assertTrue(exception.getMessage().contains("Item not found"));
     }
@@ -363,9 +355,7 @@ class ItemServiceImplTest {
         mockItem.setStatusItem(StatusItem.AVAILABLE);
         when(itemRepository.findById(1)).thenReturn(Optional.of(mockItem));
 
-        Exception exception = assertThrows(ReasApiException.class, () -> {
-            itemServiceImpl.reviewItem(1, StatusItem.REJECTED);
-        });
+        Exception exception = assertThrows(ReasApiException.class, () -> itemServiceImpl.reviewItem(1, StatusItem.REJECTED));
 
         assertTrue(exception.getMessage().contains("error"));
     }

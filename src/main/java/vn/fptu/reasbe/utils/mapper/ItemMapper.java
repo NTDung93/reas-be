@@ -11,6 +11,9 @@ import vn.fptu.reasbe.model.dto.item.UpdateItemRequest;
 import vn.fptu.reasbe.model.dto.item.UploadItemRequest;
 import vn.fptu.reasbe.model.dto.item.SearchItemResponse;
 import vn.fptu.reasbe.model.entity.Item;
+
+import java.util.List;
+
 /**
  *
  * @author ntig
@@ -29,7 +32,8 @@ import vn.fptu.reasbe.model.entity.Item;
 )
 @Component
 public interface ItemMapper {
-    SearchItemResponse toSearchItemResponse(Item person);
+    @Mapping(target = "favorite", expression = "java(checkIfFavorite(item.getId(), favIds))")
+    SearchItemResponse toSearchItemResponse(Item item, List<Integer> favIds);
 
     @Mapping(target = "category", ignore = true)
     @Mapping(target = "brand", ignore = true)
@@ -42,6 +46,9 @@ public interface ItemMapper {
 
     ItemResponse toItemResponse(Item item);
 
+    @Mapping(target = "favorite", expression = "java(checkIfFavorite(item.getId(), favIds))")
+    ItemResponse toItemResponse(Item item, List<Integer> favIds);
+
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "category", ignore = true)
     @Mapping(target = "brand", ignore = true)
@@ -52,4 +59,8 @@ public interface ItemMapper {
     @Mapping(target = "expiredTime", ignore = true)
     @Mapping(target = "moneyAccepted", source = "isMoneyAccepted")
     void updateItem(@MappingTarget Item user, UpdateItemRequest request);
+
+    default boolean checkIfFavorite(Integer itemId, List<Integer> favIds) {
+        return favIds != null && !favIds.isEmpty() && favIds.contains(itemId);
+    }
 }

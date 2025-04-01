@@ -64,7 +64,7 @@ public class ItemController {
 
     @GetMapping("/{id}")
     public ResponseEntity<ItemResponse> getItemDetail(@PathVariable("id") Integer id) {
-        return ResponseEntity.ok(itemMapper.toItemResponse(itemService.getItemById(id)));
+        return ResponseEntity.ok(itemService.getItemDetail(id));
     }
 
     @PreAuthorize("hasRole(T(vn.fptu.reasbe.model.constant.AppConstants).ROLE_RESIDENT)")

@@ -70,13 +70,14 @@ public class ItemServiceImpl implements ItemService {
 
     @Override
     public BaseSearchPaginationResponse<SearchItemResponse> searchItemPagination(int pageNo, int pageSize, String sortBy, String sortDir, SearchItemRequest request) {
-        return BaseSearchPaginationResponse.of(itemRepository.searchItemPagination(request, getPageable(pageNo, pageSize, sortBy, sortDir)).map(itemMapper::toSearchItemResponse));
+        return BaseSearchPaginationResponse.of(itemRepository.searchItemPagination(request, getPageable(pageNo, pageSize, sortBy, sortDir))
+                .map(item -> itemMapper.toSearchItemResponse(item, getFavIds())));
     }
 
     @Override
     public BaseSearchPaginationResponse<ItemResponse> getAllItemOfUserByStatus(int pageNo, int pageSize, String sortBy, String sortDir, Integer userId, StatusItem statusItem) {
         if (statusItem.equals(StatusItem.AVAILABLE) || statusItem.equals(StatusItem.SOLD)) {
-            return BaseSearchPaginationResponse.of(getAllItemByUserIdAndStatusItem(userId, statusItem, getPageable(pageNo, pageSize, sortBy, sortDir)).map(itemMapper::toItemResponse));
+            return BaseSearchPaginationResponse.of(getAllItemByUserIdAndStatusItem(userId, statusItem, getPageable(pageNo, pageSize, sortBy, sortDir)).map(this::mapToItemResponsesWithFavorite));
         } else {
             throw new ReasApiException(HttpStatus.BAD_REQUEST, "error.invalidStatusItem");
         }
@@ -92,6 +93,12 @@ public class ItemServiceImpl implements ItemService {
     public Item getItemById(Integer id) {
         return itemRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Item", "id", id));
+    }
+
+    @Override
+    public ItemResponse getItemDetail(Integer id) {
+        Item item = getItemById(id);
+        return mapToItemResponsesWithFavorite(item);
     }
 
     @Override
@@ -300,6 +307,24 @@ public class ItemServiceImpl implements ItemService {
         }
     }
 
+    private ItemResponse mapToItemResponsesWithFavorite(Item item) {
+        return itemMapper.toItemResponse(item, getFavIds());
+    }
+
+    private List<Integer> getFavIds() {
+        User user = authService.getCurrentUser();
+
+        List<Integer> favIds = new ArrayList<>();
+
+        if (user != null && user.getFavorites() != null && !user.getFavorites().isEmpty()) {
+            favIds = user.getFavorites().stream()
+                    .map(favorite -> favorite.getItem().getId())  // Extract item ID
+                    .toList();
+        }
+
+        return favIds;
+    }
+
     private List<ItemResponse> mapToItemResponses(List<Document> documents) {
         if (documents == null || documents.isEmpty()) {
             return new ArrayList<>();
@@ -312,7 +337,7 @@ public class ItemServiceImpl implements ItemService {
 
         // Lấy tất cả items từ DB
         Map<Integer, ItemResponse> itemResponseMap = itemRepository.findAllById(itemIds).stream()
-                .collect(Collectors.toMap(Item::getId, itemMapper::toItemResponse, (a, b) -> a, LinkedHashMap::new));
+                .collect(Collectors.toMap(Item::getId, this::mapToItemResponsesWithFavorite, (a, b) -> a, LinkedHashMap::new));
 
         // Đảm bảo trả về theo đúng thứ tự itemIds ban đầu
         return itemIds.stream()

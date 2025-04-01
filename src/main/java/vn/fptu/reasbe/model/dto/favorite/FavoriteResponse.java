@@ -15,6 +15,7 @@ import vn.fptu.reasbe.model.dto.user.UserResponse;
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class FavoriteResponse {
+    Integer id;
     ItemResponse item;
     UserResponse user;
 }

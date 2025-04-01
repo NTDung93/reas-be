@@ -20,6 +20,8 @@ public interface ItemService {
 
     Item getItemById(Integer id);
 
+    ItemResponse getItemDetail(Integer id);
+
     Item uploadItem(UploadItemRequest request);
 
     BaseSearchPaginationResponse<ItemResponse> getAllItemOfUserByStatus(int pageNo, int pageSize, String sortBy, String sortDir, Integer userId, StatusItem statusItem);

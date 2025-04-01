@@ -36,4 +36,5 @@ public class SearchItemResponse {
     BrandDto brand;
     UserResponse owner;
     UserLocationDto userLocation;
+    boolean isFavorite;
 }
