@@ -1,6 +1,7 @@
 package vn.fptu.reasbe.model.dto.desireditem;
 
 import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -19,19 +20,18 @@ import java.math.BigDecimal;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class DesiredItemDto {
 
-    @NotNull(message = "Category cannot be blank")
     Integer categoryId;
 
-    @NotNull(message = "Condition cannot be blank")
     ConditionItem conditionItem;
 
-    @NotNull(message = "Brand cannot be blank")
     Integer brandId;
 
-    @NotNull(message = "Min price cannot be blank")
+    @NotNull(message = "Min price must not be blank")
     @Min(value = 0, message = "Min price must be greater than or equal to 0")
     BigDecimal minPrice;
 
-    @NotNull(message = "Max price cannot be blank")
     BigDecimal maxPrice;
+
+    @NotBlank(message = "Description must not be blank")
+    String description;
 }

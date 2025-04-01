@@ -42,4 +42,5 @@ public class ItemResponse {
     UserResponse owner;
     DesiredItemResponse desiredItem;
     UserLocationDto userLocation;
+    boolean isFavorite;
 }

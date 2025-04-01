@@ -4,6 +4,7 @@ import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.types.Expression;
 import com.querydsl.core.types.Order;
 import com.querydsl.core.types.OrderSpecifier;
+import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.impl.JPAQuery;
 import org.apache.log4j.Logger;
 import org.springframework.data.domain.Page;
@@ -11,6 +12,7 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import vn.fptu.reasbe.model.entity.ExchangeRequest;
+import vn.fptu.reasbe.model.entity.Item;
 import vn.fptu.reasbe.model.entity.QExchangeRequest;
 import vn.fptu.reasbe.model.entity.QExchangeHistory;
 import vn.fptu.reasbe.model.entity.User;
@@ -63,13 +65,11 @@ public class ExchangeRequestRepositoryCustomImpl extends AbstractRepositoryCusto
     // ✅ Convert findByExchangeRequestStatusAndUser to QueryDSL
     @Override
     public Page<ExchangeRequest> findByExchangeRequestStatusAndUser(StatusExchangeRequest status, User user, Pageable pageable) {
-        QExchangeRequest exchangeRequest = QExchangeRequest.exchangeRequest;
+        QExchangeRequest exchangeRequest = getEntityPath();
 
         BooleanBuilder builder = new BooleanBuilder();
         builder.and(exchangeRequest.statusExchangeRequest.eq(status))
-                .and(exchangeRequest.sellerItem.owner.eq(user)
-                        .or(exchangeRequest.buyerItem.owner.eq(user))
-                        .or(exchangeRequest.paidBy.eq(user)));
+                .and(getFilterForSellerItemBuyerItemAndPaidBy(exchangeRequest, user));
 
         JPAQuery<ExchangeRequest> query = new JPAQuery<ExchangeRequest>(em)
                 .from(getEntityPath())
@@ -80,13 +80,26 @@ public class ExchangeRequestRepositoryCustomImpl extends AbstractRepositoryCusto
 
     @Override
     public Page<ExchangeRequest> findByExchangeHistoryStatusAndUser(StatusExchangeHistory status, User user, Pageable pageable) {
-        QExchangeRequest exchangeRequest = QExchangeRequest.exchangeRequest;
+        QExchangeRequest exchangeRequest = getEntityPath();
 
         BooleanBuilder builder = new BooleanBuilder();
         builder.and(exchangeRequest.exchangeHistory.statusExchangeHistory.eq(status))
-                .and(exchangeRequest.sellerItem.owner.eq(user)
-                        .or(exchangeRequest.buyerItem.owner.eq(user))
-                        .or(exchangeRequest.paidBy.eq(user)));
+                .and(getFilterForSellerItemBuyerItemAndPaidBy(exchangeRequest, user));
+
+        JPAQuery<ExchangeRequest> query = new JPAQuery<ExchangeRequest>(em)
+                .from(getEntityPath())
+                .where(builder);
+
+        return getPage(query, pageable);
+    }
+
+    @Override
+    public Page<ExchangeRequest> findByExchangeHistoryStatusInAndUser(List<StatusExchangeHistory> statuses, User user, Pageable pageable) {
+        QExchangeRequest exchangeRequest = getEntityPath();
+
+        BooleanBuilder builder = new BooleanBuilder();
+        builder.and(exchangeRequest.exchangeHistory.statusExchangeHistory.in(statuses))
+                .and(getFilterForSellerItemBuyerItemAndPaidBy(exchangeRequest, user));
 
         JPAQuery<ExchangeRequest> query = new JPAQuery<ExchangeRequest>(em)
                 .from(getEntityPath())
@@ -97,19 +110,63 @@ public class ExchangeRequestRepositoryCustomImpl extends AbstractRepositoryCusto
 
     @Override
     public List<ExchangeRequest> findAllExceedingDateExchanges(LocalDateTime date, StatusExchangeHistory status) {
-        QExchangeRequest exchangeRequest = QExchangeRequest.exchangeRequest;
+        QExchangeRequest exchangeRequest = getEntityPath();
         QExchangeHistory exchangeHistory = QExchangeHistory.exchangeHistory;
 
         BooleanBuilder builder = new BooleanBuilder();
         builder.and(exchangeRequest.exchangeDate.before(date))
-                .and(exchangeHistory.statusExchangeHistory.eq(status));
+                .and(exchangeRequest.exchangeHistory.statusExchangeHistory.eq(status));
 
         return new JPAQuery<ExchangeRequest>(em)
-                .from(getEntityPath())
+                .from(exchangeRequest)
                 .join(exchangeRequest.exchangeHistory, exchangeHistory)
                 .where(builder)
                 .fetch(); // Directly fetch results as a list
     }
+
+    @Override
+    public List<ExchangeRequest> findAllByStatusAndSellerItemOrBuyerItem(StatusExchangeRequest status, Item sellerItem, Item buyerItem) {
+        QExchangeRequest exchangeRequest = getEntityPath();
+
+        BooleanBuilder builder = new BooleanBuilder();
+        BooleanBuilder filter = new BooleanBuilder();
+
+        filter.or(exchangeRequest.sellerItem.eq(sellerItem))
+                .or(exchangeRequest.buyerItem.eq(sellerItem));
+
+        if (buyerItem != null) {
+            filter.or(exchangeRequest.sellerItem.eq(buyerItem))
+                    .or(exchangeRequest.buyerItem.eq(buyerItem));
+        }
+
+        builder.and(exchangeRequest.statusExchangeRequest.eq(status))
+                .and(filter);
+
+        return new JPAQuery<ExchangeRequest>(em)
+                .from(exchangeRequest)
+                .where(builder)
+                .fetch();
+    }
+
+    private BooleanBuilder getFilterForSellerItemBuyerItemAndPaidBy(QExchangeRequest exchangeRequest, User user) {
+        BooleanBuilder builder = new BooleanBuilder();
+
+        // Điều kiện khi user thuộc vào sellerItem, paidBy hoặc buyerItem.owner
+        BooleanBuilder userConditions = new BooleanBuilder();
+        userConditions.or(exchangeRequest.paidBy.eq(user))
+                .or(exchangeRequest.sellerItem.owner.eq(user))
+                .or(JPAExpressions.selectOne()
+                        .from(exchangeRequest.buyerItem)
+                        .where(exchangeRequest.buyerItem.owner.eq(user))
+                        .exists());
+
+        // Chỉ giữ lại buyerItem = NULL nếu user đã khớp với một trong các điều kiện trên
+        builder.and(userConditions);
+        builder.or(exchangeRequest.buyerItem.isNull().and(userConditions));
+
+        return builder;
+    }
+
 
     private Page<ExchangeRequest> getPage(JPAQuery<ExchangeRequest> query, Pageable pageable) {
         if (query == null || pageable == null) {

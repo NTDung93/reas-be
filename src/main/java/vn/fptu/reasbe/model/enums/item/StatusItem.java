@@ -13,6 +13,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public enum StatusItem implements BaseEnum.CodeAccessible {
     AVAILABLE("AVAI"),
+    SOLD("SOLD"),
     UNAVAILABLE("UNAV"),
     EXPIRED("EXPI"),
     NO_LONGER_FOR_EXCHANGE("NLFE"),

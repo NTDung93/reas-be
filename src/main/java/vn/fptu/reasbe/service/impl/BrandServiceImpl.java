@@ -19,8 +19,12 @@ public class BrandServiceImpl implements BrandService {
 
     @Override
     public Brand getBrandById(Integer id) {
-        return brandRepository.getBrandById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Brand", "id", id));
+        if (id != null) {
+            return brandRepository.getBrandById(id)
+                    .orElseThrow(() -> new ResourceNotFoundException("Brand", "id", id));
+        } else {
+            return null;
+        }
     }
 
     @Override

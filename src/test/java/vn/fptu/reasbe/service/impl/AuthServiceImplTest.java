@@ -38,6 +38,7 @@ import vn.fptu.reasbe.service.OtpService;
 import vn.fptu.reasbe.service.mongodb.UserMService;
 import vn.fptu.reasbe.utils.mapper.UserMapper;
 
+import java.util.List;
 import java.util.Optional;
 
 @ExtendWith(MockitoExtension.class)
@@ -92,7 +93,7 @@ class AuthServiceImplTest {
         resident.setRole(residentRole);
 
         // IMPORTANT: The expected constructor order is (email, fullName, password)
-        signupDto = new SignupDto("test@example.com", "Test User", "password123");
+        signupDto = new SignupDto("test@example.com", "Test User", "password123", List.of());
         loginDto = new LoginDto("test@example.com", "password123");
 
         // Prepare a dummy security context

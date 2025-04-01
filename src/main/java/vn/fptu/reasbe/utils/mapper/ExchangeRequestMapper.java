@@ -21,6 +21,7 @@ import vn.fptu.reasbe.model.entity.ExchangeRequest;
 @Component
 public interface ExchangeRequestMapper {
 
+    @Mapping(target = "feedbackId", source = "exchangeHistory.feedback.id")
     ExchangeResponse toExchangeResponse(ExchangeRequest exchangeRequest);
 
     @Mapping(target = "finalPrice", source = "estimatePrice")

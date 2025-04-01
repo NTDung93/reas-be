@@ -32,8 +32,10 @@ public class FeedbackController {
             @RequestParam(name = "pageSize", defaultValue = AppConstants.DEFAULT_PAGE_SIZE, required = false) int pageSize,
             @RequestParam(name = "sortBy", defaultValue = AppConstants.DEFAULT_SORT_BY, required = false) String sortBy,
             @RequestParam(name = "sortDir", defaultValue = AppConstants.DEFAULT_SORT_DIRECTION, required = false) String sortDir,
-            @RequestParam Integer userId) {
-        return ResponseEntity.ok(feedbackService.getAllFeedbackOfUser(pageNo, pageSize, sortBy, sortDir, userId));
+            @RequestParam Integer userId,
+            @RequestParam(required = false) Integer rating
+    ) {
+        return ResponseEntity.ok(feedbackService.getAllFeedbackOfUser(pageNo, pageSize, sortBy, sortDir, userId, rating));
     }
 
     @GetMapping("/{feedbackId}")
