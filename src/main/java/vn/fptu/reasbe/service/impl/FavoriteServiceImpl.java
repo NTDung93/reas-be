@@ -15,6 +15,10 @@ import vn.fptu.reasbe.service.AuthService;
 import vn.fptu.reasbe.service.FavoriteService;
 import vn.fptu.reasbe.service.ItemService;
 import vn.fptu.reasbe.utils.mapper.FavoriteMapper;
+import vn.fptu.reasbe.utils.mapper.ItemMapper;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import static vn.fptu.reasbe.model.dto.core.BaseSearchPaginationResponse.getPageable;
 
@@ -27,12 +31,14 @@ public class FavoriteServiceImpl implements FavoriteService {
     private final ItemService itemService;
     private final FavoriteRepository favoriteRepository;
     private final FavoriteMapper favoriteMapper;
+    private final ItemMapper itemMapper;
 
     @Override
     public BaseSearchPaginationResponse<FavoriteResponse> getAllFavoriteItems(int pageNo, int pageSize, String sortBy, String sortDir) {
         User user = authService.getCurrentUser();
 
-        return BaseSearchPaginationResponse.of(favoriteRepository.findAllByUser(user, getPageable(pageNo, pageSize, sortBy, sortDir)).map(favoriteMapper::toResponse));
+        return BaseSearchPaginationResponse.of(favoriteRepository.findAllByUser(user, getPageable(pageNo, pageSize, sortBy, sortDir))
+                .map(fav -> favoriteMapper.toResponseWithFavorite(fav, getFavIds(user), itemMapper)));
     }
 
     @Override
@@ -50,7 +56,7 @@ public class FavoriteServiceImpl implements FavoriteService {
                 .user(user)
                 .build();
 
-        return favoriteMapper.toResponse(favoriteRepository.save(favoriteItem));
+        return favoriteMapper.toResponseWithFavorite(favoriteRepository.save(favoriteItem), getFavIds(user), itemMapper);
     }
 
     @Override
@@ -67,5 +73,15 @@ public class FavoriteServiceImpl implements FavoriteService {
         favoriteRepository.delete(favorite);
 
         return true ;
+    }
+
+    public List<Integer> getFavIds(User user) {
+        if (user.getFavorites() != null && !user.getFavorites().isEmpty()) {
+            return user.getFavorites().stream()
+                    .map(fav -> fav.getItem().getId())
+                    .toList();
+        } else {
+            return new ArrayList<>();
+        }
     }
 }

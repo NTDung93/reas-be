@@ -9,6 +9,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.FieldDefaults;
+import vn.fptu.reasbe.model.enums.category.TypeItem;
 import vn.fptu.reasbe.model.enums.core.StatusEntity;
 import vn.fptu.reasbe.model.enums.item.StatusItem;
 
@@ -33,4 +34,5 @@ public class SearchItemRequest {
     List<Integer> locationIds;
     List<StatusItem> statusItems;
     List<StatusEntity> statusEntities;
+    List<TypeItem> typeItems;
 }

@@ -308,7 +308,7 @@ public class ItemServiceImpl implements ItemService {
     }
 
     private ItemResponse mapToItemResponsesWithFavorite(Item item) {
-        return itemMapper.toItemResponse(item, getFavIds());
+        return itemMapper.toItemResponseWithFavorite(item, getFavIds());
     }
 
     private List<Integer> getFavIds() {

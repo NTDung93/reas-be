@@ -47,7 +47,7 @@ public interface ItemMapper {
     ItemResponse toItemResponse(Item item);
 
     @Mapping(target = "favorite", expression = "java(checkIfFavorite(item.getId(), favIds))")
-    ItemResponse toItemResponse(Item item, List<Integer> favIds);
+    ItemResponse toItemResponseWithFavorite(Item item, List<Integer> favIds);
 
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "category", ignore = true)

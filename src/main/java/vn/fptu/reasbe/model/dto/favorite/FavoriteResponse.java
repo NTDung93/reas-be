@@ -7,7 +7,6 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.FieldDefaults;
 import vn.fptu.reasbe.model.dto.item.ItemResponse;
-import vn.fptu.reasbe.model.dto.user.UserResponse;
 
 @Getter
 @Setter
@@ -17,5 +16,4 @@ import vn.fptu.reasbe.model.dto.user.UserResponse;
 public class FavoriteResponse {
     Integer id;
     ItemResponse item;
-    UserResponse user;
 }
