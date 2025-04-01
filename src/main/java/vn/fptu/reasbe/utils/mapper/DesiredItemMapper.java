@@ -3,18 +3,18 @@ package vn.fptu.reasbe.utils.mapper;
 import org.mapstruct.CollectionMappingStrategy;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
-import org.mapstruct.MappingConstants;
 import org.mapstruct.MappingTarget;
 import org.mapstruct.NullValueCheckStrategy;
+import org.springframework.stereotype.Component;
 import vn.fptu.reasbe.model.dto.desireditem.DesiredItemDto;
 import vn.fptu.reasbe.model.dto.desireditem.DesiredItemResponse;
 import vn.fptu.reasbe.model.entity.DesiredItem;
 
 @Mapper(
-        componentModel = MappingConstants.ComponentModel.SPRING,
         collectionMappingStrategy = CollectionMappingStrategy.SETTER_PREFERRED,
         nullValueCheckStrategy = NullValueCheckStrategy.ALWAYS
 )
+@Component
 public interface DesiredItemMapper {
     @Mapping(target = "category", ignore = true)
     @Mapping(target = "brand", ignore = true)
