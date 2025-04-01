@@ -106,6 +106,8 @@ public class AuthServiceImpl implements AuthService {
             if (userM != null) {
                 userM.setRegistrationTokens(dto.getRegistrationTokens());
                 userMService.saveUser(userM);
+            } else {
+                saveNewUserToMongoDb(dto.getRegistrationTokens(), user);
             }
 
             return new JWTAuthResponse(accessToken, refreshToken, user.getRole().getName());
@@ -131,14 +133,7 @@ public class AuthServiceImpl implements AuthService {
         user = userRepository.save(user);
 
         // save user to MongoDB
-        vn.fptu.reasbe.model.mongodb.User userM = vn.fptu.reasbe.model.mongodb.User.builder()
-                .refId(user.getId())
-                .userName(user.getUserName())
-                .fullName(user.getFullName())
-                .statusOnline(StatusOnline.OFFLINE)
-                .registrationTokens(request.getRegistrationTokens())
-                .build();
-        userMService.saveUser(userM);
+        saveNewUserToMongoDb(request.getRegistrationTokens(), user);
 
         // save user token
         String accessToken = jwtTokenProvider.generateAccessToken(user);
@@ -148,6 +143,17 @@ public class AuthServiceImpl implements AuthService {
         // send email to user
         sendMailToUser(user);
         return new JWTAuthResponse(accessToken, refreshToken, user.getRole().getName());
+    }
+
+    private void saveNewUserToMongoDb(List<String> registrationTokens, User user) {
+        vn.fptu.reasbe.model.mongodb.User userM = vn.fptu.reasbe.model.mongodb.User.builder()
+                .refId(user.getId())
+                .userName(user.getUserName())
+                .fullName(user.getFullName())
+                .statusOnline(StatusOnline.OFFLINE)
+                .registrationTokens(registrationTokens)
+                .build();
+        userMService.saveUser(userM);
     }
 
     @Override
