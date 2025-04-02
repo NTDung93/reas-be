@@ -21,6 +21,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import org.springframework.web.client.RestTemplate;
+
 import vn.fptu.reasbe.model.constant.AppConstants;
 import vn.fptu.reasbe.model.dto.auth.JWTAuthResponse;
 import vn.fptu.reasbe.model.dto.auth.LoginDto;
@@ -82,7 +83,7 @@ public class AuthServiceImpl implements AuthService {
     private String googleAuthUri;
 
     @Override
-    public JWTAuthResponse authenticateUser (LoginDto dto) {
+    public JWTAuthResponse authenticateUser(LoginDto dto) {
         User user = userRepository.findByUserNameOrEmailOrPhone(
                 dto.getUserNameOrEmailOrPhone(),
                 dto.getUserNameOrEmailOrPhone(),
@@ -101,13 +102,15 @@ public class AuthServiceImpl implements AuthService {
             revokeAllTokenByUser(user);
             saveUserToken(accessToken, refreshToken, user);
 
-            // save user registration tokens to mongodb
-            vn.fptu.reasbe.model.mongodb.User userM = userMService.findByRefId(user.getId());
-            if (userM != null) {
-                userM.setRegistrationTokens(dto.getRegistrationTokens());
-                userMService.saveUser(userM);
-            } else {
-                saveNewUserToMongoDb(dto.getRegistrationTokens(), user);
+            if (dto.getRegistrationTokens() != null && !dto.getRegistrationTokens().isEmpty()) {
+                // save user registration tokens to mongodb
+                vn.fptu.reasbe.model.mongodb.User userM = userMService.findByRefId(user.getId());
+                if (userM != null) {
+                    userM.setRegistrationTokens(dto.getRegistrationTokens());
+                    userMService.saveUser(userM);
+                } else {
+                    saveNewUserToMongoDb(dto.getRegistrationTokens(), user);
+                }
             }
 
             return new JWTAuthResponse(accessToken, refreshToken, user.getRole().getName());
@@ -177,7 +180,7 @@ public class AuthServiceImpl implements AuthService {
 
         userInfo = getGoogleUserData(googleAccessToken);
 
-        if (userInfo == null){
+        if (userInfo == null) {
             throw new ReasApiException(HttpStatus.BAD_REQUEST, "error.googleUserInfoNotFound");
         }
 
