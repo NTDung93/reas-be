@@ -17,6 +17,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.locationtech.jts.geom.Point;
 import vn.fptu.reasbe.model.entity.core.AbstractAuditableEntity;
 
 /**
@@ -42,8 +43,17 @@ public class UserLocation extends AbstractAuditableEntity {
     private Location location;
 
     @NotNull
-    @Column(name = "SPECIFIC_ADDRESS", unique = true)
+    @Column(name = "SPECIFIC_ADDRESS")
     private String specificAddress;
+
+    @Column(name = "LATITUDE")
+    private Double latitude;
+
+    @Column(name = "LONGITUDE")
+    private Double longitude;
+
+    @Column(name = "POINT", columnDefinition = "geometry(Point, 4326)")
+    private Point point;
 
     @NotNull
     @Column(name = "IS_PRIMARY")

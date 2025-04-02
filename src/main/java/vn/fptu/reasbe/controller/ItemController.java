@@ -136,4 +136,13 @@ public class ItemController {
     public ResponseEntity<ItemResponse> changeItemStatus(@RequestParam Integer itemId, @RequestParam StatusItem statusItem) {
         return ResponseEntity.ok(itemService.changeItemStatus(itemId, statusItem));
     }
+
+    @GetMapping("/nearby")
+    public ResponseEntity<List<ItemResponse>> findNearbyItems(
+            @RequestParam double latitude,
+            @RequestParam double longitude,
+            @RequestParam double distance
+    ) {
+        return ResponseEntity.ok(itemService.findNearbyItems(latitude, longitude, distance));
+    }
 }

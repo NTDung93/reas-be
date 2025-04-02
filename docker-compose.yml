@@ -15,6 +15,9 @@ services:
       - ./src/main/resources/sql/init.sql:/docker-entrypoint-initdb.d/init.sql
     networks:
       - reas_network
+    entrypoint: >
+      sh -c "apt update && apt install -y postgis postgresql-16-postgis-3 &&
+             docker-entrypoint.sh postgres"
 
   # MongoDB
   mongo:

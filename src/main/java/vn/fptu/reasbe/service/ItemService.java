@@ -43,4 +43,6 @@ public interface ItemService {
     List<ItemResponse> getOtherItemsOfUser(Integer itemId, Integer userId, int limit);
 
     ItemResponse changeItemStatus(Integer itemId, StatusItem status);
+
+    List<ItemResponse> findNearbyItems(double latitude, double longitude, double distance);
 }

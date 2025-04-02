@@ -1,7 +1,9 @@
 package vn.fptu.reasbe.service.impl;
 
 import lombok.extern.slf4j.Slf4j;
+import org.locationtech.jts.geom.Point;
 import org.springframework.ai.document.Document;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -12,9 +14,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.web.client.RestTemplate;
 import vn.fptu.reasbe.model.constant.AppConstants;
 import vn.fptu.reasbe.model.dto.core.BaseSearchPaginationResponse;
 import vn.fptu.reasbe.model.dto.desireditem.DesiredItemDto;
+import vn.fptu.reasbe.model.dto.goongio.DistanceMatrixResponse;
 import vn.fptu.reasbe.model.dto.item.ItemResponse;
 import vn.fptu.reasbe.model.dto.item.SearchItemRequest;
 import vn.fptu.reasbe.model.dto.item.SearchItemResponse;
@@ -36,10 +40,12 @@ import vn.fptu.reasbe.service.ItemService;
 import vn.fptu.reasbe.service.UserService;
 import vn.fptu.reasbe.service.VectorStoreService;
 import vn.fptu.reasbe.utils.common.DateUtils;
+import vn.fptu.reasbe.utils.common.GeometryUtils;
 import vn.fptu.reasbe.utils.mapper.DesiredItemMapper;
 import vn.fptu.reasbe.utils.mapper.ItemMapper;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -67,6 +73,14 @@ public class ItemServiceImpl implements ItemService {
     private final DesiredItemRepository desiredItemRepository;
     private final ItemMapper itemMapper;
     private final DesiredItemMapper desiredItemMapper;
+
+    @Value("${goongio.config.api-key}")
+    private String GOONGIO_API_KEY;
+
+    @Value("${goongio.config.distance-matrix-url}")
+    private String GOONGIO_DISTANCE_MATRIX_URL;
+
+    private final RestTemplate restTemplate = new RestTemplate();
 
     @Override
     public BaseSearchPaginationResponse<SearchItemResponse> searchItemPagination(int pageNo, int pageSize, String sortBy, String sortDir, SearchItemRequest request) {
@@ -282,6 +296,62 @@ public class ItemServiceImpl implements ItemService {
         item.setStatusItem(status);
 
         return itemMapper.toItemResponse(itemRepository.save(item));
+    }
+
+    @Override
+    public List<ItemResponse> findNearbyItems(double latitude, double longitude, double distance) {
+        Point refPoint = GeometryUtils.createPoint(longitude, latitude);
+        double distanceInMeters = distance * 1000;
+
+        List<Item> items = itemRepository.findNearbyItems(refPoint, distanceInMeters, StatusItem.AVAILABLE.getCode());
+
+        DistanceMatrixResponse response = getDistanceMatrix(latitude, longitude, items);
+
+        // Kiểm tra nếu response không có hàng hoặc không có elements, trả về danh sách rỗng
+        if (response.getRows().isEmpty()) {
+            return Collections.emptyList();
+        }
+
+        List<DistanceMatrixResponse.Element> elements = response.getRows().getFirst().getElements();
+
+        // Kiểm tra nếu số lượng elements không khớp với số lượng items
+        if (elements.size() != items.size()) {
+            return Collections.emptyList();
+        }
+
+        // Ánh xạ từng Item với kết quả tương ứng từ API và giữ đúng thứ tự với LinkedHashMap
+        Map<Item, DistanceMatrixResponse.Element> itemDistanceMap = new LinkedHashMap<>();
+        for (int i = 0; i < items.size(); i++) {
+            itemDistanceMap.put(items.get(i), elements.get(i));
+        }
+
+        // Lọc các item theo khoảng cách mong muốn
+        return itemDistanceMap.entrySet().stream()
+                .filter(entry -> entry.getValue().getDistance().getValue() <= distanceInMeters)
+                .map(entry -> itemMapper.toItemResponse(entry.getKey()))
+                .toList();
+    }
+
+    public DistanceMatrixResponse getDistanceMatrix(double originLat, double originLng, List<Item> items) {
+        // Build the list of destinations
+        String destinations = items.stream()
+                .map(item -> item.getUserLocation().getLatitude() + "," + item.getUserLocation().getLongitude())
+                .collect(Collectors.joining("|"));
+
+        // Build the URL with parameters
+        String url = GOONGIO_DISTANCE_MATRIX_URL +
+                "?origins=" + originLat + "," + originLng +
+                "&destinations=" + destinations +
+                "&vehicle=" + "car" +
+                "&api_key=" + GOONGIO_API_KEY;
+
+        //Calling API
+        DistanceMatrixResponse response = restTemplate.getForObject(url, DistanceMatrixResponse.class);
+        if (response == null) {
+            throw new ReasApiException(HttpStatus.BAD_REQUEST, "error.distanceMatrixAPIResponseNull");
+        }
+
+        return response;
     }
 
     @Scheduled(cron = "0 0 0 * * *", zone = "Asia/Ho_Chi_Minh")
