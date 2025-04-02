@@ -15,10 +15,14 @@ import java.util.List;
 /**
  * @author ntig
  */
+
 public interface ItemRepository extends JpaRepository<Item, Integer>, QuerydslPredicateExecutor<Item>, ItemRepositoryCustom {
     Page<Item> findAllByStatusItem(StatusItem statusItem, Pageable pageable);
 
     Page<Item> findAllByOwnerIdAndStatusItemOrderByCreationDateDesc(Integer ownerId, StatusItem statusItem, Pageable pageable);
 
     List<Item> findAllByExpiredTimeBeforeAndStatusItem(LocalDateTime currDateTime, StatusItem statusItem);
-}
+
+    List<Item> findAllByStatusItem(StatusItem statusItem);
+
+    List<Item> findByStatusItemAndOwnerIdAndIdNotOrderByApprovedTimeDesc(StatusItem statusItem, Integer ownerId, Integer itemId, Pageable pageable);}

@@ -19,6 +19,7 @@ import vn.fptu.reasbe.model.entity.User;
 import vn.fptu.reasbe.model.enums.exchange.StatusExchangeHistory;
 import vn.fptu.reasbe.model.enums.exchange.StatusExchangeRequest;
 import vn.fptu.reasbe.model.enums.item.StatusItem;
+import vn.fptu.reasbe.model.enums.user.RoleName;
 import vn.fptu.reasbe.model.exception.ReasApiException;
 import vn.fptu.reasbe.model.exception.ResourceNotFoundException;
 import vn.fptu.reasbe.repository.ExchangeHistoryRepository;
@@ -27,11 +28,13 @@ import vn.fptu.reasbe.service.AuthService;
 import vn.fptu.reasbe.service.ExchangeService;
 import vn.fptu.reasbe.service.ItemService;
 import vn.fptu.reasbe.service.UserService;
+import vn.fptu.reasbe.service.VectorStoreService;
 import vn.fptu.reasbe.utils.common.DateUtils;
 import vn.fptu.reasbe.utils.mapper.ExchangeRequestMapper;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 import static vn.fptu.reasbe.model.dto.core.BaseSearchPaginationResponse.getPageable;
@@ -45,6 +48,7 @@ public class ExchangeServiceImpl implements ExchangeService {
     private final ItemService itemService;
     private final UserService userService;
     private final AuthService authService;
+    private final VectorStoreService vectorStoreService;
     private final ExchangeRequestRepository exchangeRequestRepository;
     private final ExchangeHistoryRepository exchangeHistoryRepository;
     private final ExchangeRequestMapper exchangeMapper;
@@ -56,10 +60,13 @@ public class ExchangeServiceImpl implements ExchangeService {
         Pageable pageable = getPageable(pageNo, pageSize, sortBy, sortDir);
         if (statusRequest.equals(StatusExchangeRequest.APPROVED)) {
             if (statusHistory == null) {
-                throw new ReasApiException(HttpStatus.BAD_REQUEST, "error.statusExchangeHistoryNull");
+                return BaseSearchPaginationResponse.of(exchangeRequestRepository.findByExchangeHistoryStatusInAndUser(
+                                List.of(StatusExchangeHistory.NOT_YET_EXCHANGE, StatusExchangeHistory.PENDING_EVIDENCE), user, pageable)
+                        .map(exchangeMapper::toExchangeResponse));
+            } else {
+                return BaseSearchPaginationResponse.of(exchangeRequestRepository.findByExchangeHistoryStatusAndUser(statusHistory, user, pageable)
+                        .map(exchangeMapper::toExchangeResponse));
             }
-            return BaseSearchPaginationResponse.of(exchangeRequestRepository.findByExchangeHistoryStatusAndUser(statusHistory, user, pageable)
-                    .map(exchangeMapper::toExchangeResponse));
         } else {
             return BaseSearchPaginationResponse.of(exchangeRequestRepository.findByExchangeRequestStatusAndUser(statusRequest, user, pageable)
                     .map(exchangeMapper::toExchangeResponse));
@@ -67,16 +74,32 @@ public class ExchangeServiceImpl implements ExchangeService {
     }
 
     @Override
+    public BaseSearchPaginationResponse<ExchangeResponse> getAllExchangeHistoryOfUser(int pageNo, int pageSize, String sortBy, String sortDir, Integer userId) {
+        User resident = userService.getUserById(userId);
+
+        if (!resident.getRole().getName().equals(RoleName.ROLE_RESIDENT)) {
+            throw new ReasApiException(HttpStatus.BAD_REQUEST, "error.userNotResident");
+        }
+
+        Pageable pageable = getPageable(pageNo, pageSize, sortBy, sortDir);
+
+        return BaseSearchPaginationResponse.of(exchangeRequestRepository.findByExchangeRequestStatusAndUser(StatusExchangeRequest.APPROVED, resident, pageable)
+                .map(exchangeMapper::toExchangeResponse));
+    }
+
+    @Override
     public ExchangeResponse getExchangeById(Integer id) {
         User user = authService.getCurrentUser();
         ExchangeRequest request = getExchangeRequestById(id);
 
-        boolean isSeller = request.getSellerItem().getOwner().equals(user);
-        boolean isBuyer = request.getBuyerItem() != null && request.getBuyerItem().getOwner().equals(user);
-        boolean isPayer = request.getPaidBy().equals(user);
+        if (user.getRole().getName().equals(RoleName.ROLE_RESIDENT)) {
+            boolean isSeller = request.getSellerItem().getOwner().equals(user);
+            boolean isBuyer = request.getBuyerItem() != null && request.getBuyerItem().getOwner().equals(user);
+            boolean isPayer = request.getPaidBy().equals(user);
 
-        if (!(isSeller || isBuyer || isPayer)) {
-            throw new ReasApiException(HttpStatus.BAD_REQUEST, "error.userNotAllowed");
+            if (!(isSeller || isBuyer || isPayer)) {
+                throw new ReasApiException(HttpStatus.BAD_REQUEST, "error.userNotAllowed");
+            }
         }
 
         return exchangeMapper.toExchangeResponse(request);
@@ -103,12 +126,11 @@ public class ExchangeServiceImpl implements ExchangeService {
             if (!buyerItem.getStatusItem().equals(StatusItem.AVAILABLE)) {
                 throw new ReasApiException(HttpStatus.BAD_REQUEST, "error.buyerItemNotAvailable");
             }
-            if (sellerItem.getOwner().equals(buyerItem.getOwner())){
+            if (sellerItem.getOwner().equals(buyerItem.getOwner())) {
                 throw new ReasApiException(HttpStatus.BAD_REQUEST, "error.sameOwnerWithSellerAndBuyerItem");
             }
 
             request.setBuyerItem(buyerItem);
-            request.getBuyerItem().setStatusItem(StatusItem.UNAVAILABLE);
         } else {
             if (!sellerItem.isMoneyAccepted()) {
                 throw new ReasApiException(HttpStatus.BAD_REQUEST, "error.buyerItemNull");
@@ -118,7 +140,6 @@ public class ExchangeServiceImpl implements ExchangeService {
         User paidByUser = userService.getUserById(exchangeRequestRequest.getPaidByUserId());
 
         request.setSellerItem(sellerItem);
-        request.getSellerItem().setStatusItem(StatusItem.UNAVAILABLE);
         request.setPaidBy(paidByUser);
         request.setNumberOfOffer(AppConstants.NUM_OF_OFFER);
         request.setStatusExchangeRequest(StatusExchangeRequest.PENDING);
@@ -192,11 +213,25 @@ public class ExchangeServiceImpl implements ExchangeService {
             if (request.getSellerConfirmation().equals(Boolean.FALSE) || request.getBuyerConfirmation().equals(Boolean.FALSE)) {
                 throw new ReasApiException(HttpStatus.BAD_REQUEST, "error.notYetConfirmFinalPrice");
             }
+            request.getSellerItem().setStatusItem(StatusItem.UNAVAILABLE);
+
+            List<Item> deletedItemsFromVectorStore = new ArrayList<>();
+            deletedItemsFromVectorStore.add(request.getSellerItem());
+
+            if (request.getBuyerItem() != null) {
+                request.getBuyerItem().setStatusItem(StatusItem.UNAVAILABLE);
+                deletedItemsFromVectorStore.add(request.getBuyerItem());
+            }
 
             ExchangeHistory exchangeHistory = new ExchangeHistory();
             exchangeHistory.setSellerConfirmation(Boolean.FALSE);
             exchangeHistory.setBuyerConfirmation(Boolean.FALSE);
             exchangeHistory.setStatusExchangeHistory(StatusExchangeHistory.NOT_YET_EXCHANGE);
+
+            cancelOtherExchangeRequests(request.getSellerItem(), request.getBuyerItem());
+
+            vectorStoreService.deleteItem(deletedItemsFromVectorStore);
+
             request.setExchangeHistory(exchangeHistoryRepository.save(exchangeHistory));
         } else {
             request.setStatusExchangeRequest(statusExchangeRequest);
@@ -207,32 +242,25 @@ public class ExchangeServiceImpl implements ExchangeService {
     }
 
     @Override
-    public ExchangeResponse cancelApprovedExchange(Integer id) {
+    public ExchangeResponse cancelExchange(Integer id) {
         ExchangeRequest request = getExchangeRequestById(id);
 
-        if (!request.getStatusExchangeRequest().equals(StatusExchangeRequest.APPROVED)) {
-            throw new ReasApiException(HttpStatus.BAD_REQUEST, "error.cannotCancelExchange");
-        }
-        if (!request.getBuyerItem().getOwner().equals(authService.getCurrentUser())) {
+        if ((request.getBuyerItem() != null && !request.getBuyerItem().getOwner().equals(authService.getCurrentUser())) ||
+                (!request.getPaidBy().equals(authService.getCurrentUser()))) {
             throw new ReasApiException(HttpStatus.BAD_REQUEST, "error.userNotAllowed");
         }
-        if (request.getExchangeDate().isBefore(DateUtils.getCurrentDateTime())) {
-            throw new ReasApiException(HttpStatus.BAD_REQUEST, "error.exchangeDateBeforeNow");
-        }
-        if (request.getExchangeHistory() == null) {
-            throw new ReasApiException(HttpStatus.BAD_REQUEST, "error.exchangeHistoryNull");
-        }
 
-        request.getExchangeHistory().setStatusExchangeHistory(StatusExchangeHistory.FAILED);
-        request.getSellerItem().setStatusItem(StatusItem.AVAILABLE);
-        request.getBuyerItem().setStatusItem(StatusItem.AVAILABLE);
-        //TODO: add push notification for resident
-
-        return exchangeMapper.toExchangeResponse(exchangeRequestRepository.save(request));
+        if (request.getStatusExchangeRequest().equals(StatusExchangeRequest.PENDING)) {
+            return exchangeMapper.toExchangeResponse(cancelExchangeRequest(request));
+        } else if (request.getStatusExchangeRequest().equals(StatusExchangeRequest.APPROVED)) {
+            return exchangeMapper.toExchangeResponse(cancelApprovedExchange(request));
+        } else {
+            throw new ReasApiException(HttpStatus.BAD_REQUEST, "error.cannotCancelExchange");
+        }
     }
 
     @Override
-    public Boolean confirmNegotiatedPrice(Integer id) {
+    public ExchangeResponse confirmNegotiatedPrice(Integer id) {
         User user = authService.getCurrentUser();
 
         ExchangeRequest request = getExchangeRequestById(id);
@@ -249,8 +277,7 @@ public class ExchangeServiceImpl implements ExchangeService {
             throw new ReasApiException(HttpStatus.BAD_REQUEST, "error.userNotAllowed");
         }
 
-        exchangeRequestRepository.save(request);
-        return true;
+        return exchangeMapper.toExchangeResponse(exchangeRequestRepository.save(request));
     }
 
     @Override
@@ -281,6 +308,10 @@ public class ExchangeServiceImpl implements ExchangeService {
         if (Boolean.TRUE.equals(exchangeHistory.getBuyerConfirmation()) &&
                 Boolean.TRUE.equals(exchangeHistory.getSellerConfirmation())) {
             exchangeHistory.setStatusExchangeHistory(StatusExchangeHistory.SUCCESSFUL);
+            exchangeHistory.getExchangeRequest().getSellerItem().setStatusItem(StatusItem.SOLD);
+            if (exchangeHistory.getExchangeRequest().getBuyerItem() != null) {
+                exchangeHistory.getExchangeRequest().getBuyerItem().setStatusItem(StatusItem.SOLD);
+            }
         } else {
             exchangeHistory.setStatusExchangeHistory(StatusExchangeHistory.PENDING_EVIDENCE);
         }
@@ -296,36 +327,47 @@ public class ExchangeServiceImpl implements ExchangeService {
 
         List<ExchangeRequest> notExchangedExchanges = exchangeRequestRepository.findAllExceedingDateExchanges(threeDaysAgo, StatusExchangeHistory.NOT_YET_EXCHANGE);
         List<ExchangeRequest> pendingEvidenceExchanges = exchangeRequestRepository.findAllExceedingDateExchanges(threeDaysAgo, StatusExchangeHistory.PENDING_EVIDENCE);
+        List<ExchangeRequest> pendingExchanges = exchangeRequestRepository.findAllByStatusExchangeRequestAndExchangeDateAfter(StatusExchangeRequest.PENDING, DateUtils.getCurrentDateTime());
 
-        if (!notExchangedExchanges.isEmpty()) {
-            notExchangedExchanges.forEach(request -> {
-                request.getExchangeHistory().setStatusExchangeHistory(StatusExchangeHistory.FAILED);
+        notExchangedExchangesCronJob(notExchangedExchanges);
 
-                Item sellerItem = request.getSellerItem();
-                Item buyerItem = request.getBuyerItem();
+        pendingEvidenceExchangesCronJob(pendingEvidenceExchanges);
 
-                checkExpiredItemAfterFailedExchange(sellerItem);
-                if (buyerItem != null) {
-                    checkExpiredItemAfterFailedExchange(buyerItem);
-                }
-            });
-            exchangeRequestRepository.saveAll(notExchangedExchanges);
-            log.info("Updated {} not exchanged exchange(s) requests to FAILED.", notExchangedExchanges.size());
-        } else {
-            log.info("No not exchanged exchanges found.");
-        }
+        pendingExchangeRequestsCronJob(pendingExchanges);
 
-        if (!pendingEvidenceExchanges.isEmpty()) {
-            pendingEvidenceExchanges.forEach(request -> request.getExchangeHistory()
-                    .setStatusExchangeHistory(StatusExchangeHistory.SUCCESSFUL));
-            exchangeRequestRepository.saveAll(pendingEvidenceExchanges);
-            log.info("Updated {} pending evidence exchange(s) requests to SUCCESSFUL.", pendingEvidenceExchanges.size());
-        } else {
-            log.info("No pending evidence exchanges found.");
-        }
         //TODO: add push notification for resident
     }
 
+    private ExchangeRequest cancelExchangeRequest(ExchangeRequest request) {
+        request.setStatusExchangeRequest(StatusExchangeRequest.CANCELLED);
+        //TODO: add push notification for resident
+
+        return exchangeRequestRepository.save(request);
+    }
+
+    private ExchangeRequest cancelApprovedExchange(ExchangeRequest request) {
+        if (request.getExchangeDate().isBefore(DateUtils.getCurrentDateTime())) {
+            throw new ReasApiException(HttpStatus.BAD_REQUEST, "error.exchangeDateBeforeNow");
+        }
+        if (request.getExchangeHistory() == null) {
+            throw new ReasApiException(HttpStatus.BAD_REQUEST, "error.exchangeHistoryNull");
+        }
+
+        request.getExchangeHistory().setStatusExchangeHistory(StatusExchangeHistory.FAILED);
+        request.getSellerItem().setStatusItem(StatusItem.AVAILABLE);
+        request.getBuyerItem().setStatusItem(StatusItem.AVAILABLE);
+
+        List<Item> items = new ArrayList<>();
+        items.add(request.getSellerItem());
+        if (request.getBuyerItem() != null) {
+            items.add(request.getBuyerItem());
+        }
+        vectorStoreService.addNewItem(items);
+
+        //TODO: add push notification for resident
+
+        return exchangeRequestRepository.save(request);
+    }
 
     private ExchangeRequest getExchangeRequestById(Integer id) {
         return exchangeRequestRepository.findById(id).
@@ -342,12 +384,59 @@ public class ExchangeServiceImpl implements ExchangeService {
         }
     }
 
+    private void pendingExchangeRequestsCronJob(List<ExchangeRequest> pendingExchanges) {
+        if (!pendingExchanges.isEmpty()) {
+            pendingExchanges.forEach(request -> request.setStatusExchangeRequest(StatusExchangeRequest.PENDING));
+            exchangeRequestRepository.saveAll(pendingExchanges);
+            log.info("Updated {} pending exchange request(s) to CANCELLED.", pendingExchanges.size());
+        } else {
+            log.info("No pending exchanges found.");
+        }
+    }
+
+    private void pendingEvidenceExchangesCronJob(List<ExchangeRequest> pendingEvidenceExchanges) {
+        if (!pendingEvidenceExchanges.isEmpty()) {
+            pendingEvidenceExchanges.forEach(request -> {
+                request.getExchangeHistory().setStatusExchangeHistory(StatusExchangeHistory.SUCCESSFUL);
+                request.getSellerItem().setStatusItem(StatusItem.SOLD);
+                if (request.getBuyerItem() != null) {
+                    request.getBuyerItem().setStatusItem(StatusItem.SOLD);
+                }
+            });
+            exchangeRequestRepository.saveAll(pendingEvidenceExchanges);
+            log.info("Updated {} pending evidence exchange request(s) to SUCCESSFUL.", pendingEvidenceExchanges.size());
+        } else {
+            log.info("No pending evidence exchanges found.");
+        }
+    }
+
+    private void notExchangedExchangesCronJob(List<ExchangeRequest> notExchangedExchanges) {
+        if (!notExchangedExchanges.isEmpty()) {
+            notExchangedExchanges.forEach(request -> {
+                request.getExchangeHistory().setStatusExchangeHistory(StatusExchangeHistory.FAILED);
+
+                Item sellerItem = request.getSellerItem();
+                Item buyerItem = request.getBuyerItem();
+
+                checkExpiredItemAfterFailedExchange(sellerItem);
+                if (buyerItem != null) {
+                    checkExpiredItemAfterFailedExchange(buyerItem);
+                }
+            });
+            exchangeRequestRepository.saveAll(notExchangedExchanges);
+            log.info("Updated {} not exchanged exchange request(s) to FAILED.", notExchangedExchanges.size());
+        } else {
+            log.info("No not exchanged exchanges found.");
+        }
+    }
+
     private void checkExpiredItemAfterFailedExchange(Item item) {
         if (item.getExpiredTime().isBefore(DateUtils.getCurrentDateTime())) {
             item.setStatusItem(StatusItem.EXPIRED);
             log.info("Item {} expired. Change status to EXPIRED.", item.getId());
         } else {
             item.setStatusItem(StatusItem.AVAILABLE);
+            vectorStoreService.addNewItem(List.of(item));
         }
     }
 
@@ -355,5 +444,16 @@ public class ExchangeServiceImpl implements ExchangeService {
         if (!request.getStatusExchangeRequest().equals(StatusExchangeRequest.PENDING)) {
             throw new ReasApiException(HttpStatus.BAD_REQUEST, "error.exchangeRequestNotPending");
         }
+    }
+
+    private void cancelOtherExchangeRequests(Item sellerItem, Item buyerItem) {
+        List<ExchangeRequest> requests = exchangeRequestRepository
+                .findAllByStatusAndSellerItemOrBuyerItem(StatusExchangeRequest.PENDING, sellerItem, buyerItem);
+
+        for (ExchangeRequest relatedRequest : requests) {
+            relatedRequest.setStatusExchangeRequest(StatusExchangeRequest.CANCELLED);
+        }
+
+        exchangeRequestRepository.saveAll(requests);
     }
 }

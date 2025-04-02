@@ -11,10 +11,8 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.FieldDefaults;
 import vn.fptu.reasbe.model.dto.desireditem.DesiredItemDto;
-import vn.fptu.reasbe.model.enums.category.TypeItem;
 import vn.fptu.reasbe.model.enums.item.ConditionItem;
 import vn.fptu.reasbe.model.enums.item.MethodExchange;
-import vn.fptu.reasbe.model.enums.item.TypeExchange;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -46,12 +44,6 @@ public class UploadItemRequest {
 
     @NotNull(message = "Exchanging with money option cannot be null")
     Boolean isMoneyAccepted;
-
-    @NotNull(message = "Type of exchange cannot be blank")
-    TypeExchange typeExchange;
-
-    @NotNull(message = "Type of item cannot be blank")
-    TypeItem typeItem;
 
     String termsAndConditionsExchange;
 

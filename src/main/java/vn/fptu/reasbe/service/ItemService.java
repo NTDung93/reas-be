@@ -10,6 +10,8 @@ import vn.fptu.reasbe.model.dto.item.UploadItemRequest;
 import vn.fptu.reasbe.model.entity.Item;
 import vn.fptu.reasbe.model.enums.item.StatusItem;
 
+import java.util.List;
+
 /**
  * @author ntig
  */
@@ -18,9 +20,11 @@ public interface ItemService {
 
     Item getItemById(Integer id);
 
+    ItemResponse getItemDetail(Integer id);
+
     Item uploadItem(UploadItemRequest request);
 
-    BaseSearchPaginationResponse<ItemResponse> getAllItemOfUser(int pageNo, int pageSize, String sortBy, String sortDir, Integer userId, StatusItem statusItem);
+    BaseSearchPaginationResponse<ItemResponse> getAllItemOfUserByStatus(int pageNo, int pageSize, String sortBy, String sortDir, Integer userId, StatusItem statusItem);
 
     BaseSearchPaginationResponse<ItemResponse> getAllItemOfCurrentUserByStatusItem(int pageNo, int pageSize, String sortBy, String sortDir, StatusItem statusItem);
 
@@ -29,4 +33,14 @@ public interface ItemService {
     BaseSearchPaginationResponse<ItemResponse> getAllPendingItem(int pageNo, int pageSize, String sortBy, String sortDir);
 
     ItemResponse reviewItem(Integer id, StatusItem status);
+
+    List<ItemResponse> getRecommendedItems(Integer itemId, int limit);
+
+    List<ItemResponse> getRecommendedItemsInExchange(Integer itemId, int limit);
+
+    List<ItemResponse> getSimilarItems(Integer itemId, int limit);
+
+    List<ItemResponse> getOtherItemsOfUser(Integer itemId, Integer userId, int limit);
+
+    ItemResponse changeItemStatus(Integer itemId, StatusItem status);
 }

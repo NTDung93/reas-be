@@ -43,8 +43,23 @@ public class ExchangeController {
         return ResponseEntity.ok(exchangeService.getAllExchangeByStatusOfCurrentUser(pageNo, pageSize, sortBy, sortDir, statusExchangeRequest, statusExchangeHistory));
     }
 
+    @GetMapping("/history")
+    @PreAuthorize("hasRole(T(vn.fptu.reasbe.model.constant.AppConstants).ROLE_STAFF) or " +
+            "hasRole(T(vn.fptu.reasbe.model.constant.AppConstants).ROLE_ADMIN)")
+    public ResponseEntity<BaseSearchPaginationResponse<ExchangeResponse>> getAllExchangeHistoryOfUser(
+            @RequestParam(name = "pageNo", defaultValue = AppConstants.DEFAULT_PAGE_NUMBER, required = false) int pageNo,
+            @RequestParam(name = "pageSize", defaultValue = AppConstants.DEFAULT_PAGE_SIZE, required = false) int pageSize,
+            @RequestParam(name = "sortBy", defaultValue = AppConstants.DEFAULT_SORT_BY, required = false) String sortBy,
+            @RequestParam(name = "sortDir", defaultValue = AppConstants.DEFAULT_SORT_DIRECTION, required = false) String sortDir,
+            @RequestParam Integer userId
+    ) {
+        return ResponseEntity.ok(exchangeService.getAllExchangeHistoryOfUser(pageNo, pageSize, sortBy, sortDir, userId));
+    }
+
     @GetMapping("/{exchangeId}")
-    @PreAuthorize("hasRole(T(vn.fptu.reasbe.model.constant.AppConstants).ROLE_RESIDENT)")
+    @PreAuthorize("hasRole(T(vn.fptu.reasbe.model.constant.AppConstants).ROLE_RESIDENT) or " +
+            "hasRole(T(vn.fptu.reasbe.model.constant.AppConstants).ROLE_STAFF) or " +
+            "hasRole(T(vn.fptu.reasbe.model.constant.AppConstants).ROLE_ADMIN)")
     public ResponseEntity<ExchangeResponse> getExchangeDetail(@PathVariable Integer exchangeId) {
         return ResponseEntity.ok(exchangeService.getExchangeById(exchangeId));
     }
@@ -63,7 +78,7 @@ public class ExchangeController {
 
     @PutMapping("/negotiated-price/confirm")
     @PreAuthorize("hasRole(T(vn.fptu.reasbe.model.constant.AppConstants).ROLE_RESIDENT)")
-    public ResponseEntity<Boolean> confirmNegotiatedPrice(@RequestParam Integer exchangeId) {
+    public ResponseEntity<ExchangeResponse> confirmNegotiatedPrice(@RequestParam Integer exchangeId) {
         return ResponseEntity.ok(exchangeService.confirmNegotiatedPrice(exchangeId));
     }
 
@@ -81,7 +96,7 @@ public class ExchangeController {
 
     @PutMapping("/cancel")
     @PreAuthorize("hasRole(T(vn.fptu.reasbe.model.constant.AppConstants).ROLE_RESIDENT)")
-    public ResponseEntity<ExchangeResponse> cancelApprovedExchange(@RequestParam Integer exchangeId) {
-        return ResponseEntity.ok(exchangeService.cancelApprovedExchange(exchangeId));
+    public ResponseEntity<ExchangeResponse> cancelExchange(@RequestParam Integer exchangeId) {
+        return ResponseEntity.ok(exchangeService.cancelExchange(exchangeId));
     }
 }

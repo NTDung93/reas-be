@@ -211,6 +211,12 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public User getCurrentUser() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+
+        if (!auth.isAuthenticated() || auth.getName().equals("anonymousUser")) {
+            return null;
+        }
+
         String username = SecurityContextHolder.getContext().getAuthentication().getName();
         return userRepository.findByUserName(username)
                 .orElseThrow(() -> new ResourceNotFoundException("User", "username", username));

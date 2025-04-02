@@ -13,7 +13,6 @@ import vn.fptu.reasbe.model.dto.auth.SignupDto;
 import vn.fptu.reasbe.model.dto.user.UserResponse;
 import vn.fptu.reasbe.service.AuthService;
 
-import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
@@ -74,7 +73,6 @@ public class AuthController {
         return authService.refreshToken(request, response);
     }
 
-    @SecurityRequirement(name = AppConstants.SEC_REQ_NAME)
     @GetMapping("/info")
     public ResponseEntity<UserResponse> getInfo() {
         return ResponseEntity.ok(userMapper.toUserResponse(authService.getCurrentUser()));

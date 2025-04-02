@@ -15,7 +15,6 @@
     <description>System for exchanging household items for residential areas</description>
     <properties>
         <java.version>21</java.version>
-        <mysql.connector.version>8.0.33</mysql.connector.version>
         <swagger.annotations.version>2.2.15</swagger.annotations.version>
         <springdoc.openapi.version>2.2.0</springdoc.openapi.version>
         <springfox.swagger2.version>3.0.0</springfox.swagger2.version>
@@ -28,6 +27,8 @@
         <lombok.version>1.18.30</lombok.version>
         <log4j.version>1.2.17</log4j.version>
         <common-lang.version>3.14.0</common-lang.version>
+        <pgvector.version>1.0.0-M5</pgvector.version>
+        <spring-ai-openai.version>1.0.0-M5</spring-ai-openai.version>
         <payos.version>1.0.3</payos.version>
         <firebase-admin.version>9.4.3</firebase-admin.version>
     </properties>
@@ -72,14 +73,14 @@
 
         <!-- Database Dependencies -->
         <dependency>
-            <groupId>mysql</groupId>
-            <artifactId>mysql-connector-java</artifactId>
-            <version>${mysql.connector.version}</version>
-        </dependency>
-        <dependency>
             <groupId>org.postgresql</groupId>
             <artifactId>postgresql</artifactId>
             <scope>runtime</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.ai</groupId>
+            <artifactId>spring-ai-pgvector-store</artifactId>
+            <version>${pgvector.version}</version>
         </dependency>
 
         <!-- QueryDSL Dependencies -->
@@ -168,7 +169,14 @@
             <scope>test</scope>
         </dependency>
 
-		<!-- Common Dependencies -->
+        <!-- AI Dependencies -->
+        <dependency>
+            <groupId>org.springframework.ai</groupId>
+            <artifactId>spring-ai-openai-spring-boot-starter</artifactId>
+            <version>${spring-ai-openai.version}</version>
+        </dependency>
+
+        <!-- Common Dependencies -->
         <dependency>
             <groupId>log4j</groupId>
             <artifactId>log4j</artifactId>
@@ -268,5 +276,4 @@
 			</plugin>
 		</plugins>
     </build>
-
 </project>

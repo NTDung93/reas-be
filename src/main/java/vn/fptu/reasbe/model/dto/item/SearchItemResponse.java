@@ -1,6 +1,7 @@
 package vn.fptu.reasbe.model.dto.item;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -30,10 +31,12 @@ public class SearchItemResponse {
     String description;
     BigDecimal price;
     String imageUrl;
+    LocalDateTime approvedTime;
     StatusItem statusItem;
     StatusEntity statusEntity;
     CategoryDto category;
     BrandDto brand;
     UserResponse owner;
     UserLocationDto userLocation;
+    boolean isFavorite;
 }

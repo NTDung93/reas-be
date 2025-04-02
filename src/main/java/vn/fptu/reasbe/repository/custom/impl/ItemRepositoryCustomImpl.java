@@ -81,6 +81,9 @@ public class ItemRepositoryCustomImpl extends AbstractRepositoryCustom<Item, QIt
             if (request.getStatusEntities() != null && !request.getStatusEntities().isEmpty()) {
                 builder.and(item.statusEntity.in(request.getStatusEntities()));
             }
+            if (request.getTypeItems() != null && !request.getTypeItems().isEmpty()) {
+                builder.and(item.category.typeItem.in(request.getTypeItems()));
+            }
         } else {
             // if request null, fetch all items with status ACTIVE by default
             builder.and(item.statusEntity.eq(StatusEntity.ACTIVE));
@@ -121,6 +124,9 @@ public class ItemRepositoryCustomImpl extends AbstractRepositoryCustom<Item, QIt
             case "statusEntity":
                 return new OrderSpecifier<>(
                         direction.isAscending() ? Order.ASC : Order.DESC, item.statusEntity);
+            case "approvedTime":
+                return new OrderSpecifier<>(
+                        direction.isAscending() ? Order.ASC : Order.DESC, item.approvedTime);
             default:
                 logger.warn("Unknown sort property: " + property);
                 return null;

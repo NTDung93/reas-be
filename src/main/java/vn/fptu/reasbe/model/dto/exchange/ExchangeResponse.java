@@ -49,5 +49,9 @@ public class ExchangeResponse {
 
     String additionalNotes;
 
+    LocalDateTime creationDate;
+
     ExchangeHistoryResponse exchangeHistory;
+
+    Integer feedbackId;
 }

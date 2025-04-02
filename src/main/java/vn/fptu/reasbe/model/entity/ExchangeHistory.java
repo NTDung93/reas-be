@@ -1,13 +1,9 @@
 package vn.fptu.reasbe.model.entity;
 
-import java.util.HashSet;
-import java.util.Set;
-
 import jakarta.persistence.AttributeOverride;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.OneToMany;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotNull;
@@ -56,8 +52,8 @@ public class ExchangeHistory extends AbstractAuditableEntity {
     @Column(name = "STATUS_EXCHANGE_HISTORY", length = 4)
     private StatusExchangeHistory statusExchangeHistory;
 
-    @OneToMany(mappedBy = "exchangeHistory", cascade = CascadeType.ALL, orphanRemoval = true)
-    private Set<Feedback> feedbacks = new HashSet<>();
+    @OneToOne(mappedBy = "exchangeHistory", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Feedback feedback;
 
     @OneToOne(mappedBy = "exchangeHistory", cascade = CascadeType.ALL, orphanRemoval = true)
     private ExchangeRequest exchangeRequest;

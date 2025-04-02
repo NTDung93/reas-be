@@ -12,6 +12,8 @@ import java.math.BigDecimal;
 public interface ExchangeService {
     BaseSearchPaginationResponse<ExchangeResponse> getAllExchangeByStatusOfCurrentUser(int pageNo, int pageSize, String sortBy, String sortDir, StatusExchangeRequest statusRequest, StatusExchangeHistory statusHistory);
 
+    BaseSearchPaginationResponse<ExchangeResponse> getAllExchangeHistoryOfUser(int pageNo, int pageSize, String sortBy, String sortDir, Integer userId);
+
     ExchangeResponse getExchangeById(Integer id);
 
     ExchangeResponse createExchangeRequest(ExchangeRequestRequest exchangeRequestRequest);
@@ -20,9 +22,9 @@ public interface ExchangeService {
 
     ExchangeResponse reviewExchangeRequest(Integer id, StatusExchangeRequest statusExchangeRequest);
 
-    ExchangeResponse cancelApprovedExchange(Integer id);
+    ExchangeResponse cancelExchange(Integer id);
 
-    Boolean confirmNegotiatedPrice(Integer id);
+    ExchangeResponse confirmNegotiatedPrice(Integer id);
 
     ExchangeResponse uploadEvidence(EvidenceExchangeRequest request);
 }
