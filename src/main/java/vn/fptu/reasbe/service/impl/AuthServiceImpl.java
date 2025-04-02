@@ -21,6 +21,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import org.springframework.web.client.RestTemplate;
+
 import vn.fptu.reasbe.model.constant.AppConstants;
 import vn.fptu.reasbe.model.dto.auth.JWTAuthResponse;
 import vn.fptu.reasbe.model.dto.auth.LoginDto;
@@ -82,7 +83,7 @@ public class AuthServiceImpl implements AuthService {
     private String googleAuthUri;
 
     @Override
-    public JWTAuthResponse authenticateUser (LoginDto dto) {
+    public JWTAuthResponse authenticateUser(LoginDto dto) {
         User user = userRepository.findByUserNameOrEmailOrPhone(
                 dto.getUserNameOrEmailOrPhone(),
                 dto.getUserNameOrEmailOrPhone(),
@@ -101,11 +102,15 @@ public class AuthServiceImpl implements AuthService {
             revokeAllTokenByUser(user);
             saveUserToken(accessToken, refreshToken, user);
 
-            // save user registration tokens to mongodb
-            vn.fptu.reasbe.model.mongodb.User userM = userMService.findByRefId(user.getId());
-            if (userM != null) {
-                userM.setRegistrationTokens(dto.getRegistrationTokens());
-                userMService.saveUser(userM);
+            if (dto.getRegistrationTokens() != null && !dto.getRegistrationTokens().isEmpty()) {
+                // save user registration tokens to mongodb
+                vn.fptu.reasbe.model.mongodb.User userM = userMService.findByRefId(user.getId());
+                if (userM != null) {
+                    userM.setRegistrationTokens(dto.getRegistrationTokens());
+                    userMService.saveUser(userM);
+                } else {
+                    saveNewUserToMongoDb(dto.getRegistrationTokens(), user);
+                }
             }
 
             return new JWTAuthResponse(accessToken, refreshToken, user.getRole().getName());
@@ -131,14 +136,7 @@ public class AuthServiceImpl implements AuthService {
         user = userRepository.save(user);
 
         // save user to MongoDB
-        vn.fptu.reasbe.model.mongodb.User userM = vn.fptu.reasbe.model.mongodb.User.builder()
-                .refId(user.getId())
-                .userName(user.getUserName())
-                .fullName(user.getFullName())
-                .statusOnline(StatusOnline.OFFLINE)
-                .registrationTokens(request.getRegistrationTokens())
-                .build();
-        userMService.saveUser(userM);
+        saveNewUserToMongoDb(request.getRegistrationTokens(), user);
 
         // save user token
         String accessToken = jwtTokenProvider.generateAccessToken(user);
@@ -148,6 +146,17 @@ public class AuthServiceImpl implements AuthService {
         // send email to user
         sendMailToUser(user);
         return new JWTAuthResponse(accessToken, refreshToken, user.getRole().getName());
+    }
+
+    private void saveNewUserToMongoDb(List<String> registrationTokens, User user) {
+        vn.fptu.reasbe.model.mongodb.User userM = vn.fptu.reasbe.model.mongodb.User.builder()
+                .refId(user.getId())
+                .userName(user.getUserName())
+                .fullName(user.getFullName())
+                .statusOnline(StatusOnline.OFFLINE)
+                .registrationTokens(registrationTokens)
+                .build();
+        userMService.saveUser(userM);
     }
 
     @Override
@@ -171,7 +180,7 @@ public class AuthServiceImpl implements AuthService {
 
         userInfo = getGoogleUserData(googleAccessToken);
 
-        if (userInfo == null){
+        if (userInfo == null) {
             throw new ReasApiException(HttpStatus.BAD_REQUEST, "error.googleUserInfoNotFound");
         }
 
