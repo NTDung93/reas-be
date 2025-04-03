@@ -9,6 +9,8 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import vn.fptu.reasbe.model.constant.AppConstants;
 
+import java.util.List;
+
 @Getter
 @Setter
 @NoArgsConstructor
@@ -26,4 +28,13 @@ public class GoogleSignUpDto {
     private String googleId;
 
     private String photoUrl;
+
+    private List<String> registrationTokens;
+
+    public GoogleSignUpDto(String email, String fullName, String googleId, String photoUrl) {
+        this.email = email;
+        this.fullName = fullName;
+        this.googleId = googleId;
+        this.photoUrl = photoUrl;
+    }
 }

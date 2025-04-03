@@ -19,7 +19,6 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.test.util.ReflectionTestUtils;
 import vn.fptu.reasbe.model.constant.AppConstants;
 import vn.fptu.reasbe.model.dto.auth.JWTAuthResponse;
 import vn.fptu.reasbe.model.dto.auth.LoginDto;
@@ -99,11 +98,6 @@ class AuthServiceImplTest {
         // Prepare a dummy security context
         SecurityContext securityContext = mock(SecurityContext.class);
         SecurityContextHolder.setContext(securityContext);
-
-        // Set up @Value fields via ReflectionTestUtils
-        ReflectionTestUtils.setField(authService, "googleClientId", "myClientId");
-        ReflectionTestUtils.setField(authService, "googleClientSecret", "myClientSecret");
-        ReflectionTestUtils.setField(authService, "redirectUri", "http://localhost/redirect");
     }
 
     // --- Test for authenticateUser() ---
