@@ -5,6 +5,7 @@ import org.locationtech.jts.geom.Point;
 import org.springframework.ai.document.Document;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -38,14 +39,17 @@ import vn.fptu.reasbe.service.BrandService;
 import vn.fptu.reasbe.service.CategoryService;
 import vn.fptu.reasbe.service.ItemService;
 import vn.fptu.reasbe.service.UserService;
+import vn.fptu.reasbe.service.UserSubscriptionService;
 import vn.fptu.reasbe.service.VectorStoreService;
 import vn.fptu.reasbe.utils.common.DateUtils;
 import vn.fptu.reasbe.utils.common.GeometryUtils;
 import vn.fptu.reasbe.utils.mapper.DesiredItemMapper;
 import vn.fptu.reasbe.utils.mapper.ItemMapper;
 
+import java.time.LocalDateTime;
+import java.time.Month;
+import java.time.temporal.TemporalAdjusters;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -71,6 +75,7 @@ public class ItemServiceImpl implements ItemService {
     private final VectorStoreService vectorStoreService;
     private final ItemRepository itemRepository;
     private final DesiredItemRepository desiredItemRepository;
+    private final UserSubscriptionService userSubscriptionService;
     private final ItemMapper itemMapper;
     private final DesiredItemMapper desiredItemMapper;
 
@@ -118,6 +123,8 @@ public class ItemServiceImpl implements ItemService {
     @Override
     public Item uploadItem(UploadItemRequest request) {
         User currentUser = authService.getCurrentUser();
+
+        validateMaxItemUploadedInCurrentMonth(currentUser);
 
         Item newItem = itemMapper.toEntity(request);
         newItem.setCategory(categoryService.getCategoryById(request.getCategoryId()));
@@ -202,7 +209,9 @@ public class ItemServiceImpl implements ItemService {
         if (status.equals(StatusItem.AVAILABLE)) {
             pendingItem.setStatusItem(StatusItem.AVAILABLE);
             pendingItem.setApprovedTime(DateUtils.getCurrentDateTime().toLocalDate().atStartOfDay());
-            pendingItem.setExpiredTime(pendingItem.getApprovedTime().plusWeeks(AppConstants.EXPIRED_TIME_WEEKS));
+
+            int expiredTime = userSubscriptionService.checkIfUserPremium(pendingItem.getOwner()) ? AppConstants.EXPIRED_TIME_WEEKS_PREMIUM : AppConstants.EXPIRED_TIME_WEEKS;
+            pendingItem.setExpiredTime(pendingItem.getApprovedTime().plusWeeks(expiredTime));
 
             vectorStoreService.addNewItem(List.of(pendingItem));
 
@@ -299,7 +308,7 @@ public class ItemServiceImpl implements ItemService {
     }
 
     @Override
-    public List<ItemResponse> findNearbyItems(double latitude, double longitude, double distance) {
+    public BaseSearchPaginationResponse<ItemResponse> findNearbyItems(int pageNo, int pageSize, double latitude, double longitude, double distance) {
         Point refPoint = GeometryUtils.createPoint(longitude, latitude);
         double distanceInMeters = distance * 1000;
 
@@ -309,14 +318,14 @@ public class ItemServiceImpl implements ItemService {
 
         // Kiểm tra nếu response không có hàng hoặc không có elements, trả về danh sách rỗng
         if (response.getRows().isEmpty()) {
-            return Collections.emptyList();
+            return BaseSearchPaginationResponse.of(Page.empty());
         }
 
         List<DistanceMatrixResponse.Element> elements = response.getRows().getFirst().getElements();
 
         // Kiểm tra nếu số lượng elements không khớp với số lượng items
         if (elements.size() != items.size()) {
-            return Collections.emptyList();
+            return BaseSearchPaginationResponse.of(Page.empty());
         }
 
         // Ánh xạ từng Item với kết quả tương ứng từ API và giữ đúng thứ tự với LinkedHashMap
@@ -326,10 +335,20 @@ public class ItemServiceImpl implements ItemService {
         }
 
         // Lọc các item theo khoảng cách mong muốn
-        return itemDistanceMap.entrySet().stream()
+        List<ItemResponse> filteredItems = itemDistanceMap.entrySet().stream()
                 .filter(entry -> entry.getValue().getDistance().getValue() <= distanceInMeters)
-                .map(entry -> itemMapper.toItemResponse(entry.getKey()))
+                .map(entry -> {
+                    ItemResponse itemResponse = itemMapper.toItemResponse(entry.getKey());
+                    itemResponse.setDistance(entry.getValue().getDistance().getText());
+                    return itemResponse;
+                })
                 .toList();
+
+        Pageable pageable = PageRequest.of(pageNo, pageSize);
+        int startIndex = (int) pageable.getOffset();
+        int endIndex = Math.min(startIndex + pageable.getPageSize(), filteredItems.size());
+        List<ItemResponse> pagedList = filteredItems.subList(startIndex, endIndex);
+        return BaseSearchPaginationResponse.of(new PageImpl<>(pagedList, pageable, filteredItems.size()));
     }
 
     public DistanceMatrixResponse getDistanceMatrix(double originLat, double originLng, List<Item> items) {
@@ -360,6 +379,20 @@ public class ItemServiceImpl implements ItemService {
         expiredItems.forEach(expiredItem -> expiredItem.setStatusItem(StatusItem.EXPIRED));
         itemRepository.saveAll(expiredItems);
         log.info("Updated {} expired items", expiredItems.size());
+    }
+
+    private void validateMaxItemUploadedInCurrentMonth(User currentUser) {
+        LocalDateTime firstDayOfMonth = LocalDateTime.of(DateUtils.getCurrentYear(), Month.of(DateUtils.getCurrentMonth()), 1, 0, 0, 0);
+        LocalDateTime lastDayOfMonth = firstDayOfMonth.with(TemporalAdjusters.lastDayOfMonth());
+
+        int countItem = itemRepository.countByOwnerAndStatusItemInAndCreationDateBetween(
+                currentUser, List.of(StatusItem.UNAVAILABLE, StatusItem.PENDING, StatusItem.AVAILABLE), firstDayOfMonth, lastDayOfMonth);
+
+        int maximumItem = userSubscriptionService.checkIfUserPremium(currentUser) ? AppConstants.MAX_ITEM_UPLOADED_PREMIUM : AppConstants.MAX_ITEM_UPLOADED;
+
+        if (countItem >= maximumItem) {
+            throw new ReasApiException(HttpStatus.BAD_REQUEST, "error.itemUploadAtMax");
+        }
     }
 
     private Page<Item> getAllItemByUserIdAndStatusItem(Integer userId, StatusItem statusItem, Pageable pageable) {

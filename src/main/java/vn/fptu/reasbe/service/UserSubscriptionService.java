@@ -1,6 +1,7 @@
 package vn.fptu.reasbe.service;
 
 import vn.fptu.reasbe.model.entity.PaymentHistory;
+import vn.fptu.reasbe.model.entity.User;
 import vn.fptu.reasbe.model.entity.UserSubscription;
 
 /**
@@ -9,4 +10,6 @@ import vn.fptu.reasbe.model.entity.UserSubscription;
  */
 public interface UserSubscriptionService {
     UserSubscription createUserSubscription(Integer subscriptionPlanId, PaymentHistory paymentHistory);
+
+    boolean checkIfUserPremium(User user);
 }

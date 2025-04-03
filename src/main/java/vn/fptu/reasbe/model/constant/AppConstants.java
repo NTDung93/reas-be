@@ -22,6 +22,9 @@ public class AppConstants {
 
     //item
     public static final int EXPIRED_TIME_WEEKS = 2;
+    public static final int EXPIRED_TIME_WEEKS_PREMIUM = 6;
+    public static final int MAX_ITEM_UPLOADED = 5;
+    public static final int MAX_ITEM_UPLOADED_PREMIUM = 20;
     public static final String LIST_ITEM_LIMIT = "5";
 
     //exchange

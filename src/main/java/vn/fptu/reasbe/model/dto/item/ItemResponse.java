@@ -43,4 +43,5 @@ public class ItemResponse {
     DesiredItemResponse desiredItem;
     UserLocationDto userLocation;
     boolean isFavorite;
+    String distance;
 }

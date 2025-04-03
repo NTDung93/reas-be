@@ -138,11 +138,13 @@ public class ItemController {
     }
 
     @GetMapping("/nearby")
-    public ResponseEntity<List<ItemResponse>> findNearbyItems(
+    public ResponseEntity<BaseSearchPaginationResponse<ItemResponse>> findNearbyItems(
+            @RequestParam(name = "pageNo", defaultValue = AppConstants.DEFAULT_PAGE_NUMBER, required = false) int pageNo,
+            @RequestParam(name = "pageSize", defaultValue = AppConstants.DEFAULT_PAGE_SIZE, required = false) int pageSize,
             @RequestParam double latitude,
             @RequestParam double longitude,
             @RequestParam double distance
     ) {
-        return ResponseEntity.ok(itemService.findNearbyItems(latitude, longitude, distance));
+        return ResponseEntity.ok(itemService.findNearbyItems(pageNo, pageSize, latitude, longitude, distance));
     }
 }

@@ -44,5 +44,5 @@ public interface ItemService {
 
     ItemResponse changeItemStatus(Integer itemId, StatusItem status);
 
-    List<ItemResponse> findNearbyItems(double latitude, double longitude, double distance);
+    BaseSearchPaginationResponse<ItemResponse> findNearbyItems(int pageNo, int pageSize, double latitude, double longitude, double distance);
 }

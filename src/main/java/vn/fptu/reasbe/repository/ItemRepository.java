@@ -9,6 +9,7 @@ import org.springframework.data.querydsl.QuerydslPredicateExecutor;
 
 import org.springframework.data.repository.query.Param;
 import vn.fptu.reasbe.model.entity.Item;
+import vn.fptu.reasbe.model.entity.User;
 import vn.fptu.reasbe.model.enums.item.StatusItem;
 import vn.fptu.reasbe.repository.custom.ItemRepositoryCustom;
 
@@ -41,4 +42,6 @@ public interface ItemRepository extends JpaRepository<Item, Integer>, QuerydslPr
     List<Item> findNearbyItems(@Param("referencePoint") Point referencePoint,
                                @Param("distance") double distance,
                                @Param("statusItem") String statusItem);
+
+    Integer countByOwnerAndStatusItemInAndCreationDateBetween(User user, List<StatusItem> statusItems, LocalDateTime from, LocalDateTime to);
 }

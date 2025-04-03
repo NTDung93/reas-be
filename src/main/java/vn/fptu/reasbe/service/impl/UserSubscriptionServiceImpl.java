@@ -8,10 +8,12 @@ import vn.fptu.reasbe.model.entity.PaymentHistory;
 import vn.fptu.reasbe.model.entity.SubscriptionPlan;
 import vn.fptu.reasbe.model.entity.User;
 import vn.fptu.reasbe.model.entity.UserSubscription;
+import vn.fptu.reasbe.model.enums.subscriptionplan.TypeSubscriptionPlan;
 import vn.fptu.reasbe.repository.UserSubscriptionRepository;
 import vn.fptu.reasbe.service.AuthService;
 import vn.fptu.reasbe.service.SubscriptionPlanService;
 import vn.fptu.reasbe.service.UserSubscriptionService;
+import vn.fptu.reasbe.utils.common.DateUtils;
 
 /**
  *
@@ -41,5 +43,11 @@ public class UserSubscriptionServiceImpl implements UserSubscriptionService {
                 .build();
 
         return userSubscriptionRepository.save(userSubscription);
+    }
+
+    @Override
+    public boolean checkIfUserPremium(User user) {
+        return userSubscriptionRepository.existsByUserAndSubscriptionPlan_TypeSubscriptionPlanAndStartDateLessThanEqualAndEndDateGreaterThanEqual(
+                user, TypeSubscriptionPlan.PREMIUM_PLAN, DateUtils.getCurrentDateTime(), DateUtils.getCurrentDateTime());
     }
 }
