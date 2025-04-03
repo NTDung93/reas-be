@@ -6,6 +6,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import vn.fptu.reasbe.model.constant.AppConstants;
+import vn.fptu.reasbe.model.dto.auth.GoogleSignUpDto;
 import vn.fptu.reasbe.model.dto.auth.JWTAuthResponse;
 import vn.fptu.reasbe.model.dto.auth.LoginDto;
 import vn.fptu.reasbe.model.dto.auth.PasswordChangeRequest;
@@ -47,14 +48,9 @@ public class AuthController {
         return ResponseEntity.ok(authService.validateAndSendOtp(signupDto));
     }
 
-    @PostMapping("/oauth2/login")
-    public ResponseEntity<String> handleGoogleLogin() {
-        return ResponseEntity.ok(authService.getGoogleLoginUrl());
-    }
-
-    @GetMapping("/oauth2/callback")
-    public ResponseEntity<JWTAuthResponse> handleGoogleCallback(@RequestParam("code") String code) {
-        JWTAuthResponse tokenResponse = authService.authenticateGoogleUser(code);
+    @PostMapping("/oauth2/authenticate")
+    public ResponseEntity<JWTAuthResponse> authenticateGoogleUser(@Valid @RequestBody GoogleSignUpDto signupDto) {
+        JWTAuthResponse tokenResponse = authService.authenticateGoogleUser(signupDto);
         headers.add(AppConstants.AUTH_ATTR_NAME, AppConstants.AUTH_VALUE_PREFIX + tokenResponse.getAccessToken());
         return ResponseEntity.ok(tokenResponse);
     }
