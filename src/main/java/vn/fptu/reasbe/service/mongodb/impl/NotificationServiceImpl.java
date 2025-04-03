@@ -2,6 +2,7 @@ package vn.fptu.reasbe.service.mongodb.impl;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.log4j.Logger;
 import org.springframework.stereotype.Service;
@@ -43,6 +44,8 @@ public class NotificationServiceImpl implements NotificationService {
                 .setTitle(notification.getContentType())
                 .setBody(notification.getContent())
                 .build();
+
+        notification.setData(Map.of("key1", "value1"));
 
         MulticastMessage message = MulticastMessage.builder()
                 .addAllTokens(registrationTokens)

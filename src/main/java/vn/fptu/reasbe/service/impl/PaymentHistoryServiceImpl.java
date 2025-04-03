@@ -10,6 +10,9 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import vn.fptu.reasbe.model.dto.core.BaseSearchPaginationResponse;
+import vn.fptu.reasbe.model.dto.paymenthistory.PaymentHistoryDto;
+import vn.fptu.reasbe.model.dto.paymenthistory.SearchPaymentHistoryRequest;
 import vn.fptu.reasbe.model.entity.PaymentHistory;
 import vn.fptu.reasbe.model.enums.payment.MethodPayment;
 import vn.fptu.reasbe.model.enums.payment.StatusPayment;
@@ -17,8 +20,10 @@ import vn.fptu.reasbe.model.exception.PayOSException;
 import vn.fptu.reasbe.model.exception.ResourceNotFoundException;
 import vn.fptu.reasbe.repository.PaymentHistoryRepository;
 import vn.fptu.reasbe.service.PaymentHistoryService;
+import vn.fptu.reasbe.service.UserService;
 import vn.fptu.reasbe.service.UserSubscriptionService;
 import vn.fptu.reasbe.utils.common.PaymentCodeHelper;
+import vn.fptu.reasbe.utils.mapper.PaymentHistoryMapper;
 import vn.payos.PayOS;
 import vn.payos.type.Webhook;
 import vn.payos.type.WebhookData;
@@ -35,6 +40,27 @@ public class PaymentHistoryServiceImpl implements PaymentHistoryService {
     private final PayOS payOS;
     private final PaymentHistoryRepository paymentHistoryRepository;
     private final UserSubscriptionService userSubscriptionService;
+    private final PaymentHistoryMapper paymentHistoryMapper;
+    private final UserService userService;
+
+    @Override
+    public BaseSearchPaginationResponse<PaymentHistoryDto> searchPaymentHistoryPagination(int pageNo, int pageSize, String sortBy, String sortDir, SearchPaymentHistoryRequest request) {
+        return BaseSearchPaginationResponse.of(paymentHistoryRepository.searchPaymentHistoryPagination(request, BaseSearchPaginationResponse.getPageable(pageNo, pageSize, sortBy, sortDir))
+                .map(paymentHistoryMapper::toDto));
+    }
+
+    @Override
+    public BaseSearchPaginationResponse<PaymentHistoryDto> searchPaymentHistoryOfUserPagination(int pageNo, int pageSize, String sortBy, String sortDir, SearchPaymentHistoryRequest request, Integer userId) {
+        if (userService.getUserById(userId) != null) {
+            if (request == null) {
+                request = new SearchPaymentHistoryRequest();
+            }
+            request.setUserId(userId);
+            return BaseSearchPaginationResponse.of(paymentHistoryRepository.searchPaymentHistoryPagination(request, BaseSearchPaginationResponse.getPageable(pageNo, pageSize, sortBy, sortDir))
+                    .map(paymentHistoryMapper::toDto));
+        }
+        return null;
+    }
 
     @Override
     public void payOsTransferHandler(ObjectNode body) {

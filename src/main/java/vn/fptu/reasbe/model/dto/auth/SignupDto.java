@@ -30,4 +30,10 @@ public class SignupDto {
     private String fullName;
 
     private List<String> registrationTokens;
+
+    public SignupDto(String email, String password, String fullName) {
+        this.email = email;
+        this.password = password;
+        this.fullName = fullName;
+    }
 }
