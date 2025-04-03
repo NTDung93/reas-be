@@ -14,6 +14,7 @@ import vn.fptu.reasbe.model.dto.subscriptionplan.SearchSubscriptionPlanRequest;
 import vn.fptu.reasbe.model.dto.subscriptionplan.SubscriptionPlanDto;
 import vn.fptu.reasbe.model.entity.SubscriptionPlan;
 import vn.fptu.reasbe.model.enums.core.StatusEntity;
+import vn.fptu.reasbe.model.enums.subscriptionplan.TypeSubscriptionPlan;
 import vn.fptu.reasbe.model.exception.ReasApiException;
 import vn.fptu.reasbe.model.exception.ResourceNotFoundException;
 import vn.fptu.reasbe.repository.SubscriptionPlanRepository;
@@ -77,6 +78,12 @@ public class SubscriptionPlanServiceImpl implements SubscriptionPlanService {
         subscriptionPlan.setStatusEntity(StatusEntity.INACTIVE);
         subscriptionPlanRepository.save(subscriptionPlan);
         return true;
+    }
+
+    @Override
+    public SubscriptionPlan getSubscriptionPlanTypeExtension() {
+        return subscriptionPlanRepository.findSubscriptionPlanByTypeSubscriptionPlanAndStatusEntity(TypeSubscriptionPlan.ITEM_EXTENSION, StatusEntity.ACTIVE)
+                .orElseThrow(() -> new ResourceNotFoundException("error.subscriptionPlan.notFound"));
     }
 
     private void validateCreateSubscriptionPlanRequest(SubscriptionPlanDto request){

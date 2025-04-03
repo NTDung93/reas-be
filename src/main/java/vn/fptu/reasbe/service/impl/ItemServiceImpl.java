@@ -22,7 +22,9 @@ import vn.fptu.reasbe.model.dto.item.UpdateItemRequest;
 import vn.fptu.reasbe.model.dto.item.UploadItemRequest;
 import vn.fptu.reasbe.model.entity.DesiredItem;
 import vn.fptu.reasbe.model.entity.Item;
+import vn.fptu.reasbe.model.entity.SubscriptionPlan;
 import vn.fptu.reasbe.model.entity.User;
+import vn.fptu.reasbe.model.enums.core.StatusEntity;
 import vn.fptu.reasbe.model.enums.item.StatusItem;
 import vn.fptu.reasbe.model.enums.item.TypeExchange;
 import vn.fptu.reasbe.model.exception.ReasApiException;
@@ -282,6 +284,18 @@ public class ItemServiceImpl implements ItemService {
         item.setStatusItem(status);
 
         return itemMapper.toItemResponse(itemRepository.save(item));
+    }
+
+    @Override
+    public boolean isItemExistedAndExpired(Integer itemId) {
+        return itemRepository.existsByIdAndStatusItemEqualsAndStatusEntityEquals(itemId, StatusItem.AVAILABLE, StatusEntity.ACTIVE);
+    }
+
+    @Override
+    public void extendItem(Item item, SubscriptionPlan plan) {
+        item.setStatusItem(StatusItem.AVAILABLE);
+        item.setExpiredTime(DateUtils.getCurrentDateTime().plusSeconds((long) (plan.getDuration() * 24 * 60 * 60)));
+        itemRepository.save(item);
     }
 
     @Scheduled(cron = "0 0 0 * * *", zone = "Asia/Ho_Chi_Minh")

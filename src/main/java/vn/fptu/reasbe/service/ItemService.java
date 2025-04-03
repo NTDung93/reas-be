@@ -8,6 +8,7 @@ import vn.fptu.reasbe.model.dto.item.SearchItemResponse;
 import vn.fptu.reasbe.model.dto.item.UpdateItemRequest;
 import vn.fptu.reasbe.model.dto.item.UploadItemRequest;
 import vn.fptu.reasbe.model.entity.Item;
+import vn.fptu.reasbe.model.entity.SubscriptionPlan;
 import vn.fptu.reasbe.model.enums.item.StatusItem;
 
 import java.util.List;
@@ -43,4 +44,8 @@ public interface ItemService {
     List<ItemResponse> getOtherItemsOfUser(Integer itemId, Integer userId, int limit);
 
     ItemResponse changeItemStatus(Integer itemId, StatusItem status);
+
+    boolean isItemExistedAndExpired(Integer itemId);
+
+    void extendItem(Item item, SubscriptionPlan plan);
 }

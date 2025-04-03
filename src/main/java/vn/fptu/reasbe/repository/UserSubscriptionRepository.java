@@ -1,12 +1,19 @@
 package vn.fptu.reasbe.repository;
 
+import java.time.LocalDateTime;
+
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import vn.fptu.reasbe.model.entity.UserSubscription;
+import vn.fptu.reasbe.model.enums.core.StatusEntity;
+import vn.fptu.reasbe.model.enums.payment.StatusPayment;
+import vn.fptu.reasbe.model.enums.subscriptionplan.TypeSubscriptionPlan;
 
 /**
  *
  * @author dungnguyen
  */
 public interface UserSubscriptionRepository extends JpaRepository<UserSubscription, Long> {
+    UserSubscription findByUserIdAndSubscriptionPlan_TypeSubscriptionPlanAndEndDateIsAfterAndPaymentHistory_StatusPaymentAndStatusEntity(
+            Integer userId, TypeSubscriptionPlan typeSubscriptionPlan, LocalDateTime currentTime, StatusPayment statusPayment, StatusEntity statusEntity);
 }
