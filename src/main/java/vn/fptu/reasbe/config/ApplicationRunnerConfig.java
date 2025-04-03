@@ -24,16 +24,14 @@ public class ApplicationRunnerConfig {
     @Bean
     public ApplicationRunner applicationRunner() {
         return args -> {
-            List<Item> items = itemRepository.findAllByStatusItem(StatusItem.AVAILABLE);
+            List<Item> items = itemRepository.findAllByStatus(StatusItem.AVAILABLE);
             vectorStoreService.addNewItem(items);
-            List<UserLocation> userLocations = userLocationRepository.findAll();
 
+            List<UserLocation> userLocations = userLocationRepository.findAllByPointNull();
             for (UserLocation userLocation : userLocations) {
-                if (userLocation.getPoint() == null) {
-                    userLocation.setPoint(GeometryUtils.createPoint(userLocation.getLongitude(), userLocation.getLatitude()));
-                    userLocationRepository.save(userLocation);
-                }
+                userLocation.setPoint(GeometryUtils.createPoint(userLocation.getLongitude(), userLocation.getLatitude()));
             }
+            userLocationRepository.saveAll(userLocations);
         };
     }
 }

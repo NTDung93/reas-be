@@ -65,10 +65,4 @@ public class UserSubscriptionServiceImpl implements UserSubscriptionService {
             return null;
         }
     }
-
-    @Override
-    public boolean checkIfUserPremium(User user) {
-        return userSubscriptionRepository.existsByUserAndSubscriptionPlan_TypeSubscriptionPlanAndStartDateLessThanEqualAndEndDateGreaterThanEqual(
-                user, TypeSubscriptionPlan.PREMIUM_PLAN, DateUtils.getCurrentDateTime(), DateUtils.getCurrentDateTime());
-    }
 }

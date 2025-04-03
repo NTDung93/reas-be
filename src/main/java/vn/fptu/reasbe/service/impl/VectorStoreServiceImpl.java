@@ -26,7 +26,7 @@ public class VectorStoreServiceImpl implements VectorStoreService {
         for (Item item : items) {
 
             if (existItem(item.getId())) {
-                continue; // Bỏ qua nếu đã tồn tại trong vector database
+                continue;
             }
 
             Document newItemDocs = new Document(prepareItemContent(item),
@@ -73,9 +73,9 @@ public class VectorStoreServiceImpl implements VectorStoreService {
 
         List<Document> documents = vectorStore.similaritySearch(
                 SearchRequest.builder()
-                        .query(filter) // Dummy query vì ta dùng filter để tìm
+                        .query(filter) // Dummy query
                         .filterExpression(filter)
-                        .topK(1) // Chỉ cần kiểm tra xem có ít nhất 1 item hay không
+                        .topK(1)
                         .build()
         );
 

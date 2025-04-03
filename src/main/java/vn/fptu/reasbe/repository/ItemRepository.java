@@ -26,9 +26,7 @@ public interface ItemRepository extends JpaRepository<Item, Integer>, QuerydslPr
 
     Page<Item> findAllByOwnerIdAndStatusItemOrderByCreationDateDesc(Integer ownerId, StatusItem statusItem, Pageable pageable);
 
-    List<Item> findAllByExpiredTimeBeforeAndStatusItem(LocalDateTime currDateTime, StatusItem statusItem);
-
-    List<Item> findAllByStatusItem(StatusItem statusItem);
+    List<Item> findAllByExpiredTimeBeforeAndStatusItemAndStatusEntity(LocalDateTime currDateTime, StatusItem statusItem, StatusEntity statusEntity);
 
     List<Item> findByStatusItemAndOwnerIdAndIdNotOrderByApprovedTimeDesc(StatusItem statusItem, Integer ownerId, Integer itemId, Pageable pageable);
 
