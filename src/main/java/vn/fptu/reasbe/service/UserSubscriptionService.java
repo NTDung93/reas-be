@@ -16,7 +16,5 @@ public interface UserSubscriptionService {
 
     UserSubscriptionDto getUserCurrentSubscription();
 
-    UserSubscription createUserSubscription(Integer subscriptionPlanId, PaymentHistory paymentHistory);
-
     boolean checkIfUserPremium(User user);
 }
