@@ -288,7 +288,7 @@ public class ItemServiceImpl implements ItemService {
 
     @Override
     public boolean isItemExistedAndExpired(Integer itemId) {
-        return itemRepository.existsByIdAndStatusItemEqualsAndStatusEntityEquals(itemId, StatusItem.AVAILABLE, StatusEntity.ACTIVE);
+        return itemRepository.existsByIdAndStatusItemEqualsAndStatusEntityEquals(itemId, StatusItem.EXPIRED, StatusEntity.ACTIVE);
     }
 
     @Override
