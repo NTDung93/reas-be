@@ -35,4 +35,5 @@ public class UserResponse {
     RoleName roleName;
     LocalDateTime creationDate;
     List<UserLocationDto> userLocations;
+    boolean isFirstLogin;
 }

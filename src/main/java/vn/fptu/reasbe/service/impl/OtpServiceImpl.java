@@ -29,7 +29,7 @@ public class OtpServiceImpl implements OtpService {
     }
 
     private String generateOtp() {
-        int otp = 100000 + secureRandom.nextInt(900000); // Random số từ 100000 đến 999999
+        int otp = 100000 + secureRandom.nextInt(900000);
         return String.valueOf(otp);
     }
 }

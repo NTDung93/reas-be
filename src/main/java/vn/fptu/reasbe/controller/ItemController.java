@@ -136,4 +136,15 @@ public class ItemController {
     public ResponseEntity<ItemResponse> changeItemStatus(@RequestParam Integer itemId, @RequestParam StatusItem statusItem) {
         return ResponseEntity.ok(itemService.changeItemStatus(itemId, statusItem));
     }
+
+    @GetMapping("/nearby")
+    public ResponseEntity<BaseSearchPaginationResponse<ItemResponse>> findNearbyItems(
+            @RequestParam(name = "pageNo", defaultValue = AppConstants.DEFAULT_PAGE_NUMBER, required = false) int pageNo,
+            @RequestParam(name = "pageSize", defaultValue = AppConstants.DEFAULT_PAGE_SIZE, required = false) int pageSize,
+            @RequestParam double latitude,
+            @RequestParam double longitude,
+            @RequestParam double distance
+    ) {
+        return ResponseEntity.ok(itemService.findNearbyItems(pageNo, pageSize, latitude, longitude, distance));
+    }
 }

@@ -5,6 +5,9 @@ import org.springframework.data.domain.Pageable;
 
 import vn.fptu.reasbe.model.dto.item.SearchItemRequest;
 import vn.fptu.reasbe.model.entity.Item;
+import vn.fptu.reasbe.model.enums.item.StatusItem;
+
+import java.util.List;
 
 /**
  *
@@ -12,4 +15,5 @@ import vn.fptu.reasbe.model.entity.Item;
  */
 public interface ItemRepositoryCustom {
     Page<Item> searchItemPagination(SearchItemRequest request, Pageable pageable);
+    List<Item> findAllByStatus(StatusItem statusItem);
 }

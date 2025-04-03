@@ -2,6 +2,7 @@ package vn.fptu.reasbe.service;
 
 import org.springframework.http.ResponseEntity;
 
+import vn.fptu.reasbe.model.dto.auth.GoogleSignUpDto;
 import vn.fptu.reasbe.model.dto.auth.JWTAuthResponse;
 import vn.fptu.reasbe.model.dto.auth.LoginDto;
 import vn.fptu.reasbe.model.dto.auth.SignupDto;
@@ -17,9 +18,7 @@ public interface AuthService {
 
     JWTAuthResponse signupVerifiedUser(SignupDto signupDto);
 
-    String getGoogleLoginUrl();
-
-    JWTAuthResponse authenticateGoogleUser(String code);
+    JWTAuthResponse authenticateGoogleUser(GoogleSignUpDto googleSignUpDto);
 
     User getCurrentUser();
 

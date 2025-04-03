@@ -2,6 +2,8 @@ package vn.fptu.reasbe.utils.common;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.Month;
+import java.time.temporal.TemporalAdjusters;
 
 import org.apache.commons.lang3.Validate;
 
@@ -71,5 +73,17 @@ public abstract class DateUtils {
         }
 
         return (dateFirst.isBefore(dateSecond) || dateFirst.equals(dateSecond));
+    }
+
+    public static LocalDateTime getStartOfCurrentDay() {
+        return getCurrentDate().atStartOfDay();
+    }
+
+    public static LocalDateTime getFirstDayOfCurrentMonth() {
+        return LocalDateTime.of(getCurrentYear(), Month.of(getCurrentMonth()), 1, 0, 0, 0);
+    }
+
+    public static LocalDateTime getLastDayOfCurrentMonth() {
+       return getFirstDayOfCurrentMonth().with(TemporalAdjusters.lastDayOfMonth());
     }
 }

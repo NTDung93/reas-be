@@ -11,5 +11,6 @@ import vn.fptu.reasbe.model.entity.SubscriptionPlan;
  */
 public interface UserSubscriptionService {
     void createUserSubscription(SubscriptionPlan plan, Item item, PaymentHistory paymentHistory);
+
     UserSubscriptionDto getUserCurrentSubscription();
 }

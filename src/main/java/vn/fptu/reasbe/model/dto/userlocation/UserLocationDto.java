@@ -21,6 +21,8 @@ public class UserLocationDto {
     Integer id;
     Integer userId;
     String specificAddress;
+    double latitude;
+    double longitude;
     boolean isPrimary;
     LocationDto location;
 }

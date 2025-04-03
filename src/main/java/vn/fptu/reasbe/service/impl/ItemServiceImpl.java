@@ -1,8 +1,11 @@
 package vn.fptu.reasbe.service.impl;
 
 import lombok.extern.slf4j.Slf4j;
+import org.locationtech.jts.geom.Point;
 import org.springframework.ai.document.Document;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -12,9 +15,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.web.client.RestTemplate;
 import vn.fptu.reasbe.model.constant.AppConstants;
 import vn.fptu.reasbe.model.dto.core.BaseSearchPaginationResponse;
 import vn.fptu.reasbe.model.dto.desireditem.DesiredItemDto;
+import vn.fptu.reasbe.model.dto.goongio.DistanceMatrixResponse;
 import vn.fptu.reasbe.model.dto.item.ItemResponse;
 import vn.fptu.reasbe.model.dto.item.SearchItemRequest;
 import vn.fptu.reasbe.model.dto.item.SearchItemResponse;
@@ -36,11 +41,14 @@ import vn.fptu.reasbe.service.BrandService;
 import vn.fptu.reasbe.service.CategoryService;
 import vn.fptu.reasbe.service.ItemService;
 import vn.fptu.reasbe.service.UserService;
+import vn.fptu.reasbe.service.UserSubscriptionService;
 import vn.fptu.reasbe.service.VectorStoreService;
 import vn.fptu.reasbe.utils.common.DateUtils;
+import vn.fptu.reasbe.utils.common.GeometryUtils;
 import vn.fptu.reasbe.utils.mapper.DesiredItemMapper;
 import vn.fptu.reasbe.utils.mapper.ItemMapper;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -60,6 +68,15 @@ import static vn.fptu.reasbe.model.dto.core.BaseSearchPaginationResponse.getPage
 @Transactional
 @RequiredArgsConstructor
 public class ItemServiceImpl implements ItemService {
+
+    @Value("${goongio.config.api-key}")
+    private String GOONGIO_API_KEY;
+
+    @Value("${goongio.config.distance-matrix-url}")
+    private String GOONGIO_DISTANCE_MATRIX_URL;
+
+    private final RestTemplate restTemplate = new RestTemplate();
+
     private final CategoryService categoryService;
     private final BrandService brandService;
     private final UserService userService;
@@ -67,6 +84,7 @@ public class ItemServiceImpl implements ItemService {
     private final VectorStoreService vectorStoreService;
     private final ItemRepository itemRepository;
     private final DesiredItemRepository desiredItemRepository;
+    private final UserSubscriptionService userSubscriptionService;
     private final ItemMapper itemMapper;
     private final DesiredItemMapper desiredItemMapper;
 
@@ -106,6 +124,8 @@ public class ItemServiceImpl implements ItemService {
     @Override
     public Item uploadItem(UploadItemRequest request) {
         User currentUser = authService.getCurrentUser();
+
+        validateMaxItemUploadedInCurrentMonth(currentUser);
 
         Item newItem = itemMapper.toEntity(request);
         newItem.setCategory(categoryService.getCategoryById(request.getCategoryId()));
@@ -189,8 +209,10 @@ public class ItemServiceImpl implements ItemService {
 
         if (status.equals(StatusItem.AVAILABLE)) {
             pendingItem.setStatusItem(StatusItem.AVAILABLE);
-            pendingItem.setApprovedTime(DateUtils.getCurrentDateTime().toLocalDate().atStartOfDay());
-            pendingItem.setExpiredTime(pendingItem.getApprovedTime().plusWeeks(AppConstants.EXPIRED_TIME_WEEKS));
+            pendingItem.setApprovedTime(DateUtils.getStartOfCurrentDay());
+
+            int expiredTime = userSubscriptionService.getUserCurrentSubscription() != null ? AppConstants.EXPIRED_TIME_WEEKS_PREMIUM : AppConstants.EXPIRED_TIME_WEEKS;
+            pendingItem.setExpiredTime(pendingItem.getApprovedTime().plusWeeks(expiredTime));
 
             vectorStoreService.addNewItem(List.of(pendingItem));
 
@@ -298,12 +320,90 @@ public class ItemServiceImpl implements ItemService {
         itemRepository.save(item);
     }
 
+    @Override
+    public BaseSearchPaginationResponse<ItemResponse> findNearbyItems(int pageNo, int pageSize, double latitude, double longitude, double distance) {
+        Point refPoint = GeometryUtils.createPoint(longitude, latitude);
+        double distanceInMeters = distance * 1000;
+
+        List<Item> items = itemRepository.findNearbyItems(refPoint, distanceInMeters, StatusItem.AVAILABLE.getCode());
+
+        DistanceMatrixResponse response = getDistanceMatrix(latitude, longitude, items);
+
+        if (response.getRows().isEmpty()) {
+            return BaseSearchPaginationResponse.of(Page.empty());
+        }
+
+        List<DistanceMatrixResponse.Element> elements = response.getRows().getFirst().getElements();
+
+        //Check if elements size match item size
+        if (elements.size() != items.size()) {
+            return BaseSearchPaginationResponse.of(Page.empty());
+        }
+
+        // Map each item with the corresponding result from the API and keep the correct order with LinkedHashMap
+        Map<Item, DistanceMatrixResponse.Element> itemDistanceMap = new LinkedHashMap<>();
+        for (int i = 0; i < items.size(); i++) {
+            itemDistanceMap.put(items.get(i), elements.get(i));
+        }
+
+        // filter by distance
+        List<ItemResponse> filteredItems = itemDistanceMap.entrySet().stream()
+                .filter(entry -> entry.getValue().getDistance().getValue() <= distanceInMeters)
+                .map(entry -> {
+                    ItemResponse itemResponse = itemMapper.toItemResponse(entry.getKey());
+                    itemResponse.setDistance(entry.getValue().getDistance().getText());
+                    return itemResponse;
+                })
+                .toList();
+
+        Pageable pageable = PageRequest.of(pageNo, pageSize);
+        int startIndex = (int) pageable.getOffset();
+        int endIndex = Math.min(startIndex + pageable.getPageSize(), filteredItems.size());
+        List<ItemResponse> pagedList = filteredItems.subList(startIndex, endIndex);
+        return BaseSearchPaginationResponse.of(new PageImpl<>(pagedList, pageable, filteredItems.size()));
+    }
+
+    public DistanceMatrixResponse getDistanceMatrix(double originLat, double originLng, List<Item> items) {
+        String destinations = items.stream()
+                .map(item -> item.getUserLocation().getLatitude() + "," + item.getUserLocation().getLongitude())
+                .collect(Collectors.joining("|"));
+
+        // Build the URL with parameters
+        String url = GOONGIO_DISTANCE_MATRIX_URL +
+                "?origins=" + originLat + "," + originLng +
+                "&destinations=" + destinations +
+                "&vehicle=" + "car" +
+                "&api_key=" + GOONGIO_API_KEY;
+
+        //Calling API
+        DistanceMatrixResponse response = restTemplate.getForObject(url, DistanceMatrixResponse.class);
+        if (response == null) {
+            throw new ReasApiException(HttpStatus.BAD_REQUEST, "error.distanceMatrixAPIResponseNull");
+        }
+
+        return response;
+    }
+
     @Scheduled(cron = "0 0 0 * * *", zone = "Asia/Ho_Chi_Minh")
     public void checkExpiredItems() {
-        List<Item> expiredItems = itemRepository.findAllByExpiredTimeBeforeAndStatusItem(DateUtils.getCurrentDateTime(), StatusItem.AVAILABLE);
+        List<Item> expiredItems = itemRepository.findAllByExpiredTimeBeforeAndStatusItemAndStatusEntity(DateUtils.getCurrentDateTime(), StatusItem.AVAILABLE, StatusEntity.ACTIVE);
         expiredItems.forEach(expiredItem -> expiredItem.setStatusItem(StatusItem.EXPIRED));
         itemRepository.saveAll(expiredItems);
         log.info("Updated {} expired items", expiredItems.size());
+    }
+
+    private void validateMaxItemUploadedInCurrentMonth(User currentUser) {
+        LocalDateTime firstDayOfMonth = DateUtils.getFirstDayOfCurrentMonth();
+        LocalDateTime lastDayOfMonth = DateUtils.getLastDayOfCurrentMonth();
+
+        int countItem = itemRepository.countByOwnerAndStatusItemInAndCreationDateBetween(
+                currentUser, List.of(StatusItem.UNAVAILABLE, StatusItem.PENDING, StatusItem.AVAILABLE), firstDayOfMonth, lastDayOfMonth);
+
+        int maximumItem = userSubscriptionService.getUserCurrentSubscription() != null ? AppConstants.MAX_ITEM_UPLOADED_PREMIUM : AppConstants.MAX_ITEM_UPLOADED;
+
+        if (countItem >= maximumItem) {
+            throw new ReasApiException(HttpStatus.BAD_REQUEST, "error.itemUploadAtMax");
+        }
     }
 
     private Page<Item> getAllItemByUserIdAndStatusItem(Integer userId, StatusItem statusItem, Pageable pageable) {
@@ -344,16 +444,13 @@ public class ItemServiceImpl implements ItemService {
             return new ArrayList<>();
         }
 
-        // Dùng Set để loại bỏ ID trùng lặp
         Set<Integer> itemIds = documents.stream()
                 .map(doc -> Integer.valueOf(doc.getMetadata().get("itemId").toString()))
-                .collect(Collectors.toCollection(LinkedHashSet::new)); // Bảo toàn thứ tự
+                .collect(Collectors.toCollection(LinkedHashSet::new));
 
-        // Lấy tất cả items từ DB
         Map<Integer, ItemResponse> itemResponseMap = itemRepository.findAllById(itemIds).stream()
                 .collect(Collectors.toMap(Item::getId, this::mapToItemResponsesWithFavorite, (a, b) -> a, LinkedHashMap::new));
 
-        // Đảm bảo trả về theo đúng thứ tự itemIds ban đầu
         return itemIds.stream()
                 .map(itemResponseMap::get)
                 .filter(Objects::nonNull)

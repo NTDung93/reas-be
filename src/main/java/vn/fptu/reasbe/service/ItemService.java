@@ -48,4 +48,6 @@ public interface ItemService {
     boolean isItemExistedAndExpired(Integer itemId);
 
     void extendItem(Item item, SubscriptionPlan plan);
+
+    BaseSearchPaginationResponse<ItemResponse> findNearbyItems(int pageNo, int pageSize, double latitude, double longitude, double distance);
 }

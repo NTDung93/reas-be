@@ -1,5 +1,6 @@
 package vn.fptu.reasbe.repository.custom.impl;
 
+import com.querydsl.jpa.impl.JPAQuery;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
 import org.springframework.data.domain.Page;
@@ -15,8 +16,11 @@ import vn.fptu.reasbe.model.dto.item.SearchItemRequest;
 import vn.fptu.reasbe.model.entity.Item;
 import vn.fptu.reasbe.model.entity.QItem;
 import vn.fptu.reasbe.model.enums.core.StatusEntity;
+import vn.fptu.reasbe.model.enums.item.StatusItem;
 import vn.fptu.reasbe.repository.custom.ItemRepositoryCustom;
 import vn.fptu.reasbe.repository.custom.core.AbstractRepositoryCustom;
+
+import java.util.List;
 
 /**
  *
@@ -38,6 +42,17 @@ public class ItemRepositoryCustomImpl extends AbstractRepositoryCustom<Item, QIt
     @Override
     public Page<Item> searchItemPagination(SearchItemRequest request, Pageable pageable) {
         return super.searchPagination(request, pageable);
+    }
+
+    @Override
+    public List<Item> findAllByStatus(StatusItem statusItem) {
+        QItem item = QItem.item;
+
+        return new JPAQuery<Item>(em)
+                .from(item)
+                .join(item.feedback)
+                .where(item.statusItem.eq(StatusItem.AVAILABLE))
+                .fetch();
     }
 
     @Override
