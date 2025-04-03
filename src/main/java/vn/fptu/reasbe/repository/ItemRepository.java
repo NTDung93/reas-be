@@ -9,6 +9,7 @@ import org.springframework.data.querydsl.QuerydslPredicateExecutor;
 
 import org.springframework.data.repository.query.Param;
 import vn.fptu.reasbe.model.entity.Item;
+import vn.fptu.reasbe.model.enums.core.StatusEntity;
 import vn.fptu.reasbe.model.entity.User;
 import vn.fptu.reasbe.model.enums.item.StatusItem;
 import vn.fptu.reasbe.repository.custom.ItemRepositoryCustom;
@@ -30,6 +31,8 @@ public interface ItemRepository extends JpaRepository<Item, Integer>, QuerydslPr
     List<Item> findAllByStatusItem(StatusItem statusItem);
 
     List<Item> findByStatusItemAndOwnerIdAndIdNotOrderByApprovedTimeDesc(StatusItem statusItem, Integer ownerId, Integer itemId, Pageable pageable);
+
+    boolean existsByIdAndStatusItemEqualsAndStatusEntityEquals(Integer itemId, StatusItem statusItem, StatusEntity statusEntity);
 
     @Query(value = """
     SELECT i.*
