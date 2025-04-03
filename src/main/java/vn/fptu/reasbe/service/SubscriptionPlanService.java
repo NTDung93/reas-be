@@ -18,4 +18,5 @@ public interface SubscriptionPlanService {
     SubscriptionPlanDto updateSubscriptionPlan(SubscriptionPlanDto subscriptionPlanDto);
     SubscriptionPlan getSubscriptionPlanByPlanId(Integer id);
     Boolean deactivateSubscriptionPlan(Integer id);
+    SubscriptionPlan getSubscriptionPlanTypeExtension();
 }

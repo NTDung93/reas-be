@@ -13,13 +13,17 @@ import lombok.RequiredArgsConstructor;
 import vn.fptu.reasbe.model.dto.core.BaseSearchPaginationResponse;
 import vn.fptu.reasbe.model.dto.paymenthistory.PaymentHistoryDto;
 import vn.fptu.reasbe.model.dto.paymenthistory.SearchPaymentHistoryRequest;
+import vn.fptu.reasbe.model.entity.Item;
 import vn.fptu.reasbe.model.entity.PaymentHistory;
+import vn.fptu.reasbe.model.entity.SubscriptionPlan;
 import vn.fptu.reasbe.model.enums.payment.MethodPayment;
 import vn.fptu.reasbe.model.enums.payment.StatusPayment;
 import vn.fptu.reasbe.model.exception.PayOSException;
 import vn.fptu.reasbe.model.exception.ResourceNotFoundException;
 import vn.fptu.reasbe.repository.PaymentHistoryRepository;
+import vn.fptu.reasbe.service.ItemService;
 import vn.fptu.reasbe.service.PaymentHistoryService;
+import vn.fptu.reasbe.service.SubscriptionPlanService;
 import vn.fptu.reasbe.service.UserService;
 import vn.fptu.reasbe.service.UserSubscriptionService;
 import vn.fptu.reasbe.utils.common.PaymentCodeHelper;
@@ -42,6 +46,8 @@ public class PaymentHistoryServiceImpl implements PaymentHistoryService {
     private final UserSubscriptionService userSubscriptionService;
     private final PaymentHistoryMapper paymentHistoryMapper;
     private final UserService userService;
+    private final ItemService itemService;
+    private final SubscriptionPlanService subscriptionPlanService;
 
     @Override
     public BaseSearchPaginationResponse<PaymentHistoryDto> searchPaymentHistoryPagination(int pageNo, int pageSize, String sortBy, String sortDir, SearchPaymentHistoryRequest request) {
@@ -68,8 +74,15 @@ public class PaymentHistoryServiceImpl implements PaymentHistoryService {
             ObjectMapper objectMapper = new ObjectMapper();
             Webhook webhookBody = objectMapper.treeToValue(body, Webhook.class);
             WebhookData data = payOS.verifyPaymentWebhookData(webhookBody);
+            Item item = null;
 
-            Integer subscriptionPlanId = Math.toIntExact(PaymentCodeHelper.getItemIdFromOrderCode(data.getOrderCode()));
+            Integer subscriptionPlanId = Math.toIntExact(PaymentCodeHelper.getItemIdFromOrderCode(data.getOrderCode()).getFirst());
+            SubscriptionPlan subscriptionPlan = subscriptionPlanService.getSubscriptionPlanByPlanId(subscriptionPlanId);
+
+            int itemId = Math.toIntExact(PaymentCodeHelper.getItemIdFromOrderCode(data.getOrderCode()).getSecond());
+            if (itemId != 0) {
+                item = itemService.getItemById(itemId);
+            }
 
             PaymentHistory paymentHistory = PaymentHistory.builder()
                     .transactionId(data.getOrderCode())
@@ -82,7 +95,10 @@ public class PaymentHistoryServiceImpl implements PaymentHistoryService {
             PaymentHistory savedPaymentHistory = paymentHistoryRepository.save(paymentHistory);
 
             if (Boolean.TRUE.equals(webhookBody.getSuccess())) {
-                userSubscriptionService.createUserSubscription(subscriptionPlanId, savedPaymentHistory);
+                userSubscriptionService.createUserSubscription(subscriptionPlan, item, savedPaymentHistory);
+                if (item != null) {
+                    itemService.extendItem(item, subscriptionPlan);
+                }
             }
         } catch (Exception e) {
             throw new PayOSException(e.getMessage());

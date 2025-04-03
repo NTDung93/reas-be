@@ -41,6 +41,10 @@ public class UserSubscription extends AbstractAuditableEntity {
     private LocalDateTime endDate;
 
     @ManyToOne
+    @JoinColumn(name = "ITEM_ID")
+    private Item item;
+
+    @ManyToOne
     @JoinColumn(name = "USER_ID")
     private User user;
 
