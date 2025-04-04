@@ -15,8 +15,8 @@ WORKDIR /app
 COPY . .
 RUN mvn clean package -DskipTests
 
-# Sử dụng OpenJDK 21 làm runtime base image
-FROM eclipse-temurin:21-jdk-slim
+# Sử dụng Temurin JDK 21 làm runtime base image
+FROM eclipse-temurin:21-jdk
 WORKDIR /app
 
 # Sao chép file jar đã build từ image build vào image runtime
