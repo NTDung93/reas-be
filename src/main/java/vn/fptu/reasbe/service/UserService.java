@@ -3,6 +3,7 @@ package vn.fptu.reasbe.service;
 import vn.fptu.reasbe.model.dto.core.BaseSearchPaginationResponse;
 import vn.fptu.reasbe.model.dto.user.CreateStaffRequest;
 import vn.fptu.reasbe.model.dto.user.SearchUserRequest;
+import vn.fptu.reasbe.model.dto.user.UpdateResidentRequest;
 import vn.fptu.reasbe.model.dto.user.UpdateStaffRequest;
 import vn.fptu.reasbe.model.dto.user.UserResponse;
 import vn.fptu.reasbe.model.entity.User;
@@ -25,4 +26,6 @@ public interface UserService {
     UserLocation getPrimaryUserLocation(User user);
 
     UserResponse loadDetailInfoUser(Integer userId);
+
+    UserResponse updateResidentInfo(UpdateResidentRequest request);
 }

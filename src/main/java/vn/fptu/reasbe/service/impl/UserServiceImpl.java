@@ -12,6 +12,7 @@ import lombok.RequiredArgsConstructor;
 import vn.fptu.reasbe.model.dto.core.BaseSearchPaginationResponse;
 import vn.fptu.reasbe.model.dto.user.CreateStaffRequest;
 import vn.fptu.reasbe.model.dto.user.SearchUserRequest;
+import vn.fptu.reasbe.model.dto.user.UpdateResidentRequest;
 import vn.fptu.reasbe.model.dto.user.UpdateStaffRequest;
 import vn.fptu.reasbe.model.dto.user.UserResponse;
 import vn.fptu.reasbe.model.entity.Role;
@@ -20,13 +21,17 @@ import vn.fptu.reasbe.model.entity.UserLocation;
 import vn.fptu.reasbe.model.enums.core.StatusEntity;
 import vn.fptu.reasbe.model.enums.user.RoleName;
 import vn.fptu.reasbe.model.exception.ReasApiException;
+import vn.fptu.reasbe.model.exception.ResourceNotFoundException;
 import vn.fptu.reasbe.repository.RoleRepository;
 import vn.fptu.reasbe.repository.UserLocationRepository;
 import vn.fptu.reasbe.repository.UserRepository;
+import vn.fptu.reasbe.service.AuthService;
 import vn.fptu.reasbe.service.EmailService;
 import vn.fptu.reasbe.service.UserService;
 import vn.fptu.reasbe.service.mongodb.UserMService;
 import vn.fptu.reasbe.utils.mapper.UserMapper;
+
+import java.util.List;
 
 /**
  * @author ntig
@@ -42,6 +47,7 @@ public class UserServiceImpl implements UserService {
     private final EmailService emailService;
     private final UserLocationRepository userLocationRepository;
     private final UserMService userMService;
+    private final AuthService authService;
 
     @Override
     public BaseSearchPaginationResponse<UserResponse> searchUserPagination(int pageNo, int pageSize, String sortBy, String sortDir, SearchUserRequest request) {
@@ -115,13 +121,38 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserLocation getPrimaryUserLocation(User user) {
-        return userLocationRepository.findByIsPrimaryTrueAndUser(user)
+        return userLocationRepository.findByIsPrimaryTrueAndUserAndStatusEntity(user, StatusEntity.ACTIVE)
                 .orElseThrow(() -> new ReasApiException(HttpStatus.BAD_REQUEST, "error.primaryLocationNotFound"));
     }
 
     @Override
     public UserResponse loadDetailInfoUser(Integer userId) {
         return userMapper.toUserResponse(getUserById(userId));
+    }
+
+    @Override
+    public UserResponse updateResidentInfo(UpdateResidentRequest request) {
+        User user = authService.getCurrentUser();
+
+        userMapper.updateResident(user, request);
+
+        updatePrimaryUserLocation(user, request.getUserLocationId());
+
+        return userMapper.toUserResponse(userRepository.save(user));
+    }
+
+    void updatePrimaryUserLocation(User user, Integer userLocationId) {
+        UserLocation chosenLocation = userLocationRepository.findByIdAndUserAndStatusEntity(userLocationId, user, StatusEntity.ACTIVE)
+                .orElseThrow(() -> new ResourceNotFoundException("User location", "id", userLocationId));
+
+        userLocationRepository.findByIsPrimaryTrueAndUserAndStatusEntity(user, StatusEntity.ACTIVE)
+                .ifPresent(userLocation -> {
+                    if (!chosenLocation.isPrimary()) {
+                        userLocation.setPrimary(false);
+                        chosenLocation.setPrimary(true);
+                        userLocationRepository.saveAll(List.of(chosenLocation, userLocation));
+                    }
+                });
     }
 
     private Role getStaffRole() {
