@@ -2,7 +2,7 @@
 FROM openjdk:21-jdk-slim AS build
 
 # Install necessary tools (wget for downloading Maven)
-RUN apt-get update && apt-get install -y wget
+RUN apt-get update -o Acquire::ForceIPv4=true && apt-get install -y wget
 
 # Download and install Maven 3.9.6
 RUN wget https://downloads.apache.org/maven/maven-3/3.9.6/binaries/apache-maven-3.9.6-bin.tar.gz \
