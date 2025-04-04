@@ -477,7 +477,7 @@ public class ItemServiceImpl implements ItemService {
             filter.append(" && categoryName == '").append(desiredItem.getCategory().getCategoryName()).append("'");
         }
         if (desiredItem.getConditionItem() != null) {
-            filter.append(" && conditionItem == ").append(desiredItem.getConditionItem().getCode());
+            filter.append(" && conditionItem == '").append(desiredItem.getConditionItem().getCode()).append("'");
         }
         if (desiredItem.getMinPrice() != null) {
             filter.append(" && price >= ").append(desiredItem.getMinPrice());
