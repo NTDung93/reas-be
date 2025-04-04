@@ -51,6 +51,22 @@ services:
     networks:
       - reas_network
 
+ # Ứng dụng Spring Boot (backend)
+  app:
+    build: .
+    container_name: reas_be_container
+    restart: always
+    ports:
+      - "8080:8080"
+    environment:
+      - SPRING_PROFILES_ACTIVE=prod
+    depends_on:
+      - postgres
+      - mongo
+    networks:
+      - reas_network
+      
+
 volumes:
   postgres_data:
   mongo_data:
