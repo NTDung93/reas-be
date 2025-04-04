@@ -11,7 +11,6 @@ import vn.fptu.reasbe.model.dto.auth.JWTAuthResponse;
 import vn.fptu.reasbe.model.dto.auth.LoginDto;
 import vn.fptu.reasbe.model.dto.auth.PasswordChangeRequest;
 import vn.fptu.reasbe.model.dto.auth.SignupDto;
-import vn.fptu.reasbe.model.dto.user.UpdateResidentRequest;
 import vn.fptu.reasbe.model.dto.user.UserResponse;
 import vn.fptu.reasbe.service.AuthService;
 
@@ -73,10 +72,5 @@ public class AuthController {
     @GetMapping("/info")
     public ResponseEntity<UserResponse> getInfo() {
         return ResponseEntity.ok(userMapper.toUserResponse(authService.getCurrentUser()));
-    }
-
-    @PutMapping("/info")
-    public ResponseEntity<UserResponse> updateResidentInfo(@Valid @RequestBody UpdateResidentRequest request) {
-        return ResponseEntity.ok(authService.updateResidentInfo(request));
     }
 }
