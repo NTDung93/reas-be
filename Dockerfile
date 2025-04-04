@@ -1,11 +1,27 @@
-# Sử dụng một image Maven chính thức với JDK 21 để build ứng dụng
-FROM maven:3.9.1-eclipse-temurin-21 AS build
+# Sử dụng Temurin JDK 21 làm base image
+FROM eclipse-temurin:21-jdk AS build
+
+# Cài đặt Maven
+RUN apt-get update && apt-get install -y \
+    wget \
+    unzip && \
+    wget https://dlcdn.apache.org/maven/maven-3/3.9.1/binaries/apache-maven-3.9.1-bin.tar.gz && \
+    tar -xvzf apache-maven-3.9.1-bin.tar.gz -C /opt && \
+    ln -s /opt/apache-maven-3.9.1 /opt/maven && \
+    ln -s /opt/maven/bin/mvn /usr/bin/mvn
+
+# Sao chép mã nguồn và build ứng dụng
+WORKDIR /app
 COPY . .
 RUN mvn clean package -DskipTests
 
-# Sử dụng một image OpenJDK 21 runtime làm base image
-FROM openjdk:21-jdk-slim
+# Sử dụng OpenJDK 21 làm runtime base image
+FROM eclipse-temurin:21-jdk-slim
 WORKDIR /app
-COPY --from=build /target/reas-be-0.0.1-SNAPSHOT.jar reas-be.jar
+
+# Sao chép file jar đã build từ image build vào image runtime
+COPY --from=build /app/target/reas-be-0.0.1-SNAPSHOT.jar reas-be.jar
+
+# Expose port 8080 và chạy ứng dụng
 EXPOSE 8080
 ENTRYPOINT ["java", "-jar", "reas-be.jar"]
