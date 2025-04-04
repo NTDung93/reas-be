@@ -9,6 +9,8 @@ import vn.fptu.reasbe.model.dto.auth.SignupDto;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import vn.fptu.reasbe.model.dto.user.UpdateResidentRequest;
+import vn.fptu.reasbe.model.dto.user.UserResponse;
 import vn.fptu.reasbe.model.entity.User;
 
 public interface AuthService {
@@ -25,4 +27,6 @@ public interface AuthService {
     ResponseEntity<JWTAuthResponse> refreshToken(HttpServletRequest request, HttpServletResponse response);
 
     void changePassword(String oldPassword, String newPassword);
+
+    UserResponse updateResidentInfo(UpdateResidentRequest request);
 }

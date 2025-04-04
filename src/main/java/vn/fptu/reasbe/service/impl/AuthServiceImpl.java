@@ -19,9 +19,12 @@ import vn.fptu.reasbe.model.dto.auth.GoogleSignUpDto;
 import vn.fptu.reasbe.model.dto.auth.JWTAuthResponse;
 import vn.fptu.reasbe.model.dto.auth.LoginDto;
 import vn.fptu.reasbe.model.dto.auth.SignupDto;
+import vn.fptu.reasbe.model.dto.user.UpdateResidentRequest;
+import vn.fptu.reasbe.model.dto.user.UserResponse;
 import vn.fptu.reasbe.model.entity.Role;
 import vn.fptu.reasbe.model.entity.Token;
 import vn.fptu.reasbe.model.entity.User;
+import vn.fptu.reasbe.model.entity.UserLocation;
 import vn.fptu.reasbe.model.enums.core.StatusEntity;
 import vn.fptu.reasbe.model.enums.user.RoleName;
 import vn.fptu.reasbe.model.enums.user.StatusOnline;
@@ -29,6 +32,7 @@ import vn.fptu.reasbe.model.exception.ReasApiException;
 import vn.fptu.reasbe.model.exception.ResourceNotFoundException;
 import vn.fptu.reasbe.repository.RoleRepository;
 import vn.fptu.reasbe.repository.TokenRepository;
+import vn.fptu.reasbe.repository.UserLocationRepository;
 import vn.fptu.reasbe.repository.UserRepository;
 import vn.fptu.reasbe.security.JwtTokenProvider;
 import vn.fptu.reasbe.service.AuthService;
@@ -39,6 +43,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import vn.fptu.reasbe.service.OtpService;
 import vn.fptu.reasbe.service.mongodb.UserMService;
+import vn.fptu.reasbe.utils.mapper.UserMapper;
 
 @Service
 @Transactional
@@ -51,9 +56,11 @@ public class AuthServiceImpl implements AuthService {
     private final TokenRepository tokenRepository;
     private final PasswordEncoder passwordEncoder;
     private final EmailService emailService;
+    private final UserLocationRepository userLocationRepository;
     private final UserMService userMService;
     private final OtpService otpService;
     private final JwtTokenProvider jwtTokenProvider;
+    private final UserMapper userMapper;
 
     @Override
     public JWTAuthResponse authenticateUser(LoginDto dto) {
@@ -230,6 +237,31 @@ public class AuthServiceImpl implements AuthService {
         user.setPassword(passwordEncoder.encode(newPassword));
         if (user.isFirstLogin()) user.setFirstLogin(false);
         userRepository.save(user);
+    }
+
+    @Override
+    public UserResponse updateResidentInfo(UpdateResidentRequest request) {
+        User user = getCurrentUser();
+
+        userMapper.updateResident(user, request);
+
+        updatePrimaryUserLocation(user, request.getUserLocationId());
+
+        return userMapper.toUserResponse(userRepository.save(user));
+    }
+
+    void updatePrimaryUserLocation(User user, Integer userLocationId) {
+        UserLocation chosenLocation = userLocationRepository.findByIdAndUserAndStatusEntity(userLocationId, user, StatusEntity.ACTIVE)
+                .orElseThrow(() -> new ResourceNotFoundException("User location", "id", userLocationId));
+
+        userLocationRepository.findByIsPrimaryTrueAndUserAndStatusEntity(user, StatusEntity.ACTIVE)
+                .ifPresent(userLocation -> {
+                    if (!chosenLocation.isPrimary()) {
+                        userLocation.setPrimary(false);
+                        chosenLocation.setPrimary(true);
+                        userLocationRepository.saveAll(List.of(chosenLocation, userLocation));
+                    }
+                });
     }
 
     private void validateUser(SignupDto dto) {

@@ -16,6 +16,7 @@ import vn.fptu.reasbe.repository.UserLocationRepository;
 import vn.fptu.reasbe.service.AuthService;
 import vn.fptu.reasbe.service.LocationService;
 import vn.fptu.reasbe.service.UserLocationService;
+import vn.fptu.reasbe.utils.common.GeometryUtils;
 import vn.fptu.reasbe.utils.mapper.UserLocationMapper;
 
 import java.util.Objects;
@@ -54,13 +55,8 @@ public class UserLocationServiceImpl implements UserLocationService {
         UserLocation userLocation = userLocationMapper.toEntity(request);
         userLocation.setUser(user);
         userLocation.setLocation(location);
-
-        if (request.isPrimary()) {
-            updatePrimaryUserLocation(user, userLocation);
-        } else {
-            boolean hasPrimary = userLocationRepository.existsByIsPrimaryTrueAndUserAndStatusEntity(user, StatusEntity.ACTIVE);
-            userLocation.setPrimary(!hasPrimary); // Nếu chưa có thì gán cái này làm primary
-        }
+        userLocation.setPrimary(false);
+        userLocation.setPoint(GeometryUtils.createPoint(request.getLongitude(), request.getLatitude()));
 
         return userLocationMapper.toDto(userLocationRepository.save(userLocation));
     }
@@ -79,10 +75,7 @@ public class UserLocationServiceImpl implements UserLocationService {
             Location location = locationService.getById(request.getLocationId());
             existedUserLocation.setLocation(location);
         }
-
-        if (request.isPrimary()) {
-            updatePrimaryUserLocation(user, existedUserLocation);
-        }
+        existedUserLocation.setPoint(GeometryUtils.createPoint(request.getLongitude(), request.getLatitude()));
 
         return userLocationMapper.toDto(userLocationRepository.save(existedUserLocation));
     }
@@ -100,18 +93,6 @@ public class UserLocationServiceImpl implements UserLocationService {
 
         userLocationRepository.delete(existedUserLocation);
         return true;
-    }
-
-    private void updatePrimaryUserLocation(User user, UserLocation newPrimaryLocation) {
-        userLocationRepository.findByIsPrimaryTrueAndUserAndStatusEntity(user, StatusEntity.ACTIVE)
-                .ifPresent(currentPrimary -> {
-                    if (!currentPrimary.getId().equals(newPrimaryLocation.getId())) {
-                        currentPrimary.setPrimary(false);
-                        userLocationRepository.save(currentPrimary);
-                    }
-                });
-
-        newPrimaryLocation.setPrimary(true);
     }
 
     private void validateValidUser(User user1, User user2) {

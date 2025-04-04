@@ -1,6 +1,6 @@
 package vn.fptu.reasbe.model.dto.userlocation;
 
-import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -17,16 +17,14 @@ import lombok.experimental.FieldDefaults;
 public class UserLocationRequest {
     Integer id;
 
-    @NotEmpty(message = "Specific address must not be empty")
+    @NotBlank(message = "Specific address must not be blank")
     String specificAddress;
 
-    @NotNull(message = "Latitude must not be empty")
+    @NotNull(message = "Latitude must not be null")
     Double latitude;
 
-    @NotNull(message = "Longitude must not be empty")
+    @NotNull(message = "Longitude must not be null")
     Double longitude;
-
-    boolean isPrimary;
 
     @NotNull(message = "Location must not be null")
     Integer locationId;
