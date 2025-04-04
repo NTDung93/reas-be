@@ -115,7 +115,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserLocation getPrimaryUserLocation(User user) {
-        return userLocationRepository.findByIsPrimaryTrueAndUser(user)
+        return userLocationRepository.findByIsPrimaryTrueAndUserAndStatusEntity(user, StatusEntity.ACTIVE)
                 .orElseThrow(() -> new ReasApiException(HttpStatus.BAD_REQUEST, "error.primaryLocationNotFound"));
     }
 

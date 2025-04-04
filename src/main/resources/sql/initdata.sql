@@ -129,15 +129,15 @@ VALUES
 INSERT INTO public."USER"
 ("STATUS_ENTITY", "USR_LOG_I", "DTE_LOG_I", "DTE_LOG_U", "USR_LOG_U", "VERSION", "EMAIL", "FULL_NAME", "GENDER", "IMAGE", "IS_FIRST_LOGIN", "PASSWORD", "PHONE", "USER_NAME", "ROLE_ID")
 VALUES
-    ('ACTIVE', 'admin', NOW(), NULL, NULL, 0, 'ngoccuong@reas.vn', 'Ngoc Cuong', 'MALE', 'abc', false, '$2a$10$uEJouiW.IpLccYE5koowSexNlWLsvxUqWJGwbdszt/ANPudcpinHi', '1234567890', 'ngoccuong', 1),
-    ('ACTIVE', 'admin', NOW(), NULL, NULL, 0, 'ducson@reas.vn', 'Duc Son', 'MALE', 'abc', false, '$2a$10$uEJouiW.IpLccYE5koowSexNlWLsvxUqWJGwbdszt/ANPudcpinHi', '0987654321', 'ducson', 2),
-    ('ACTIVE', 'admin', NOW(), NULL, NULL, 0, 'tiendung@reas.vn', 'Tien Dung', 'MALE', 'abc', false, '$2a$10$uEJouiW.IpLccYE5koowSexNlWLsvxUqWJGwbdszt/ANPudcpinHi', '0912345678', 'tiendung', 3),
-    ('ACTIVE', 'admin', NOW(), NULL, NULL, 0, 'ducanh@reas.vn', 'Duc Anh', 'MALE', 'abc', false, '$2a$10$uEJouiW.IpLccYE5koowSexNlWLsvxUqWJGwbdszt/ANPudcpinHi', '0922334455', 'ducanh', 3),
-    ('ACTIVE', 'admin', NOW(), NULL, NULL, 0, 'trangthao@reas.vn', 'Trang Thao', 'FEMALE', 'abc', false, '$2a$10$uEJouiW.IpLccYE5koowSexNlWLsvxUqWJGwbdszt/ANPudcpinHi', '0933445566', 'trangthao', 3),
-    ('ACTIVE', 'admin', NOW(), NULL, NULL, 0, 'minhquan@reas.vn', 'Minh Quan', 'FEMALE', 'abc', false, '$2a$10$uEJouiW.IpLccYE5koowSexNlWLsvxUqWJGwbdszt/ANPudcpinHi', '0944556677', 'minhquan', 3),
-    ('ACTIVE', 'admin', NOW(), NULL, NULL, 0, 'hiennhu@reas.vn', 'Hien Nhu', 'MALE', 'abc', false, '$2a$10$uEJouiW.IpLccYE5koowSexNlWLsvxUqWJGwbdszt/ANPudcpinHi', '0955667788', 'hiennhu', 3),
-    ('ACTIVE', 'admin', NOW(), NULL, NULL, 0, 'nguyentiendung2003@gmail.com', 'Nguyen Van Long', 'MALE', 'abc', false, '$2a$10$.U5VdTwq8wyVyqhJc.rhI.dLaX4b1Ohc9O3Zq.4qeXuxuemf6tY6W', '0955667788', 'nguyentiendung2003', 3),
-    ('ACTIVE', 'admin', NOW(), NULL, NULL, 0, 'dungntse171710@fpt.edu.vn', 'Nguyen Van Duc', 'MALE', 'abc', false, '$2a$10$Lnw6uGVznXJ8v08ejBpZuepIoFfc0wlwCjI7WKpnmxFQSCyA0KqZa', '0955667788', 'dungntse171710', 3);
+    ('ACTIVE', 'admin', NOW(), NULL, NULL, 0, 'ngoccuong@reas.vn', 'Ngoc Cuong', 'MALE',  NULL, false, '$2a$10$uEJouiW.IpLccYE5koowSexNlWLsvxUqWJGwbdszt/ANPudcpinHi', '1234567890', 'ngoccuong', 1),
+    ('ACTIVE', 'admin', NOW(), NULL, NULL, 0, 'ducson@reas.vn', 'Duc Son', 'MALE', NULL, false, '$2a$10$uEJouiW.IpLccYE5koowSexNlWLsvxUqWJGwbdszt/ANPudcpinHi', '0987654321', 'ducson', 2),
+    ('ACTIVE', 'admin', NOW(), NULL, NULL, 0, 'tiendung@reas.vn', 'Tien Dung', 'MALE', NULL, false, '$2a$10$uEJouiW.IpLccYE5koowSexNlWLsvxUqWJGwbdszt/ANPudcpinHi', '0912345678', 'tiendung', 3),
+    ('ACTIVE', 'admin', NOW(), NULL, NULL, 0, 'ducanh@reas.vn', 'Duc Anh', 'MALE', NULL, false, '$2a$10$uEJouiW.IpLccYE5koowSexNlWLsvxUqWJGwbdszt/ANPudcpinHi', '0922334455', 'ducanh', 3),
+    ('ACTIVE', 'admin', NOW(), NULL, NULL, 0, 'trangthao@reas.vn', 'Trang Thao', 'FEMALE', NULL, false, '$2a$10$uEJouiW.IpLccYE5koowSexNlWLsvxUqWJGwbdszt/ANPudcpinHi', '0933445566', 'trangthao', 3),
+    ('ACTIVE', 'admin', NOW(), NULL, NULL, 0, 'minhquan@reas.vn', 'Minh Quan', 'FEMALE', NULL, false, '$2a$10$uEJouiW.IpLccYE5koowSexNlWLsvxUqWJGwbdszt/ANPudcpinHi', '0944556677', 'minhquan', 3),
+    ('ACTIVE', 'admin', NOW(), NULL, NULL, 0, 'hiennhu@reas.vn', 'Hien Nhu', 'MALE', NULL, false, '$2a$10$uEJouiW.IpLccYE5koowSexNlWLsvxUqWJGwbdszt/ANPudcpinHi', '0955667788', 'hiennhu', 3),
+    ('ACTIVE', 'admin', NOW(), NULL, NULL, 0, 'nguyentiendung2003@gmail.com', 'Nguyen Van Long', 'MALE', NULL, false, '$2a$10$.U5VdTwq8wyVyqhJc.rhI.dLaX4b1Ohc9O3Zq.4qeXuxuemf6tY6W', '0955667788', 'nguyentiendung2003', 3),
+    ('ACTIVE', 'admin', NOW(), NULL, NULL, 0, 'dungntse171710@fpt.edu.vn', 'Nguyen Van Duc', 'MALE', NULL, false, '$2a$10$Lnw6uGVznXJ8v08ejBpZuepIoFfc0wlwCjI7WKpnmxFQSCyA0KqZa', '0955667788', 'dungntse171710', 3);
 
 -- Insert data into the LOCATION table
 INSERT INTO public."LOCATION"
