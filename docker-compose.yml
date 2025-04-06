@@ -31,6 +31,7 @@ services:
     environment:
       MONGO_INITDB_ROOT_USERNAME: reas
       MONGO_INITDB_ROOT_PASSWORD: reas
+      MONGO_INITDB_DATABASE: chat_app
     networks:
       - reas_network
 
