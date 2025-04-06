@@ -1,3 +1,5 @@
+version: '3.8'
+
 services:
   # PgVector
   postgres:
@@ -52,7 +54,7 @@ services:
     networks:
       - reas_network
 
- # Ứng dụng Spring Boot (backend)
+  # Spring Boot Application (backend)
   app:
     image: ducson29/reas-be:latest
     container_name: reas_be_container
@@ -74,7 +76,6 @@ services:
       - mongo
     networks:
       - reas_network
-      
 
 volumes:
   postgres_data:
