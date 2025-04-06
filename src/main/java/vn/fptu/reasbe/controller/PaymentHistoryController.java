@@ -2,7 +2,6 @@ package vn.fptu.reasbe.controller;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -56,7 +55,7 @@ public class PaymentHistoryController {
         return ResponseEntity.ok(paymentHistoryService.searchPaymentHistoryOfUserPagination(pageNo, pageSize, sortBy, sortDir, request, userId));
     }
 
-    @GetMapping(value = "/payos-transfer-handler")
+    @PostMapping(value = "/payos-transfer-handler")
     public void payosTransferHandler(@RequestBody ObjectNode body) throws Exception {
         paymentHistoryService.payOsTransferHandler(body);
     }
