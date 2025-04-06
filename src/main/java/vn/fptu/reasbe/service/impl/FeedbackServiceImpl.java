@@ -12,6 +12,7 @@ import vn.fptu.reasbe.model.entity.ExchangeHistory;
 import vn.fptu.reasbe.model.entity.Feedback;
 import vn.fptu.reasbe.model.entity.Item;
 import vn.fptu.reasbe.model.entity.User;
+import vn.fptu.reasbe.model.enums.core.StatusEntity;
 import vn.fptu.reasbe.model.enums.exchange.StatusExchangeHistory;
 import vn.fptu.reasbe.model.exception.ReasApiException;
 import vn.fptu.reasbe.model.exception.ResourceNotFoundException;
@@ -47,10 +48,10 @@ public class FeedbackServiceImpl implements FeedbackService {
             if (rating < 1 || rating > 5) {
                 throw new ReasApiException(HttpStatus.BAD_REQUEST, "error.invalidRating");
             } else {
-                feedbacks = feedbackRepository.getAllByItemOwnerAndRating(user, rating, getPageable(pageNo, pageSize, sortBy, sortDir));
+                feedbacks = feedbackRepository.getAllByItemOwnerAndRatingAndStatusEntity(user, rating, StatusEntity.ACTIVE, getPageable(pageNo, pageSize, sortBy, sortDir));
             }
         } else {
-            feedbacks = feedbackRepository.getAllByItemOwner(user, getPageable(pageNo, pageSize, sortBy, sortDir));
+            feedbacks = feedbackRepository.getAllByItemOwnerAndStatusEntity(user, StatusEntity.ACTIVE, getPageable(pageNo, pageSize, sortBy, sortDir));
 
         }
 
@@ -109,12 +110,13 @@ public class FeedbackServiceImpl implements FeedbackService {
     @Override
     public Boolean deleteFeedback(Integer feedbackId) {
         Feedback feedback = getFeedbackById(feedbackId);
-        feedbackRepository.delete(feedback);
+        feedback.setStatusEntity(StatusEntity.INACTIVE);
+        feedbackRepository.save(feedback);
         return true;
     }
 
     private Feedback getFeedbackById(Integer feedbackId) {
-        return feedbackRepository.findById(feedbackId)
+        return feedbackRepository.findByIdAndStatusEntity(feedbackId, StatusEntity.ACTIVE)
                 .orElseThrow(() -> new ResourceNotFoundException("Feedback", "id", feedbackId));
     }
 }

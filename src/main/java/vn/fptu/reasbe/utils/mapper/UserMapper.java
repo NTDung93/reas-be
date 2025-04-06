@@ -7,6 +7,7 @@ import org.mapstruct.MappingTarget;
 import org.mapstruct.NullValueCheckStrategy;
 import org.springframework.stereotype.Component;
 import vn.fptu.reasbe.model.dto.user.CreateStaffRequest;
+import vn.fptu.reasbe.model.dto.user.UpdateResidentRequest;
 import vn.fptu.reasbe.model.dto.user.UpdateStaffRequest;
 import vn.fptu.reasbe.model.dto.user.UserResponse;
 import vn.fptu.reasbe.model.entity.ExchangeRequest;
@@ -40,6 +41,9 @@ public interface UserMapper {
     @Mapping(target = "password", ignore = true)
     User toUser(CreateStaffRequest request);
 
+    @Mapping(target = "firstLogin", constant = "false")
+    void updateResident(@MappingTarget User user, UpdateResidentRequest request);
+
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "password", ignore = true)
     void updateUser(@MappingTarget User user, UpdateStaffRequest request);
@@ -50,11 +54,10 @@ public interface UserMapper {
 
         return (int) user.getItems().stream()
                 .flatMap(item -> Stream.concat(
-                        // Take exchange requests from both seller and buyer side
                         item.getSellerExchangeRequests() != null ? item.getSellerExchangeRequests().stream() : Stream.empty(),
                         item.getBuyerExchangeRequests() != null ? item.getBuyerExchangeRequests().stream() : Stream.empty()
                 ))
-                .map(ExchangeRequest::getExchangeHistory) // Map to exchange history
+                .map(ExchangeRequest::getExchangeHistory)
                 .filter(eh -> eh != null && eh.getStatusExchangeHistory() == StatusExchangeHistory.SUCCESSFUL) // Filter successful exchanges
                 .count();
     }
@@ -65,9 +68,9 @@ public interface UserMapper {
         if (user.getItems() == null) return 0;
 
         return (int) user.getItems().stream()
-                .map(Item::getFeedback) // Lấy Feedback từ Item
-                .filter(Objects::nonNull) // Lọc bỏ Feedback null
-                .count(); // Đếm số lượng Feedback
+                .map(Item::getFeedback)
+                .filter(Objects::nonNull)
+                .count();
     }
 
     // Calculate average rating only from seller transactions
@@ -75,10 +78,10 @@ public interface UserMapper {
         if (user.getItems() == null) return 0.0;
 
         return user.getItems().stream()
-                .map(Item::getFeedback) // Lấy Feedback trực tiếp từ Item
-                .filter(Objects::nonNull) // Lọc bỏ Feedback null
-                .mapToDouble(Feedback::getRating) // Lấy rating từ Feedback
-                .average() // Tính trung bình
+                .map(Item::getFeedback)
+                .filter(Objects::nonNull)
+                .mapToDouble(Feedback::getRating)
+                .average()
                 .orElse(0.0);
     }
 }

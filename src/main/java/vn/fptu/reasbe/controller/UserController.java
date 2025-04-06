@@ -19,6 +19,7 @@ import vn.fptu.reasbe.model.constant.AppConstants;
 import vn.fptu.reasbe.model.dto.core.BaseSearchPaginationResponse;
 import vn.fptu.reasbe.model.dto.user.CreateStaffRequest;
 import vn.fptu.reasbe.model.dto.user.SearchUserRequest;
+import vn.fptu.reasbe.model.dto.user.UpdateResidentRequest;
 import vn.fptu.reasbe.model.dto.user.UpdateStaffRequest;
 import vn.fptu.reasbe.model.dto.user.UserResponse;
 import vn.fptu.reasbe.service.UserService;
@@ -67,5 +68,11 @@ public class UserController {
     @GetMapping("/{userId}")
     public ResponseEntity<UserResponse> getUser(@PathVariable Integer userId) {
         return ResponseEntity.ok(userService.loadDetailInfoUser(userId));
+    }
+
+    @PreAuthorize("hasRole(T(vn.fptu.reasbe.model.constant.AppConstants).ROLE_RESIDENT)")
+    @PutMapping("/resident/info")
+    public ResponseEntity<UserResponse> updateResidentInfo(@Valid @RequestBody UpdateResidentRequest request) {
+        return ResponseEntity.ok(userService.updateResidentInfo(request));
     }
 }
