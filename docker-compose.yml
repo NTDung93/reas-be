@@ -54,7 +54,7 @@ services:
 
  # Ứng dụng Spring Boot (backend)
   app:
-    build: .
+    image: ducson29/reas-be:latest
     container_name: reas_be_container
     restart: always
     ports:
