@@ -55,7 +55,7 @@ public class PaymentHistoryController {
         return ResponseEntity.ok(paymentHistoryService.searchPaymentHistoryOfUserPagination(pageNo, pageSize, sortBy, sortDir, request, userId));
     }
 
-    @PostMapping(value = "/payos-transfer-handler")
+    @PostMapping(path = "/payos-transfer-handler")
     public void payosTransferHandler(@RequestBody ObjectNode body) throws Exception {
         paymentHistoryService.payOsTransferHandler(body);
     }
