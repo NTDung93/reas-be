@@ -3,6 +3,7 @@ package vn.fptu.reasbe.service.impl;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.HashMap;
+import java.util.Map;
 
 import org.springframework.stereotype.Service;
 
@@ -138,7 +139,12 @@ public class PaymentHistoryServiceImpl implements PaymentHistoryService {
     }
 
     @Override
-    public HashMap<TypeSubscriptionPlan, BigDecimal> getMonthlyRevenueBySubscriptionPlan(Integer month, Integer year) {
+    public Map<TypeSubscriptionPlan, BigDecimal> getMonthlyRevenueBySubscriptionPlan(Integer month, Integer year) {
         return paymentHistoryRepository.getMonthlyRevenueBySubscriptionPlan(month, year);
+    }
+
+    @Override
+    public Map<Integer, Map<TypeSubscriptionPlan, BigDecimal>> getMonthlyRevenueBySubscriptionPlanInAYear(Integer year) {
+        return paymentHistoryRepository.getMonthlyRevenueBySubscriptionPlanInAYear(year);
     }
 }

@@ -1,7 +1,7 @@
 package vn.fptu.reasbe.service;
 
 import java.math.BigDecimal;
-import java.util.HashMap;
+import java.util.Map;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
@@ -23,5 +23,6 @@ public interface PaymentHistoryService {
     BigDecimal getMonthlyRevenue(Integer month, Integer year);
     Integer getNumberOfSuccessfulTransaction(Integer month, Integer year);
     Integer getNumberOfSuccessfulTransactionOfUser(Integer month, Integer year);
-    HashMap<TypeSubscriptionPlan, BigDecimal> getMonthlyRevenueBySubscriptionPlan(Integer month, Integer year);
+    Map<TypeSubscriptionPlan, BigDecimal> getMonthlyRevenueBySubscriptionPlan(Integer month, Integer year);
+    Map<Integer, Map<TypeSubscriptionPlan, BigDecimal>> getMonthlyRevenueBySubscriptionPlanInAYear(Integer year);
 }
