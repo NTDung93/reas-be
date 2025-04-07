@@ -3,6 +3,7 @@ package vn.fptu.reasbe.repository.custom.impl;
 import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.log4j.Logger;
 import org.springframework.data.domain.Page;
@@ -79,7 +80,7 @@ public class PaymentHistoryRepositoryCustomImpl extends AbstractRepositoryCustom
     }
 
     @Override
-    public HashMap<TypeSubscriptionPlan, BigDecimal> getMonthlyRevenueBySubscriptionPlan(Integer month, Integer year) {
+    public Map<TypeSubscriptionPlan, BigDecimal> getMonthlyRevenueBySubscriptionPlan(Integer month, Integer year) {
         QPaymentHistory paymentHistory = QPaymentHistory.paymentHistory;
         QUserSubscription userSubscription = QUserSubscription.userSubscription;
         QSubscriptionPlan subscriptionPlan = QSubscriptionPlan.subscriptionPlan;
@@ -99,13 +100,53 @@ public class PaymentHistoryRepositoryCustomImpl extends AbstractRepositoryCustom
                 .select(subscriptionPlan.typeSubscriptionPlan, paymentHistory.amount.sum())
                 .fetch();
 
-        HashMap<TypeSubscriptionPlan, BigDecimal> revenueMap = new HashMap<>();
+        Map<TypeSubscriptionPlan, BigDecimal> revenueMap = new HashMap<>();
         for (Tuple tuple : results) {
             TypeSubscriptionPlan type = tuple.get(subscriptionPlan.typeSubscriptionPlan);
             BigDecimal revenue = tuple.get(paymentHistory.amount.sum());
             revenueMap.put(type, revenue);
         }
         return revenueMap;
+    }
+
+    @Override
+    public HashMap<Integer, Map<TypeSubscriptionPlan, BigDecimal>> getMonthlyRevenueBySubscriptionPlanInAYear(Integer year) {
+        QPaymentHistory paymentHistory = QPaymentHistory.paymentHistory;
+        QUserSubscription userSubscription = QUserSubscription.userSubscription;
+        QSubscriptionPlan subscriptionPlan = QSubscriptionPlan.subscriptionPlan;
+
+        NumberExpression<Integer> monthExpr = DateUtils.extractMonth(paymentHistory.transactionDateTime);
+        NumberExpression<Integer> yearExpr = DateUtils.extractYear(paymentHistory.transactionDateTime);
+
+        BooleanBuilder builder = new BooleanBuilder()
+                .and(yearExpr.eq(year))
+                .and(paymentHistory.statusEntity.eq(StatusEntity.ACTIVE))
+                .and(paymentHistory.statusPayment.eq(StatusPayment.SUCCESS));
+
+        List<Tuple> results = new JPAQuery<>(em)
+                .from(paymentHistory)
+                .leftJoin(paymentHistory.userSubscription, userSubscription)
+                .leftJoin(userSubscription.subscriptionPlan, subscriptionPlan)
+                .where(builder)
+                .groupBy(monthExpr, subscriptionPlan.typeSubscriptionPlan)
+                .select(monthExpr, subscriptionPlan.typeSubscriptionPlan, paymentHistory.amount.sum())
+                .fetch();
+
+        HashMap<Integer, Map<TypeSubscriptionPlan, BigDecimal>> revenueByMonth = new HashMap<>();
+
+        for (Tuple tuple : results) {
+            Integer monthValue = tuple.get(monthExpr);
+            TypeSubscriptionPlan planType = tuple.get(subscriptionPlan.typeSubscriptionPlan);
+            BigDecimal sumAmount = tuple.get(paymentHistory.amount.sum());
+
+            // Get or create the inner map for that month
+            Map<TypeSubscriptionPlan, BigDecimal> planRevenueMap =
+                    revenueByMonth.computeIfAbsent(monthValue, k -> new HashMap<>());
+
+            planRevenueMap.put(planType, sumAmount != null ? sumAmount : BigDecimal.ZERO);
+        }
+
+        return revenueByMonth;
     }
 
     @Override

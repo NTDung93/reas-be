@@ -2,6 +2,7 @@ package vn.fptu.reasbe.controller;
 
 import java.math.BigDecimal;
 import java.util.HashMap;
+import java.util.Map;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -85,7 +86,13 @@ public class PaymentHistoryController {
 
     @GetMapping(value = "/monthly-revenue-by-subscription-plan")
     @PreAuthorize("hasRole(T(vn.fptu.reasbe.model.constant.AppConstants).ROLE_ADMIN)")
-    public ResponseEntity<HashMap<TypeSubscriptionPlan, BigDecimal>> getMonthlyRevenueBySubscriptionPlan(@RequestParam Integer month, @RequestParam Integer year) {
+    public ResponseEntity<Map<TypeSubscriptionPlan, BigDecimal>> getMonthlyRevenueBySubscriptionPlan(@RequestParam Integer month, @RequestParam Integer year) {
         return ResponseEntity.ok(paymentHistoryService.getMonthlyRevenueBySubscriptionPlan(month, year));
+    }
+
+    @GetMapping(value = "/monthly-revenue-by-subscription-plan-in-a-year")
+    @PreAuthorize("hasRole(T(vn.fptu.reasbe.model.constant.AppConstants).ROLE_ADMIN)")
+    public ResponseEntity<Map<Integer, Map<TypeSubscriptionPlan, BigDecimal>>> getMonthlyRevenueBySubscriptionPlanInAYear(@RequestParam Integer year) {
+        return ResponseEntity.ok(paymentHistoryService.getMonthlyRevenueBySubscriptionPlanInAYear(year));
     }
 }
