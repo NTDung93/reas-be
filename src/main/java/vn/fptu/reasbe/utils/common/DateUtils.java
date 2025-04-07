@@ -7,6 +7,10 @@ import java.time.temporal.TemporalAdjusters;
 
 import org.apache.commons.lang3.Validate;
 
+import com.querydsl.core.types.Expression;
+import com.querydsl.core.types.dsl.Expressions;
+import com.querydsl.core.types.dsl.NumberExpression;
+
 /**
  *
  * @author ntig
@@ -85,5 +89,43 @@ public abstract class DateUtils {
 
     public static LocalDateTime getLastDayOfCurrentMonth() {
        return getFirstDayOfCurrentMonth().with(TemporalAdjusters.lastDayOfMonth());
+    }
+
+    // ────────────────────────────────────────────────────────────────────────────────
+    // New methods for QueryDSL date extraction logic
+    // ────────────────────────────────────────────────────────────────────────────────
+
+    /**
+     * Creates a QueryDSL expression to extract the month from a date expression.
+     *
+     * @param dateTimeExpression an expression representing a date/time value.
+     * @return a NumberExpression representing the month (1-12)
+     */
+    public static NumberExpression<Integer> extractMonth(Expression<LocalDateTime> dateTimeExpression) {
+        return Expressions.numberTemplate(Integer.class, "MONTH({0})", dateTimeExpression);
+    }
+
+    /**
+     * Creates a QueryDSL expression to extract the year from a date expression.
+     *
+     * @param dateTimeExpression an expression representing a date/time value.
+     * @return a NumberExpression representing the year.
+     */
+    public static NumberExpression<Integer> extractYear(Expression<LocalDateTime> dateTimeExpression) {
+        return Expressions.numberTemplate(Integer.class, "YEAR({0})", dateTimeExpression);
+    }
+
+    public static LocalDateTime getStartOfSpecificMonth(Integer month, Integer year){
+        if (month == null || year == null) {
+            return null;
+        }
+        return LocalDateTime.of(year, Month.of(month), 1, 0, 0, 0);
+    }
+
+    public static LocalDateTime getEndOfSpecificMonth(Integer month, Integer year){
+        if (month == null || year == null) {
+            return null;
+        }
+        return LocalDateTime.of(year, Month.of(month), 1, 0, 0, 0).with(TemporalAdjusters.lastDayOfMonth());
     }
 }

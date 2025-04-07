@@ -141,6 +141,11 @@ public class UserServiceImpl implements UserService {
         return userMapper.toUserResponse(userRepository.save(user));
     }
 
+    @Override
+    public Integer getNumberOfActiveUser() {
+        return userRepository.countUsersByStatusEntityEqualsAndRoleNameEquals(StatusEntity.ACTIVE, String.valueOf(RoleName.ROLE_RESIDENT));
+    }
+
     void updatePrimaryUserLocation(User user, Integer userLocationId) {
         UserLocation chosenLocation = userLocationRepository.findByIdAndUserAndStatusEntity(userLocationId, user, StatusEntity.ACTIVE)
                 .orElseThrow(() -> new ResourceNotFoundException("User location", "id", userLocationId));
