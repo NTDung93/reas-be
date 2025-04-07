@@ -17,5 +17,6 @@ import lombok.experimental.FieldDefaults;
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class CategoryDto {
+    Integer id;
     String categoryName;
 }

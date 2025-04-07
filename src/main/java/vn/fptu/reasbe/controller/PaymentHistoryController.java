@@ -1,7 +1,11 @@
 package vn.fptu.reasbe.controller;
 
+import java.math.BigDecimal;
+import java.util.Map;
+
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -17,6 +21,7 @@ import vn.fptu.reasbe.model.constant.AppConstants;
 import vn.fptu.reasbe.model.dto.core.BaseSearchPaginationResponse;
 import vn.fptu.reasbe.model.dto.paymenthistory.PaymentHistoryDto;
 import vn.fptu.reasbe.model.dto.paymenthistory.SearchPaymentHistoryRequest;
+import vn.fptu.reasbe.model.enums.subscriptionplan.TypeSubscriptionPlan;
 import vn.fptu.reasbe.service.PaymentHistoryService;
 
 /**
@@ -55,8 +60,38 @@ public class PaymentHistoryController {
         return ResponseEntity.ok(paymentHistoryService.searchPaymentHistoryOfUserPagination(pageNo, pageSize, sortBy, sortDir, request, userId));
     }
 
-    @PostMapping(path = "/payos-transfer-handler")
+    @PostMapping(value = "/payos-transfer-handler")
     public void payosTransferHandler(@RequestBody ObjectNode body) throws Exception {
         paymentHistoryService.payOsTransferHandler(body);
+    }
+
+    @GetMapping(value = "/monthly-revenue")
+    @PreAuthorize("hasRole(T(vn.fptu.reasbe.model.constant.AppConstants).ROLE_ADMIN)")
+    public ResponseEntity<BigDecimal> getMonthlyRevenue(@RequestParam Integer month, @RequestParam Integer year) {
+        return ResponseEntity.ok(paymentHistoryService.getMonthlyRevenue(month, year));
+    }
+
+    @GetMapping(value = "/number-of-successful-transaction")
+    @PreAuthorize("hasRole(T(vn.fptu.reasbe.model.constant.AppConstants).ROLE_ADMIN)")
+    public ResponseEntity<Integer> getNumberOfSuccessfulTransaction(@RequestParam Integer month, @RequestParam Integer year) {
+        return ResponseEntity.ok(paymentHistoryService.getNumberOfSuccessfulTransaction(month, year));
+    }
+
+    @GetMapping(value = "/number-of-successful-transaction-of-user")
+    @PreAuthorize("hasRole(T(vn.fptu.reasbe.model.constant.AppConstants).ROLE_RESIDENT)")
+    public ResponseEntity<Integer> getNumberOfSuccessfulTransactionOfUser(@RequestParam Integer month, @RequestParam Integer year) {
+        return ResponseEntity.ok(paymentHistoryService.getNumberOfSuccessfulTransactionOfUser(month, year));
+    }
+
+    @GetMapping(value = "/monthly-revenue-by-subscription-plan")
+    @PreAuthorize("hasRole(T(vn.fptu.reasbe.model.constant.AppConstants).ROLE_ADMIN)")
+    public ResponseEntity<Map<TypeSubscriptionPlan, BigDecimal>> getMonthlyRevenueBySubscriptionPlan(@RequestParam Integer month, @RequestParam Integer year) {
+        return ResponseEntity.ok(paymentHistoryService.getMonthlyRevenueBySubscriptionPlan(month, year));
+    }
+
+    @GetMapping(value = "/monthly-revenue-by-subscription-plan-in-a-year")
+    @PreAuthorize("hasRole(T(vn.fptu.reasbe.model.constant.AppConstants).ROLE_ADMIN)")
+    public ResponseEntity<Map<Integer, Map<TypeSubscriptionPlan, BigDecimal>>> getMonthlyRevenueBySubscriptionPlanInAYear(@RequestParam Integer year) {
+        return ResponseEntity.ok(paymentHistoryService.getMonthlyRevenueBySubscriptionPlanInAYear(year));
     }
 }

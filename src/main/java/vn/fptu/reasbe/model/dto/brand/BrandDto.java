@@ -17,6 +17,7 @@ import lombok.experimental.FieldDefaults;
 @NoArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class BrandDto {
+    Integer id;
     String brandName;
     String image;
 }
