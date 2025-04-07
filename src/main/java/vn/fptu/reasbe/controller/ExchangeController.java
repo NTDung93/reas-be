@@ -99,4 +99,16 @@ public class ExchangeController {
     public ResponseEntity<ExchangeResponse> cancelExchange(@RequestParam Integer exchangeId) {
         return ResponseEntity.ok(exchangeService.cancelExchange(exchangeId));
     }
+
+    @GetMapping("/number-of-successful-exchanges")
+    @PreAuthorize("hasRole(T(vn.fptu.reasbe.model.constant.AppConstants).ROLE_ADMIN)")
+    public ResponseEntity<Integer> getNumberOfSuccessfulExchanges(@RequestParam Integer month, @RequestParam Integer year) {
+        return ResponseEntity.ok(exchangeService.getNumberOfSuccessfulExchanges(month, year));
+    }
+
+    @GetMapping("/number-of-successful-exchanges-of-user")
+    @PreAuthorize("hasRole(T(vn.fptu.reasbe.model.constant.AppConstants).ROLE_RESIDENT)")
+    public ResponseEntity<Integer> getNumberOfSuccessfulExchangesOfUser(@RequestParam Integer month, @RequestParam Integer year) {
+        return ResponseEntity.ok(exchangeService.getNumberOfSuccessfulExchangesOfUser(month, year));
+    }
 }

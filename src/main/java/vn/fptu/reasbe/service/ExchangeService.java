@@ -27,4 +27,8 @@ public interface ExchangeService {
     ExchangeResponse confirmNegotiatedPrice(Integer id);
 
     ExchangeResponse uploadEvidence(EvidenceExchangeRequest request);
+
+    Integer getNumberOfSuccessfulExchanges(Integer month, Integer year);
+
+    Integer getNumberOfSuccessfulExchangesOfUser(Integer month, Integer year);
 }
