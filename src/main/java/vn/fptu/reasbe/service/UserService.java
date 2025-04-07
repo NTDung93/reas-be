@@ -28,4 +28,6 @@ public interface UserService {
     UserResponse loadDetailInfoUser(Integer userId);
 
     UserResponse updateResidentInfo(UpdateResidentRequest request);
+
+    Integer getNumberOfActiveUser();
 }

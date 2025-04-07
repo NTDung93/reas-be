@@ -16,6 +16,7 @@ import vn.fptu.reasbe.model.entity.ExchangeHistory;
 import vn.fptu.reasbe.model.entity.ExchangeRequest;
 import vn.fptu.reasbe.model.entity.Item;
 import vn.fptu.reasbe.model.entity.User;
+import vn.fptu.reasbe.model.enums.core.StatusEntity;
 import vn.fptu.reasbe.model.enums.exchange.StatusExchangeHistory;
 import vn.fptu.reasbe.model.enums.exchange.StatusExchangeRequest;
 import vn.fptu.reasbe.model.enums.item.StatusItem;
@@ -319,6 +320,19 @@ public class ExchangeServiceImpl implements ExchangeService {
 
         exchangeHistory = exchangeHistoryRepository.save(exchangeHistory);
         return exchangeMapper.toExchangeResponse(exchangeHistory.getExchangeRequest());
+    }
+
+    @Override
+    public Integer getNumberOfSuccessfulExchanges(Integer month, Integer year) {
+        LocalDateTime startDate = DateUtils.getStartOfSpecificMonth(month, year);
+        LocalDateTime endDate = DateUtils.getEndOfSpecificMonth(month, year);
+        return exchangeHistoryRepository.countByCreationDateBetweenAndStatusExchangeHistoryAndStatusEntity(startDate, endDate, StatusExchangeHistory.SUCCESSFUL, StatusEntity.ACTIVE);
+    }
+
+    @Override
+    public Integer getNumberOfSuccessfulExchangesOfUser(Integer month, Integer year) {
+        User user = authService.getCurrentUser();
+        return exchangeHistoryRepository.getNumberOfSuccessfulExchangesOfUser(month, year, user.getId());
     }
 
     @Scheduled(cron = "0 0 0,18 * * *", zone = "Asia/Ho_Chi_Minh")
