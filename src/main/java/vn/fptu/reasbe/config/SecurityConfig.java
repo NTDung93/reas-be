@@ -59,6 +59,7 @@ public class SecurityConfig {
                                 .requestMatchers(HttpMethod.POST, "/api/v1/notification/send-notification").permitAll()
                                 .requestMatchers(HttpMethod.POST, "/api/v1/subscription-plan/search").permitAll()
                                 .requestMatchers(HttpMethod.POST, "/api/v1/payment-history/payos-transfer-handler").permitAll()
+                                .requestMatchers(HttpMethod.POST, "/api/v1/payos/confirm-webhook").permitAll()
                                 .requestMatchers("/api/v1/auth/**").permitAll()
                                 .requestMatchers("/swagger-ui/**").permitAll()
                                 .requestMatchers("/v3/api-docs/**").permitAll()
