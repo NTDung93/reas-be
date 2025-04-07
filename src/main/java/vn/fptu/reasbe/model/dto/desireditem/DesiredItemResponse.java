@@ -6,6 +6,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.FieldDefaults;
+import vn.fptu.reasbe.model.enums.category.TypeItem;
 import vn.fptu.reasbe.model.enums.item.ConditionItem;
 
 import java.math.BigDecimal;
@@ -18,9 +19,15 @@ import java.math.BigDecimal;
 public class DesiredItemResponse {
     Integer id;
 
+    Integer categoryId;
+
     String categoryName;
 
+    Integer brandId;
+
     String brandName;
+
+    TypeItem typeItem;
 
     ConditionItem conditionItem;
 
