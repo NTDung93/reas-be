@@ -2,10 +2,8 @@ package vn.fptu.reasbe.service.impl;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.HashMap;
 import java.util.Map;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import org.springframework.stereotype.Service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -77,62 +75,40 @@ public class PaymentHistoryServiceImpl implements PaymentHistoryService {
         return null;
     }
 
-//    @Override
-//    public void payOsTransferHandler(ObjectNode body) {
-//        try {
-//            ObjectMapper objectMapper = new ObjectMapper();
-//            Webhook webhookBody = objectMapper.treeToValue(body, Webhook.class);
-//            WebhookData data = payOS.verifyPaymentWebhookData(webhookBody);
-//            Item item = null;
-//
-//            Integer subscriptionPlanId = Math.toIntExact(PaymentCodeHelper.getItemIdFromOrderCode(data.getOrderCode()).getFirst());
-//            SubscriptionPlan subscriptionPlan = subscriptionPlanService.getSubscriptionPlanByPlanId(subscriptionPlanId);
-//
-//            int itemId = Math.toIntExact(PaymentCodeHelper.getItemIdFromOrderCode(data.getOrderCode()).getSecond());
-//            if (itemId != 0) {
-//                item = itemService.getItemById(itemId);
-//            }
-//
-//            PaymentHistory paymentHistory = PaymentHistory.builder()
-//                    .transactionId(data.getOrderCode())
-//                    .amount(BigDecimal.valueOf(data.getAmount()))
-//                    .description(data.getDescription())
-//                    .transactionDateTime(LocalDateTime.parse(data.getTransactionDateTime()))
-//                    .statusPayment(Boolean.TRUE.equals(webhookBody.getSuccess()) ? StatusPayment.SUCCESS : StatusPayment.FAILED)
-//                    .methodPayment(MethodPayment.BANK_TRANSFER)
-//                    .build();
-//            PaymentHistory savedPaymentHistory = paymentHistoryRepository.save(paymentHistory);
-//
-//            if (Boolean.TRUE.equals(webhookBody.getSuccess())) {
-//                userSubscriptionService.createUserSubscription(subscriptionPlan, item, savedPaymentHistory);
-//                if (item != null) {
-//                    itemService.extendItem(item, subscriptionPlan);
-//                }
-//            }
-//        } catch (Exception e) {
-//            throw new PayOSException(e.getMessage());
-//        }
-//    }
-
     @Override
-    public void payOsTransferHandler(ObjectNode body) throws JsonProcessingException {
-        ObjectMapper objectMapper = new ObjectMapper();
-        ObjectNode response = objectMapper.createObjectNode();
-        Webhook webhookBody = objectMapper.treeToValue(body, Webhook.class);
-
+    public void payOsTransferHandler(ObjectNode body) {
         try {
-            // Init Response
-            response.put("error", 0);
-            response.put("message", "Webhook delivered");
-            response.set("data", null);
-
+            ObjectMapper objectMapper = new ObjectMapper();
+            Webhook webhookBody = objectMapper.treeToValue(body, Webhook.class);
             WebhookData data = payOS.verifyPaymentWebhookData(webhookBody);
-            System.out.println(data);
+            Item item = null;
+
+            Integer subscriptionPlanId = Math.toIntExact(PaymentCodeHelper.getItemIdFromOrderCode(data.getOrderCode()).getFirst());
+            SubscriptionPlan subscriptionPlan = subscriptionPlanService.getSubscriptionPlanByPlanId(subscriptionPlanId);
+
+            int itemId = Math.toIntExact(PaymentCodeHelper.getItemIdFromOrderCode(data.getOrderCode()).getSecond());
+            if (itemId != 0) {
+                item = itemService.getItemById(itemId);
+            }
+
+            PaymentHistory paymentHistory = PaymentHistory.builder()
+                    .transactionId(data.getOrderCode())
+                    .amount(BigDecimal.valueOf(data.getAmount()))
+                    .description(data.getDescription())
+                    .transactionDateTime(LocalDateTime.parse(data.getTransactionDateTime()))
+                    .statusPayment(Boolean.TRUE.equals(webhookBody.getSuccess()) ? StatusPayment.SUCCESS : StatusPayment.FAILED)
+                    .methodPayment(MethodPayment.BANK_TRANSFER)
+                    .build();
+            PaymentHistory savedPaymentHistory = paymentHistoryRepository.save(paymentHistory);
+
+            if (Boolean.TRUE.equals(webhookBody.getSuccess())) {
+                userSubscriptionService.createUserSubscription(subscriptionPlan, item, savedPaymentHistory);
+                if (item != null) {
+                    itemService.extendItem(item, subscriptionPlan);
+                }
+            }
         } catch (Exception e) {
-            e.printStackTrace();
-            response.put("error", -1);
-            response.put("message", e.getMessage());
-            response.set("data", null);
+            throw new PayOSException(e.getMessage());
         }
     }
 
