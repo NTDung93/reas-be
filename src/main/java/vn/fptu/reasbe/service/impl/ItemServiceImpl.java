@@ -316,7 +316,7 @@ public class ItemServiceImpl implements ItemService {
     @Override
     public void extendItem(Item item, SubscriptionPlan plan) {
         item.setStatusItem(StatusItem.AVAILABLE);
-        item.setExpiredTime(DateUtils.getCurrentDateTime().plusSeconds((long) (plan.getDuration() * 24 * 60 * 60)));
+        item.setExpiredTime(DateUtils.getCurrentDateTime().plusDays((long) (plan.getDuration() * 30)));
         itemRepository.save(item);
     }
 
