@@ -143,7 +143,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public Integer getNumberOfActiveUser() {
-        return userRepository.countUsersByStatusEntityEqualsAndRoleNameEquals(StatusEntity.ACTIVE, String.valueOf(RoleName.ROLE_RESIDENT));
+        return userRepository.countUsersByStatusEntityEqualsAndRole_Name(StatusEntity.ACTIVE, RoleName.ROLE_RESIDENT);
     }
 
     void updatePrimaryUserLocation(User user, Integer userLocationId) {

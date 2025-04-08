@@ -8,6 +8,7 @@ import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 
 import lombok.RequiredArgsConstructor;
+import vn.fptu.reasbe.model.enums.notification.TypeNotification;
 import vn.fptu.reasbe.model.mongodb.ChatMessage;
 import vn.fptu.reasbe.model.mongodb.Notification;
 import vn.fptu.reasbe.model.mongodb.User;
@@ -47,7 +48,7 @@ public class ChatMessageServiceImpl implements ChatMessageService {
                 .content(savedMsg.getContent())
                 .timestamp(savedMsg.getTimestamp())
                 .contentType(savedMsg.getContentType())
-                .notificationType("message")
+                .notificationType(TypeNotification.CHAT_MESSAGE)
                 .registrationTokens(recipient.getRegistrationTokens())
                 .build();
     }
