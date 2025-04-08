@@ -14,16 +14,17 @@ import vn.fptu.reasbe.model.exception.ReasApiException;
  */
 public class PaymentCodeHelper {
     public static String generateOrderCode(Integer planId, Integer itemId) {
-        long timestamp = Instant.now().getEpochSecond();
+        String plandIdString = String.valueOf(planId);
+        String timestamp = String.valueOf(Instant.now().getEpochSecond());
         if (planId != null && itemId != null) {
-            return timestamp + planId + "_" + itemId;
+            String itemIdString = String.valueOf(itemId);
+            return timestamp + plandIdString + itemIdString;
         } else if (planId != null) {
-            return timestamp + planId + "";
+            return timestamp + plandIdString;
         } else {
-            return String.valueOf(timestamp);
+            return timestamp;
         }
     }
-
 
     public static Pair<Integer, Integer> getItemIdFromOrderCode(long orderCode) {
         int timestampLength = 10;
@@ -31,8 +32,8 @@ public class PaymentCodeHelper {
 
         if (orderCodeString.length() > timestampLength) {
             String theRest = orderCodeString.substring(timestampLength);
-            if (theRest.contains("_")){
-                return Pair.of(Integer.parseInt(theRest.split("_")[0]), Integer.parseInt(theRest.split("_")[1]));
+            if (theRest.length() > 1){
+                return Pair.of(Integer.parseInt(theRest.substring(0,1)), Integer.parseInt(theRest.substring(1)));
             }
             return Pair.of(Integer.parseInt(theRest), null);
         } else {
