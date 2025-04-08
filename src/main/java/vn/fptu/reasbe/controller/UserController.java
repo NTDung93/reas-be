@@ -75,4 +75,11 @@ public class UserController {
     public ResponseEntity<UserResponse> updateResidentInfo(@Valid @RequestBody UpdateResidentRequest request) {
         return ResponseEntity.ok(userService.updateResidentInfo(request));
     }
+
+    @GetMapping("/count-active-users")
+    @PreAuthorize("hasRole(T(vn.fptu.reasbe.model.constant.AppConstants).ROLE_STAFF) or " +
+            "hasRole(T(vn.fptu.reasbe.model.constant.AppConstants).ROLE_ADMIN)")
+    public ResponseEntity<Integer> getNumberOfActiveUser() {
+        return ResponseEntity.ok(userService.getNumberOfActiveUser());
+    }
 }
