@@ -2,6 +2,7 @@ package vn.fptu.reasbe.controller;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -12,6 +13,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+
 import vn.fptu.reasbe.model.constant.AppConstants;
 import vn.fptu.reasbe.model.dto.core.BaseSearchPaginationResponse;
 import vn.fptu.reasbe.model.dto.exchange.EvidenceExchangeRequest;
@@ -101,7 +103,8 @@ public class ExchangeController {
     }
 
     @GetMapping("/number-of-successful-exchanges")
-    @PreAuthorize("hasRole(T(vn.fptu.reasbe.model.constant.AppConstants).ROLE_ADMIN)")
+    @PreAuthorize("hasRole(T(vn.fptu.reasbe.model.constant.AppConstants).ROLE_STAFF) or " +
+            "hasRole(T(vn.fptu.reasbe.model.constant.AppConstants).ROLE_ADMIN)")
     public ResponseEntity<Integer> getNumberOfSuccessfulExchanges(@RequestParam Integer month, @RequestParam Integer year) {
         return ResponseEntity.ok(exchangeService.getNumberOfSuccessfulExchanges(month, year));
     }
