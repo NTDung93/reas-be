@@ -2,6 +2,7 @@ package vn.fptu.reasbe.service.impl;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Map;
 
 import org.springframework.stereotype.Service;
@@ -82,20 +83,27 @@ public class PaymentHistoryServiceImpl implements PaymentHistoryService {
             Webhook webhookBody = objectMapper.treeToValue(body, Webhook.class);
             WebhookData data = payOS.verifyPaymentWebhookData(webhookBody);
             Item item = null;
+            SubscriptionPlan subscriptionPlan;
 
-            Integer subscriptionPlanId = Math.toIntExact(PaymentCodeHelper.getItemIdFromOrderCode(data.getOrderCode()).getFirst());
-            SubscriptionPlan subscriptionPlan = subscriptionPlanService.getSubscriptionPlanByPlanId(subscriptionPlanId);
+            if (data.getOrderCode() != 123) {
+                Integer subscriptionPlanId = Math.toIntExact(PaymentCodeHelper.getItemIdFromOrderCode(data.getOrderCode()).getFirst());
+                subscriptionPlan = subscriptionPlanService.getSubscriptionPlanByPlanId(subscriptionPlanId);
 
-            int itemId = Math.toIntExact(PaymentCodeHelper.getItemIdFromOrderCode(data.getOrderCode()).getSecond());
-            if (itemId != 0) {
-                item = itemService.getItemById(itemId);
+                if (!subscriptionPlan.getTypeSubscriptionPlan().equals(TypeSubscriptionPlan.PREMIUM_PLAN)) {
+                    int itemId = Math.toIntExact(PaymentCodeHelper.getItemIdFromOrderCode(data.getOrderCode()).getSecond());
+                    if (itemId != 0) {
+                        item = itemService.getItemById(itemId);
+                    }
+                }
+            } else {
+                subscriptionPlan = subscriptionPlanService.getSubscriptionPlanByPlanId(1);
             }
 
             PaymentHistory paymentHistory = PaymentHistory.builder()
                     .transactionId(data.getOrderCode())
                     .amount(BigDecimal.valueOf(data.getAmount()))
                     .description(data.getDescription())
-                    .transactionDateTime(LocalDateTime.parse(data.getTransactionDateTime()))
+                    .transactionDateTime(LocalDateTime.parse(data.getTransactionDateTime(), DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")))
                     .statusPayment(Boolean.TRUE.equals(webhookBody.getSuccess()) ? StatusPayment.SUCCESS : StatusPayment.FAILED)
                     .methodPayment(MethodPayment.BANK_TRANSFER)
                     .build();
