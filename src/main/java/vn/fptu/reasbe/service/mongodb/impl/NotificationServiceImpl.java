@@ -9,6 +9,8 @@ import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
 import com.google.firebase.messaging.BatchResponse;
@@ -18,6 +20,7 @@ import com.google.firebase.messaging.MulticastMessage;
 import com.google.firebase.messaging.SendResponse;
 
 import lombok.RequiredArgsConstructor;
+import vn.fptu.reasbe.model.dto.core.BaseSearchPaginationResponse;
 import vn.fptu.reasbe.model.dto.mongodb.notification.NotificationDto;
 import vn.fptu.reasbe.model.enums.notification.TypeNotification;
 import vn.fptu.reasbe.model.mongodb.Notification;
@@ -86,7 +89,7 @@ public class NotificationServiceImpl implements NotificationService {
     }
 
     @Override
-    public List<NotificationDto> getNotificationsOfUserGroupingByType(String username) {
+    public BaseSearchPaginationResponse<NotificationDto> getNotificationsOfUserGroupingByType(int pageNo, int pageSize, String username) {
         List<Notification> notifications = notificationRepository.findByRecipientId(username);
         List<Notification> groupedNotifications = new ArrayList<>();
 
@@ -115,9 +118,16 @@ public class NotificationServiceImpl implements NotificationService {
         // Sort the final notifications list by timestamp
         groupedNotifications.sort(Comparator.comparing(Notification::getTimestamp).reversed());
 
-        return groupedNotifications.stream()
+        List<NotificationDto> dtoList = groupedNotifications.stream()
                 .map(notificationMapper::toDto)
                 .toList();
+
+        int total = dtoList.size();
+        int fromIndex = (pageNo - 1) * pageSize;
+        int toIndex = Math.min(fromIndex + pageSize, total);
+        List<NotificationDto> paginatedList = fromIndex >= total ? new ArrayList<>() : dtoList.subList(fromIndex, toIndex);
+
+        return BaseSearchPaginationResponse.of(new PageImpl<>(paginatedList, PageRequest.of(pageNo - 1, pageSize), total));
     }
 
     private void validateNotification(Notification notification) {
