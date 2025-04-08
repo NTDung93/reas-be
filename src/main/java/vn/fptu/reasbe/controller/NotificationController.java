@@ -12,6 +12,9 @@ import org.springframework.web.bind.annotation.RestController;
 import com.google.firebase.messaging.BatchResponse;
 
 import lombok.RequiredArgsConstructor;
+import vn.fptu.reasbe.model.constant.AppConstants;
+import vn.fptu.reasbe.model.dto.core.BaseSearchPaginationResponse;
+import vn.fptu.reasbe.model.dto.mongodb.notification.NotificationDto;
 import vn.fptu.reasbe.model.mongodb.Notification;
 import vn.fptu.reasbe.service.mongodb.NotificationService;
 
@@ -34,5 +37,14 @@ public class NotificationController {
     @PostMapping("/send-notification")
     public BatchResponse sendNotification(@RequestBody Notification notification){
         return notificationService.sendNotification(notification);
+    }
+
+    @GetMapping("/get-notifications-of-user")
+    public BaseSearchPaginationResponse<NotificationDto> getNotificationsOfUser(
+            @RequestParam(name = "pageNo", defaultValue = AppConstants.DEFAULT_PAGE_NUMBER, required = false) int pageNo,
+            @RequestParam(name = "pageSize", defaultValue = AppConstants.DEFAULT_PAGE_SIZE, required = false) int pageSize,
+            @RequestParam String username
+    ) {
+        return notificationService.getNotificationsOfUserGroupingByType(pageNo, pageSize, username);
     }
 }

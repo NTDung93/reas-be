@@ -7,6 +7,7 @@ import org.springframework.data.querydsl.QuerydslPredicateExecutor;
 
 import vn.fptu.reasbe.model.entity.User;
 import vn.fptu.reasbe.model.enums.core.StatusEntity;
+import vn.fptu.reasbe.model.enums.user.RoleName;
 import vn.fptu.reasbe.repository.custom.UserRepositoryCustom;
 
 public interface UserRepository extends JpaRepository<User, Integer>, QuerydslPredicateExecutor<User>, UserRepositoryCustom {
@@ -16,6 +17,6 @@ public interface UserRepository extends JpaRepository<User, Integer>, QuerydslPr
     Boolean existsByEmailAndStatusEntityEquals(String email, StatusEntity status);
     Boolean existsByEmailAndStatusEntityEqualsAndIdIsNot(String email, StatusEntity status, Integer id);
     Optional<User> findByUserName(String username);
-    Integer countUsersByStatusEntityEqualsAndRoleNameEquals(StatusEntity status, String roleName);
+    Integer countUsersByStatusEntityEqualsAndRole_Name(StatusEntity status, RoleName roleName);
     Optional<User> findByEmail(String email);
 }
