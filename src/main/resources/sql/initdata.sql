@@ -153,18 +153,18 @@ VALUES
 INSERT INTO public."USER_LOCATION"
 ("STATUS_ENTITY", "USR_LOG_I", "DTE_LOG_I", "DTE_LOG_U", "USR_LOG_U", "VERSION", "IS_PRIMARY", "SPECIFIC_ADDRESS", "LOCATION_ID", "USER_ID", "LATITUDE", "LONGITUDE")
 VALUES
-    ('ACTIVE', 'admin', NOW(), NULL, NULL, 0, true, '8nm0fmTFgWCrpyIrtne3e2w8qQWCdKf2ebZCUK9JhYZSixt-rnWd7bOcREx4dYn6rrUjYqxl9jfpsphxqtkj__1O5A1ODWIHNYaVHQIV1hexgnxNIsxOVZ2K3OEiFhf4S//Cổng Huỳnh Thúc Kháng, Công viên Indira Gandhi, Huỳnh Thúc Kháng, Thành Công, Ba Đình, Hà Nội', 1, 3, 21.017938, 105.812312),  -- Ti Dung - Vinhomes Grand Park
-    ('ACTIVE', 'admin', NOW(), NULL, NULL, 0, false, 'PUoiY7hrqWZhwCIptIyYZlWoqAu33ouBZVmKQbFN_oZ6nWZGulKUhGXCZ0mvdIj7ZbRhTa1k-4AFsm0dp0mq_lK3awKCWYDMYKR8SRoR0hO1hnkESshKUhGO2STmEE__E//123 Lê Quang Định, Phường 14, Bình Thạnh, Hồ Chí Minh', 2, 3, 10.80685, 106.696439),  -- Ti Dung - Masteri Thao Dien
-    ('ACTIVE', 'admin', NOW(), NULL, NULL, 0, false, 'lqCel5qR7UZ_p187q1-F3Ua2UxQvW4qUW6VGoRZ1muk5iW0zpFqV3mi3ahinZ7R0aqR5EKP_sF93pV82pnW69nGQ4MVFzWtDUp7ZAVHJmlv9zjFMAoADslnGkWyuWAYbW//Mai Chí Thọ, Giang Biên, Long Biên, Hà Nội', 3, 3, 21.028511, 105.804817),  -- Ti Dung - Cityland Park Hills
-    ('ACTIVE', 'admin', NOW(), NULL, NULL, 0, false, 'nHaGe59Dhk1imUsar46kZWG6QyFLz46DbKqvImkSoMFXplxEtnSexmawaQacdIruP7dPZrNMqP8GtEBCg0r5xFaZKUOsqvzNYmNkRIZQ-O92Y6YQsBCWhmG0SzAuGEf3G//Lê Văn Duyệt, Phường 1, Bình Thạnh, Hồ Chí Minh', 4, 3, 10.795252, 106.696315),  -- Ti Dung - The Ascent
-    ('ACTIVE', 'admin', NOW(), NULL, NULL, 0, true, 'zPGouPdal7FaMmST7oWmQjmk-Qg-MdZuJRkapJLVkp_F2m3dJtXtevWLOTUz_eYPwaW54Orh0oNKRdnwEu0aMwm24Xiu9VovMb6tdSYt7i-JukU4dvR2bi2y5RjaLHPDL//Nguyễn Văn Đậu, Phường 5, Bình Thạnh, Hồ Chí Minh', 1, 4, 10.810762, 106.690142),  -- Duc Anh - Vinhomes Grand Park
-    ('ACTIVE', 'admin', NOW(), NULL, NULL, 0, false, 'myWcVXziwkVItORbqlWURXmomTeeapeQT4FNA54NgHpmh2parWjjTmSq71-zab53Zt2fILN7hDZl3NgWmA6YKfa7deSxveOZOnrjxWphomF19giG0rg6IDn-Y2KqYD-NV//Bạch Đằng, Phường 2, Tân Bình, Hồ Chí Minh', 5, 4, 10.810762, 106.690142),  -- Duc Anh - Saigon Pearl
-    ('ACTIVE', 'admin', NOW(), NULL, NULL, 0, true, 'ThghmXmfmCVJpE0EqlOix0mHfy1VaZDqSdyuFmKRnuuJlpHcdep66nWbdTSp7rqbmZdxWtHirmMVlXmOAqEWT03K4fSHiRZibb7h8WpRomPF9gl2Qrg6IDn-qVZiYD-PY//Ngã Tư Hàng Xanh, Phường 25, Bình Thạnh, Hồ Chí Minh', 2, 5, 10.801562, 106.711473),  -- Trang Thao - Masteri Thao Dien
-    ('ACTIVE', 'admin', NOW(), NULL, NULL, 0, false, 'VkZAhVXFj6BkYFSREqJyH42ZgZiOqYJ_oLa9kQbZKj_dSs3gGg0mPwVWLRje9XqWbadt4Tjpgg9NUmjyzKRX5ymqitUdsT4DrZ6OvQYNzg-pmgpkVtRWTg2SxTj6DFPjD//Cây xăng, Xô Viết Nghệ Tĩnh, phường 21, Bình Thạnh, Hồ Chí Minh', 1, 5, 10.79586, 106.710926),  -- Trang Thao - Vinhomes Grand Park
-    ('ACTIVE', 'admin', NOW(), NULL, NULL, 0, true, 'doI0_yMFYppstLIlfUn67GSLtAWpZontVI22QCtPhS5Th7U-U2eeh1S2srMLEp2Ae8GsZ0himcVnpWBIbHX-3LbCr0BTE4XMY9aWFR0B1hew8n7NgSBOVhRO3hThIEv7F//Đinh Bộ Lĩnh, Phường 26, Bình Thạnh, Hồ Chí Minh', 3, 6, 10.811947, 106.707155),  -- Minh Quan - Cityland Park Hills
-    ('ACTIVE', 'admin', NOW(), NULL, NULL, 0, false, '5WKgpB--BLls6V8qrLLh2myuVwSiBILwQIxbVpVUjsMtDs18XmgeSonCxX6Q_YpKVRLJE1Stw6XfholeTEAegbm_UXyalWLz7drJE6JJiUPt3X4iSpARwknVXXy-SggXS//Bùi Đình Túy, Phường 24, Bình Thạnh, Hồ Chí Minh', 4, 6, 10.807833, 106.707155),  -- Minh Quan - The Ascent
-    ('ACTIVE', 'admin', NOW(), NULL, NULL, 0, true, 'EJSaYrL-fUrxigEInmUJknn-XWjufVLGHYdrlLbUKeJtis4cas2Cl62KBSnocbabXqaNkeJ5wutlOhkYQolOD_n2pMRmACb3Pe6FJXZ9vn_Z6hVoJfamPn3itUiIJCOTf//Căn hộ, Điện Biên Phủ, phường 3, Quận 3, Hồ Chí Minh', 4, 7, 10.772173, 106.678872),  -- Hien Nhu - The Ascent
-    ('ACTIVE', 'admin', NOW(), NULL, NULL, 0, false, 'ao9ogTt_icZlkXhMsW216V2VWrlNG5yMabNWv6VvoYdorlYqiHyQ7W3WRdA31f77zaDZ_l5NthMZYD3QguXCD516_WjC5bqPEa65ZTY9_r-ZClWoZuRmfj0q9QjKPGPTP//442 Lê Quang Định, Phường 11, Bình Thạnh, Hồ Chí Minh', 5, 7, 10.812053, 106.69077);  -- Hien Nhu - Saigon Pearl
+    ('ACTIVE', 'admin', NOW(), NULL, NULL, 0, true, 'Cổng Huỳnh Thúc Kháng, Công viên Indira Gandhi, Huỳnh Thúc Kháng, Thành Công, Ba Đình, Hà Nội', 1, 3, 21.017938, 105.812312),  -- Ti Dung - Vinhomes Grand Park
+    ('ACTIVE', 'admin', NOW(), NULL, NULL, 0, false, '123 Lê Quang Định, Phường 14, Bình Thạnh, Hồ Chí Minh', 2, 3, 10.80685, 106.696439),  -- Ti Dung - Masteri Thao Dien
+    ('ACTIVE', 'admin', NOW(), NULL, NULL, 0, false, 'Mai Chí Thọ, Giang Biên, Long Biên, Hà Nội', 3, 3, 21.028511, 105.804817),  -- Ti Dung - Cityland Park Hills
+    ('ACTIVE', 'admin', NOW(), NULL, NULL, 0, false, 'Lê Văn Duyệt, Phường 1, Bình Thạnh, Hồ Chí Minh', 4, 3, 10.795252, 106.696315),  -- Ti Dung - The Ascent
+    ('ACTIVE', 'admin', NOW(), NULL, NULL, 0, true, 'Nguyễn Văn Đậu, Phường 5, Bình Thạnh, Hồ Chí Minh', 1, 4, 10.810762, 106.690142),  -- Duc Anh - Vinhomes Grand Park
+    ('ACTIVE', 'admin', NOW(), NULL, NULL, 0, false, 'Bạch Đằng, Phường 2, Tân Bình, Hồ Chí Minh', 5, 4, 10.810762, 106.690142),  -- Duc Anh - Saigon Pearl
+    ('ACTIVE', 'admin', NOW(), NULL, NULL, 0, true, 'Ngã Tư Hàng Xanh, Phường 25, Bình Thạnh, Hồ Chí Minh', 2, 5, 10.801562, 106.711473),  -- Trang Thao - Masteri Thao Dien
+    ('ACTIVE', 'admin', NOW(), NULL, NULL, 0, false, 'Cây xăng, Xô Viết Nghệ Tĩnh, phường 21, Bình Thạnh, Hồ Chí Minh', 1, 5, 10.79586, 106.710926),  -- Trang Thao - Vinhomes Grand Park
+    ('ACTIVE', 'admin', NOW(), NULL, NULL, 0, true, 'Đinh Bộ Lĩnh, Phường 26, Bình Thạnh, Hồ Chí Minh', 3, 6, 10.811947, 106.707155),  -- Minh Quan - Cityland Park Hills
+    ('ACTIVE', 'admin', NOW(), NULL, NULL, 0, false, 'Bùi Đình Túy, Phường 24, Bình Thạnh, Hồ Chí Minh', 4, 6, 10.807833, 106.707155),  -- Minh Quan - The Ascent
+    ('ACTIVE', 'admin', NOW(), NULL, NULL, 0, true, 'Căn hộ, Điện Biên Phủ, phường 3, Quận 3, Hồ Chí Minh', 4, 7, 10.772173, 106.678872),  -- Hien Nhu - The Ascent
+    ('ACTIVE', 'admin', NOW(), NULL, NULL, 0, false, '442 Lê Quang Định, Phường 11, Bình Thạnh, Hồ Chí Minh', 5, 7, 10.812053, 106.69077);  -- Hien Nhu - Saigon Pearl
 
 INSERT INTO public."DESIRED_ITEM"
 ("STATUS_ENTITY", "USR_LOG_I", "DTE_LOG_I", "DTE_LOG_U", "USR_LOG_U", "VERSION", "CONDITION_ITEM", "MAX_PRICE", "MIN_PRICE", "BRAND_ID", "CATEGORY_ID", "DESCRIPTION")
