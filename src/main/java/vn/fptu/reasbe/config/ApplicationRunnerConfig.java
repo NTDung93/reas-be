@@ -4,7 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import vn.fptu.reasbe.model.entity.Item;
+import vn.fptu.reasbe.model.dto.item.ItemRunnerDTO;
 import vn.fptu.reasbe.model.entity.UserLocation;
 import vn.fptu.reasbe.model.enums.item.StatusItem;
 import vn.fptu.reasbe.repository.ItemRepository;
@@ -22,16 +22,21 @@ public class ApplicationRunnerConfig {
     private final UserLocationRepository userLocationRepository;
 
     @Bean
-    public ApplicationRunner applicationRunner() {
+    public ApplicationRunner userLocationInitRunner() {
         return args -> {
-            List<Item> items = itemRepository.findAllByStatus(StatusItem.AVAILABLE);
-            vectorStoreService.addNewItem(items);
-
             List<UserLocation> userLocations = userLocationRepository.findAllByPointNull();
             for (UserLocation userLocation : userLocations) {
                 userLocation.setPoint(GeometryUtils.createPoint(userLocation.getLongitude(), userLocation.getLatitude()));
             }
             userLocationRepository.saveAll(userLocations);
+        };
+    }
+
+    @Bean
+    public ApplicationRunner vectorStoreInitRunner() {
+        return args -> {
+            List<ItemRunnerDTO> items = itemRepository.findAllItemRunnerByStatus(StatusItem.AVAILABLE);
+            vectorStoreService.addNewItemInRunner(items);
         };
     }
 }

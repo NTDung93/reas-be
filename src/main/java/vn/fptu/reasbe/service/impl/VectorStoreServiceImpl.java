@@ -8,6 +8,7 @@ import org.springframework.ai.vectorstore.SearchRequest;
 import org.springframework.ai.vectorstore.pgvector.PgVectorStore;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import vn.fptu.reasbe.model.dto.item.ItemRunnerDTO;
 import vn.fptu.reasbe.model.entity.Item;
 import vn.fptu.reasbe.model.exception.ReasApiException;
 import vn.fptu.reasbe.service.VectorStoreService;
@@ -38,6 +39,30 @@ public class VectorStoreServiceImpl implements VectorStoreService {
                             "description", item.getDescription(),
                             "conditionItem", item.getConditionItem().getCode(),
                             "ownerId", item.getOwner().getId()));
+
+            TokenTextSplitter splitter = new TokenTextSplitter();
+            List<Document> docs = splitter.apply(List.of(newItemDocs));
+            vectorStore.add(docs);
+        }
+    }
+
+    @Override
+    public void addNewItemInRunner(List<ItemRunnerDTO> items) {
+        for (ItemRunnerDTO item : items) {
+
+            if (existItem(item.getItemId())) {
+                continue;
+            }
+
+            Document newItemDocs = new Document(prepareItemRunnerContent(item),
+                    Map.of("itemId", item.getItemId(),
+                            "itemName", item.getItemName(),
+                            "brandName", item.getBrandName(),
+                            "categoryName", item.getCategoryName(),
+                            "price", item.getPrice(),
+                            "description", item.getDescription(),
+                            "conditionItem", item.getConditionItem().getCode(),
+                            "ownerId", item.getOwnerId()));
 
             TokenTextSplitter splitter = new TokenTextSplitter();
             List<Document> docs = splitter.apply(List.of(newItemDocs));
@@ -111,6 +136,16 @@ public class VectorStoreServiceImpl implements VectorStoreService {
                 item.getItemName(),
                 item.getBrand().getBrandName(),
                 item.getCategory().getCategoryName(),
+                item.getPrice().toString(),
+                item.getDescription(),
+                item.getConditionItem().getCode());
+    }
+
+    private String prepareItemRunnerContent(ItemRunnerDTO item) {
+        return String.format("Item: %s, Brand: %s, Category: %s, Price: %s, Description: %s, Condition: %s",
+                item.getItemName(),
+                item.getBrandName(),
+                item.getCategoryName(),
                 item.getPrice().toString(),
                 item.getDescription(),
                 item.getConditionItem().getCode());
