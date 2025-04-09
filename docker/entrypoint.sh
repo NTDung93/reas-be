@@ -18,7 +18,7 @@ AVAILABLE_ITEMS=$(psql -h $DB_HOST -U $DB_USER -d $DB_NAME -t -c "SELECT COUNT(*
 
 if [ "$AVAILABLE_ITEMS" -eq "0" ]; then
   echo "No available items found. Importing initial data..."
-  psql -h $DB_HOST -U $DB_USER -d $DB_NAME -f /init-data.sql
+  psql -h $DB_HOST -U $DB_USER -d $DB_NAME -f /initdata.sql
 else
   echo "Found $AVAILABLE_ITEMS available items."
 fi
