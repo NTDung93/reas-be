@@ -2,7 +2,7 @@
 
 set -e
 
-DB_HOST=18.143.78.130
+DB_HOST=postgres
 DB_PORT=5432
 DB_USER=postgres
 DB_PASS=12345678
