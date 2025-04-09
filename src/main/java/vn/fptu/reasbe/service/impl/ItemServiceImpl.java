@@ -219,6 +219,7 @@ public class ItemServiceImpl implements ItemService {
         } else if (status.equals(StatusItem.REJECTED)) {
             pendingItem.setStatusItem(StatusItem.REJECTED);
         }
+        //TODO: sendNoti
 
         return itemMapper.toItemResponse(itemRepository.save(pendingItem));
     }
@@ -387,7 +388,10 @@ public class ItemServiceImpl implements ItemService {
     @Scheduled(cron = "0 0 0 * * *", zone = "Asia/Ho_Chi_Minh")
     public void checkExpiredItems() {
         List<Item> expiredItems = itemRepository.findAllByExpiredTimeBeforeAndStatusItemAndStatusEntity(DateUtils.getCurrentDateTime(), StatusItem.AVAILABLE, StatusEntity.ACTIVE);
-        expiredItems.forEach(expiredItem -> expiredItem.setStatusItem(StatusItem.EXPIRED));
+        expiredItems.forEach(expiredItem -> {
+            expiredItem.setStatusItem(StatusItem.EXPIRED);
+            //TODO: sendNoti
+        });
         itemRepository.saveAll(expiredItems);
         log.info("Updated {} expired items", expiredItems.size());
     }
