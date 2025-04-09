@@ -18,7 +18,7 @@ RUN mvn clean package -DskipTests
 FROM eclipse-temurin:21-jdk
 
 # Cài PostgreSQL client và netcat để hỗ trợ entrypoint kiểm tra kết nối DB
-RUN apt-get update && apt-get install -y postgresql-client netcat && apt-get clean
+RUN apt-get update && apt-get install -y postgresql-client netcat-openbsd && apt-get clean
 
 # Tạo thư mục làm việc
 WORKDIR /app
