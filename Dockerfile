@@ -1,5 +1,5 @@
 # Build Stage
-FROM openjdk:21-jdk AS build
+FROM eclipse-temurin:21-jdk AS build
 
 RUN apt-get update && apt-get install -y maven
 WORKDIR /app
@@ -7,7 +7,7 @@ COPY . .
 RUN mvn clean package -DskipTests
 
 # Runtime Stage
-FROM openjdk:21-jdk
+FROM eclipse-temurin:21-jdk
 WORKDIR /app
 
 # Cài PostgreSQL client và netcat để hỗ trợ kiểm tra DB
