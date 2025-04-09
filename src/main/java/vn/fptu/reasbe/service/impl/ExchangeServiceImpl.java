@@ -410,6 +410,7 @@ public class ExchangeServiceImpl implements ExchangeService {
             pendingExchanges.forEach(request -> request.setStatusExchangeRequest(StatusExchangeRequest.PENDING));
             exchangeRequestRepository.saveAll(pendingExchanges);
             log.info("Updated {} pending exchange request(s) to CANCELLED.", pendingExchanges.size());
+            //TODO: send noti
         } else {
             log.info("No pending exchanges found.");
         }
@@ -426,6 +427,7 @@ public class ExchangeServiceImpl implements ExchangeService {
             });
             exchangeRequestRepository.saveAll(pendingEvidenceExchanges);
             log.info("Updated {} pending evidence exchange request(s) to SUCCESSFUL.", pendingEvidenceExchanges.size());
+            //TODO: send noti
         } else {
             log.info("No pending evidence exchanges found.");
         }
@@ -446,6 +448,7 @@ public class ExchangeServiceImpl implements ExchangeService {
             });
             exchangeRequestRepository.saveAll(notExchangedExchanges);
             log.info("Updated {} not exchanged exchange request(s) to FAILED.", notExchangedExchanges.size());
+            //TODO: send noti
         } else {
             log.info("No not exchanged exchanges found.");
         }
@@ -455,6 +458,7 @@ public class ExchangeServiceImpl implements ExchangeService {
         if (item.getExpiredTime().isBefore(DateUtils.getCurrentDateTime())) {
             item.setStatusItem(StatusItem.EXPIRED);
             log.info("Item {} expired. Change status to EXPIRED.", item.getId());
+            //TODO: send noti
         } else {
             item.setStatusItem(StatusItem.AVAILABLE);
             vectorStoreService.addNewItem(List.of(item));
@@ -474,7 +478,7 @@ public class ExchangeServiceImpl implements ExchangeService {
         for (ExchangeRequest relatedRequest : requests) {
             relatedRequest.setStatusExchangeRequest(StatusExchangeRequest.CANCELLED);
         }
-
+        //TODO: send noti to other cancelled request
         exchangeRequestRepository.saveAll(requests);
     }
 }
