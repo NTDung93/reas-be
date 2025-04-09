@@ -147,7 +147,7 @@ public class AuthServiceImpl implements AuthService {
         if (existingUser.isPresent()) {
             ggUser = existingUser.get();
         } else {
-            ggUser = userRepository.save(User.builder()
+            User newUser = User.builder()
                     .email(googleSignUpDto.getEmail())
                     .fullName(googleSignUpDto.getFullName())
                     .userName(username)
@@ -156,7 +156,9 @@ public class AuthServiceImpl implements AuthService {
                     .googleAccountId(googleSignUpDto.getGoogleId())
                     .role(userRole)
                     .isFirstLogin(true)
-                    .build());
+                    .build();
+
+            ggUser = userRepository.save(newUser);
         }
 
         return authenticateUser(new LoginDto(ggUser.getEmail(), password, googleSignUpDto.getRegistrationTokens()));
