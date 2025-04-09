@@ -77,7 +77,8 @@ public class UserController {
     }
 
     @GetMapping("/count-active-users")
-    @PreAuthorize("hasRole(T(vn.fptu.reasbe.model.constant.AppConstants).ROLE_ADMIN)")
+    @PreAuthorize("hasRole(T(vn.fptu.reasbe.model.constant.AppConstants).ROLE_STAFF) or " +
+            "hasRole(T(vn.fptu.reasbe.model.constant.AppConstants).ROLE_ADMIN)")
     public ResponseEntity<Integer> getNumberOfActiveUser() {
         return ResponseEntity.ok(userService.getNumberOfActiveUser());
     }

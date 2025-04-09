@@ -1,33 +1,31 @@
-package vn.fptu.reasbe.model.mongodb;
+package vn.fptu.reasbe.model.dto.mongodb.notification;
 
 import java.util.Date;
-import java.util.List;
-import java.util.Map;
 
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 import lombok.experimental.FieldDefaults;
 import vn.fptu.reasbe.model.enums.notification.TypeNotification;
 
-@Data
-@AllArgsConstructor
+/**
+ *
+ * @author dungnguyen
+ */
+@Getter
+@Setter
 @NoArgsConstructor
+@AllArgsConstructor
 @Builder
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class Notification {
-    String id;
+public class NotificationDto {
     String senderId;
     String recipientId;
     String content;
     Date timestamp;
     String contentType;
     TypeNotification notificationType;
-    Map<String, String> data;
-    /**
-     * FCM registration token
-     */
-    List<String> registrationTokens;
 }
