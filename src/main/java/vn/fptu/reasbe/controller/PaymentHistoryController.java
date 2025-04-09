@@ -60,7 +60,7 @@ public class PaymentHistoryController {
         return ResponseEntity.ok(paymentHistoryService.searchPaymentHistoryOfUserPagination(pageNo, pageSize, sortBy, sortDir, request, userId));
     }
 
-    @GetMapping(value = "/payos-transfer-handler")
+    @PostMapping(value = "/payos-transfer-handler")
     public void payosTransferHandler(@RequestBody ObjectNode body) throws Exception {
         paymentHistoryService.payOsTransferHandler(body);
     }

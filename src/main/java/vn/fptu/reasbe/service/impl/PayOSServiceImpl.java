@@ -66,7 +66,7 @@ public class PayOSServiceImpl implements PayOSService {
         }
 
         // Gen order code
-        String orderCode = PaymentCodeHelper.generateOrderCode(Objects.requireNonNull(subscriptionPlan).getId(), createPaymentLinkRequest.getItemId());
+        String orderCode = PaymentCodeHelper.generateOrderCode(Objects.requireNonNull(subscriptionPlan).getId(), currentUser.getId(), createPaymentLinkRequest.getItemId());
 
         // Set expiration time
         Instant now = Instant.now();

@@ -246,9 +246,16 @@ public class ExchangeServiceImpl implements ExchangeService {
     public ExchangeResponse cancelExchange(Integer id) {
         ExchangeRequest request = getExchangeRequestById(id);
 
-        if ((request.getBuyerItem() != null && !request.getBuyerItem().getOwner().equals(authService.getCurrentUser())) ||
-                (!request.getPaidBy().equals(authService.getCurrentUser()))) {
-            throw new ReasApiException(HttpStatus.BAD_REQUEST, "error.userNotAllowed");
+        User currentUser = authService.getCurrentUser();
+
+        if (request.getBuyerItem() != null) {
+            if (!request.getBuyerItem().getOwner().equals(currentUser)) {
+                throw new ReasApiException(HttpStatus.BAD_REQUEST, "error.userNotAllowed");
+            }
+        } else {
+            if (!request.getPaidBy().equals(currentUser)) {
+                throw new ReasApiException(HttpStatus.BAD_REQUEST, "error.userNotAllowed");
+            }
         }
 
         if (request.getStatusExchangeRequest().equals(StatusExchangeRequest.PENDING)) {

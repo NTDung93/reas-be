@@ -2,7 +2,6 @@ package vn.fptu.reasbe.repository.custom.impl;
 
 import java.util.Optional;
 
-import org.apache.log4j.Logger;
 import org.springframework.data.domain.Sort;
 
 import com.querydsl.core.BooleanBuilder;
