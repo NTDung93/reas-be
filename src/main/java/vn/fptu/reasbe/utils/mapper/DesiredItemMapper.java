@@ -12,7 +12,12 @@ import vn.fptu.reasbe.model.entity.DesiredItem;
 
 @Mapper(
         collectionMappingStrategy = CollectionMappingStrategy.SETTER_PREFERRED,
-        nullValueCheckStrategy = NullValueCheckStrategy.ALWAYS
+        nullValueCheckStrategy = NullValueCheckStrategy.ALWAYS,
+        uses = {
+                BrandMapper.class,
+                CategoryMapper.class
+        }
+
 )
 @Component
 public interface DesiredItemMapper {
@@ -21,6 +26,9 @@ public interface DesiredItemMapper {
     @Mapping(target = "item", ignore = true)
     DesiredItem toDesiredItem(DesiredItemDto dto);
 
+    @Mapping(target = "typeItem", source = "category.typeItem")
+    @Mapping(target = "categoryId", source = "category.id")
+    @Mapping(target = "brandId", source = "brand.id")
     @Mapping(target = "categoryName", source = "category.categoryName")
     @Mapping(target = "brandName", source = "brand.brandName")
     DesiredItemResponse toDesiredItemResponse(DesiredItem item);

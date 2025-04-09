@@ -142,16 +142,24 @@ public class AuthServiceImpl implements AuthService {
         Role userRole = roleRepository.findByName(RoleName.ROLE_RESIDENT)
                 .orElseThrow(() -> new ReasApiException(HttpStatus.BAD_REQUEST, "error.roleNotExist"));
 
-        User ggUser = existingUser.orElseGet(() -> userRepository.save(User.builder()
-                .email(googleSignUpDto.getEmail())
-                .fullName(googleSignUpDto.getFullName())
-                .userName(username)
-                .password(passwordEncoder.encode(password))
-                .image(googleSignUpDto.getPhotoUrl())
-                .googleAccountId(googleSignUpDto.getGoogleId())
-                .role(userRole)
-                .isFirstLogin(true)
-                .build()));
+        User ggUser;
+
+        if (existingUser.isPresent()) {
+            ggUser = existingUser.get();
+        } else {
+            User newUser = User.builder()
+                    .email(googleSignUpDto.getEmail())
+                    .fullName(googleSignUpDto.getFullName())
+                    .userName(username)
+                    .password(passwordEncoder.encode(password))
+                    .image(googleSignUpDto.getPhotoUrl())
+                    .googleAccountId(googleSignUpDto.getGoogleId())
+                    .role(userRole)
+                    .isFirstLogin(true)
+                    .build();
+
+            ggUser = userRepository.save(newUser);
+        }
 
         return authenticateUser(new LoginDto(ggUser.getEmail(), password, googleSignUpDto.getRegistrationTokens()));
     }

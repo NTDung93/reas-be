@@ -246,9 +246,16 @@ public class ExchangeServiceImpl implements ExchangeService {
     public ExchangeResponse cancelExchange(Integer id) {
         ExchangeRequest request = getExchangeRequestById(id);
 
-        if ((request.getBuyerItem() != null && !request.getBuyerItem().getOwner().equals(authService.getCurrentUser())) ||
-                (!request.getPaidBy().equals(authService.getCurrentUser()))) {
-            throw new ReasApiException(HttpStatus.BAD_REQUEST, "error.userNotAllowed");
+        User currentUser = authService.getCurrentUser();
+
+        if (request.getBuyerItem() != null) {
+            if (!request.getBuyerItem().getOwner().equals(currentUser)) {
+                throw new ReasApiException(HttpStatus.BAD_REQUEST, "error.userNotAllowed");
+            }
+        } else {
+            if (!request.getPaidBy().equals(currentUser)) {
+                throw new ReasApiException(HttpStatus.BAD_REQUEST, "error.userNotAllowed");
+            }
         }
 
         if (request.getStatusExchangeRequest().equals(StatusExchangeRequest.PENDING)) {
@@ -403,6 +410,7 @@ public class ExchangeServiceImpl implements ExchangeService {
             pendingExchanges.forEach(request -> request.setStatusExchangeRequest(StatusExchangeRequest.PENDING));
             exchangeRequestRepository.saveAll(pendingExchanges);
             log.info("Updated {} pending exchange request(s) to CANCELLED.", pendingExchanges.size());
+            //TODO: send noti
         } else {
             log.info("No pending exchanges found.");
         }
@@ -419,6 +427,7 @@ public class ExchangeServiceImpl implements ExchangeService {
             });
             exchangeRequestRepository.saveAll(pendingEvidenceExchanges);
             log.info("Updated {} pending evidence exchange request(s) to SUCCESSFUL.", pendingEvidenceExchanges.size());
+            //TODO: send noti
         } else {
             log.info("No pending evidence exchanges found.");
         }
@@ -439,6 +448,7 @@ public class ExchangeServiceImpl implements ExchangeService {
             });
             exchangeRequestRepository.saveAll(notExchangedExchanges);
             log.info("Updated {} not exchanged exchange request(s) to FAILED.", notExchangedExchanges.size());
+            //TODO: send noti
         } else {
             log.info("No not exchanged exchanges found.");
         }
@@ -448,6 +458,7 @@ public class ExchangeServiceImpl implements ExchangeService {
         if (item.getExpiredTime().isBefore(DateUtils.getCurrentDateTime())) {
             item.setStatusItem(StatusItem.EXPIRED);
             log.info("Item {} expired. Change status to EXPIRED.", item.getId());
+            //TODO: send noti
         } else {
             item.setStatusItem(StatusItem.AVAILABLE);
             vectorStoreService.addNewItem(List.of(item));
@@ -467,7 +478,7 @@ public class ExchangeServiceImpl implements ExchangeService {
         for (ExchangeRequest relatedRequest : requests) {
             relatedRequest.setStatusExchangeRequest(StatusExchangeRequest.CANCELLED);
         }
-
+        //TODO: send noti to other cancelled request
         exchangeRequestRepository.saveAll(requests);
     }
 }
