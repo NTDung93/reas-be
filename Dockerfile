@@ -29,6 +29,9 @@ COPY --from=build /app/target/reas-be-0.0.1-SNAPSHOT.jar /app/reas-be.jar
 # Copy Firebase config nếu cần
 COPY --from=build /app/src/main/resources/firebase/reas-app-f46cc-firebase-adminsdk-fbsvc-94587df6b3.json /app/firebase/reas-app-firebase-adminsdk.json
 
+# Copy file SQL từ build stage
+COPY --from=build /app/src/main/resources/sql/init-data.sql /init-data.sql
+
 # Copy các script khởi động
 COPY docker/entrypoint.sh /entrypoint.sh
 COPY docker/wait-for-it.sh /wait-for-it.sh
