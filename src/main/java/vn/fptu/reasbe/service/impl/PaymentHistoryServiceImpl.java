@@ -5,6 +5,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Map;
 
+import org.apache.commons.lang3.tuple.Triple;
 import org.springframework.stereotype.Service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -82,21 +83,28 @@ public class PaymentHistoryServiceImpl implements PaymentHistoryService {
             ObjectMapper objectMapper = new ObjectMapper();
             Webhook webhookBody = objectMapper.treeToValue(body, Webhook.class);
             WebhookData data = payOS.verifyPaymentWebhookData(webhookBody);
-            Item item = null;
             SubscriptionPlan subscriptionPlan;
+            User user;
+            Item item = null;
 
             if (data.getOrderCode() != 123) {
-                Integer subscriptionPlanId = Math.toIntExact(PaymentCodeHelper.getItemIdFromOrderCode(data.getOrderCode()).getFirst());
+                Triple<Integer, Integer, Integer> orderCodeInfo = PaymentCodeHelper.getInfoFromOrderCode(data.getOrderCode());
+
+                Integer subscriptionPlanId = Math.toIntExact(orderCodeInfo.getLeft());
                 subscriptionPlan = subscriptionPlanService.getSubscriptionPlanByPlanId(subscriptionPlanId);
 
-                if (!subscriptionPlan.getTypeSubscriptionPlan().equals(TypeSubscriptionPlan.PREMIUM_PLAN)) {
-                    int itemId = Math.toIntExact(PaymentCodeHelper.getItemIdFromOrderCode(data.getOrderCode()).getSecond());
+                Integer userId = Math.toIntExact(orderCodeInfo.getMiddle());
+                user = userService.getUserById(userId);
+
+                if (subscriptionPlan.getTypeSubscriptionPlan().equals(TypeSubscriptionPlan.ITEM_EXTENSION)) {
+                    int itemId = Math.toIntExact(orderCodeInfo.getRight());
                     if (itemId != 0) {
                         item = itemService.getItemById(itemId);
                     }
                 }
             } else {
                 subscriptionPlan = subscriptionPlanService.getSubscriptionPlanByPlanId(1);
+                user = null;
             }
 
             PaymentHistory paymentHistory = PaymentHistory.builder()
@@ -110,7 +118,7 @@ public class PaymentHistoryServiceImpl implements PaymentHistoryService {
             PaymentHistory savedPaymentHistory = paymentHistoryRepository.save(paymentHistory);
 
             if (Boolean.TRUE.equals(webhookBody.getSuccess())) {
-                userSubscriptionService.createUserSubscription(subscriptionPlan, item, savedPaymentHistory);
+                userSubscriptionService.createUserSubscription(subscriptionPlan, user, item, savedPaymentHistory);
                 if (item != null) {
                     itemService.extendItem(item, subscriptionPlan);
                 }
