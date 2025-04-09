@@ -1,5 +1,6 @@
 package vn.fptu.reasbe.repository.custom.impl;
 
+import com.querydsl.core.types.Projections;
 import com.querydsl.jpa.impl.JPAQuery;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
@@ -12,9 +13,13 @@ import com.querydsl.core.types.Expression;
 import com.querydsl.core.types.Order;
 import com.querydsl.core.types.OrderSpecifier;
 
+import vn.fptu.reasbe.model.dto.item.ItemRunnerDTO;
 import vn.fptu.reasbe.model.dto.item.SearchItemRequest;
 import vn.fptu.reasbe.model.entity.Item;
+import vn.fptu.reasbe.model.entity.QBrand;
+import vn.fptu.reasbe.model.entity.QCategory;
 import vn.fptu.reasbe.model.entity.QItem;
+import vn.fptu.reasbe.model.entity.QUser;
 import vn.fptu.reasbe.model.enums.core.StatusEntity;
 import vn.fptu.reasbe.model.enums.item.StatusItem;
 import vn.fptu.reasbe.repository.custom.ItemRepositoryCustom;
@@ -45,13 +50,29 @@ public class ItemRepositoryCustomImpl extends AbstractRepositoryCustom<Item, QIt
     }
 
     @Override
-    public List<Item> findAllByStatus(StatusItem statusItem) {
+    public List<ItemRunnerDTO> findAllItemRunnerByStatus(StatusItem statusItem) {
         QItem item = QItem.item;
+        QBrand brand = QBrand.brand;
+        QCategory category = QCategory.category;
+        QUser user = QUser.user;
 
-        return new JPAQuery<Item>(em)
+        return new JPAQuery<ItemRunnerDTO>(em)
+                .select(Projections.constructor(ItemRunnerDTO.class,
+                        item.id,
+                        item.itemName,
+                        brand.brandName,
+                        category.categoryName,
+                        item.price,
+                        item.description,
+                        item.conditionItem,
+                        user.id))
                 .from(item)
-                .join(item.feedback)
-                .where(item.statusItem.eq(StatusItem.AVAILABLE))
+                .join(item.brand, brand)
+                .join(item.category, category)
+                .join(item.owner, user)
+                .where(item.statusItem.eq(StatusItem.AVAILABLE)
+                        .and(item.statusEntity.eq(StatusEntity.ACTIVE))
+                        .and(user.statusEntity.eq(StatusEntity.ACTIVE)))
                 .fetch();
     }
 
