@@ -2,11 +2,13 @@ package vn.fptu.reasbe.service.impl;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
 import vn.fptu.reasbe.model.constant.AppConstants;
 import vn.fptu.reasbe.model.dto.core.BaseSearchPaginationResponse;
 import vn.fptu.reasbe.model.dto.exchange.EvidenceExchangeRequest;
@@ -20,9 +22,11 @@ import vn.fptu.reasbe.model.enums.core.StatusEntity;
 import vn.fptu.reasbe.model.enums.exchange.StatusExchangeHistory;
 import vn.fptu.reasbe.model.enums.exchange.StatusExchangeRequest;
 import vn.fptu.reasbe.model.enums.item.StatusItem;
+import vn.fptu.reasbe.model.enums.notification.TypeNotification;
 import vn.fptu.reasbe.model.enums.user.RoleName;
 import vn.fptu.reasbe.model.exception.ReasApiException;
 import vn.fptu.reasbe.model.exception.ResourceNotFoundException;
+import vn.fptu.reasbe.model.mongodb.Notification;
 import vn.fptu.reasbe.repository.ExchangeHistoryRepository;
 import vn.fptu.reasbe.repository.ExchangeRequestRepository;
 import vn.fptu.reasbe.service.AuthService;
@@ -30,12 +34,15 @@ import vn.fptu.reasbe.service.ExchangeService;
 import vn.fptu.reasbe.service.ItemService;
 import vn.fptu.reasbe.service.UserService;
 import vn.fptu.reasbe.service.VectorStoreService;
+import vn.fptu.reasbe.service.mongodb.NotificationService;
+import vn.fptu.reasbe.service.mongodb.UserMService;
 import vn.fptu.reasbe.utils.common.DateUtils;
 import vn.fptu.reasbe.utils.mapper.ExchangeRequestMapper;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 import static vn.fptu.reasbe.model.dto.core.BaseSearchPaginationResponse.getPageable;
@@ -50,6 +57,8 @@ public class ExchangeServiceImpl implements ExchangeService {
     private final UserService userService;
     private final AuthService authService;
     private final VectorStoreService vectorStoreService;
+    private final NotificationService notificationService;
+    private final UserMService userMService;
     private final ExchangeRequestRepository exchangeRequestRepository;
     private final ExchangeHistoryRepository exchangeHistoryRepository;
     private final ExchangeRequestMapper exchangeMapper;
@@ -152,14 +161,27 @@ public class ExchangeServiceImpl implements ExchangeService {
             request.setBuyerConfirmation(Boolean.FALSE);
             request.setSellerConfirmation(Boolean.FALSE);
         }
-        //TODO: add push notification for resident
+
+        // Send notification to seller
+        User currentUser = getCurrentUser();
+        vn.fptu.reasbe.model.mongodb.User sender = userMService.findByUsername(currentUser.getUserName());
+        vn.fptu.reasbe.model.mongodb.User recipient = userMService.findByUsername(sellerItem.getOwner().getUserName());
+        Notification notification = new Notification(sender.getUserName(), recipient.getUserName(),
+                "There is a new exchange request with your " + sellerItem.getItemName(),
+                new Date(), TypeNotification.EXCHANGE_REQUEST, recipient.getRegistrationTokens());
+        notificationService.saveAndSendNotification(notification);
 
         return exchangeMapper.toExchangeRequestResponse(exchangeRequestRepository.save(request));
     }
 
+    private User getCurrentUser() {
+        return authService.getCurrentUser();
+    }
+
     @Override
     public ExchangeResponse updateExchangeRequestPrice(Integer id, BigDecimal finalPrice) {
-        User user = authService.getCurrentUser();
+        User user = getCurrentUser();
+        String recipientName;
 
         ExchangeRequest request = getExchangeRequestById(id);
 
@@ -179,17 +201,25 @@ public class ExchangeServiceImpl implements ExchangeService {
             }
             request.setSellerConfirmation(Boolean.FALSE);
             request.setBuyerConfirmation(Boolean.TRUE);
+            recipientName = request.getSellerItem().getOwner().getUserName();
         } else if (request.getSellerItem().getOwner().equals(user)) {
             if (request.getSellerConfirmation().equals(Boolean.TRUE)) {
                 throw new ReasApiException(HttpStatus.BAD_REQUEST, "error.waitForOtherUserConfirmation");
             }
             request.setSellerConfirmation(Boolean.TRUE);
             request.setBuyerConfirmation(Boolean.FALSE);
+            recipientName = request.getBuyerItem().getOwner().getUserName();
         } else {
             throw new ReasApiException(HttpStatus.BAD_REQUEST, "error.userNotAllowed");
         }
 
-        //TODO: add push notification for resident
+        // Send notification
+        vn.fptu.reasbe.model.mongodb.User sender = userMService.findByUsername(user.getUserName());
+        vn.fptu.reasbe.model.mongodb.User recipient = userMService.findByUsername(recipientName);
+        Notification notification = new Notification(sender.getUserName(), recipient.getUserName(),
+                "There is an update price of exchange between " + request.getBuyerItem().getItemName() + " and " + request.getSellerItem().getItemName(),
+                new Date(), TypeNotification.EXCHANGE_REQUEST, recipient.getRegistrationTokens());
+        notificationService.saveAndSendNotification(notification);
 
         return exchangeMapper.toExchangeRequestResponse(exchangeRequestRepository.save(request));
     }
@@ -237,7 +267,15 @@ public class ExchangeServiceImpl implements ExchangeService {
         } else {
             request.setStatusExchangeRequest(statusExchangeRequest);
         }
-        //TODO: add push notification for resident
+
+        // Send notification
+        User currentUser = getCurrentUser();
+        vn.fptu.reasbe.model.mongodb.User sender = userMService.findByUsername(currentUser.getUserName());
+        vn.fptu.reasbe.model.mongodb.User recipient = userMService.findByUsername(request.getBuyerItem() != null ? request.getBuyerItem().getOwner().getUserName() : request.getPaidBy().getUserName());
+        Notification notification = new Notification(sender.getUserName(), recipient.getUserName(),
+                "Your exchange request has been " + String.valueOf(statusExchangeRequest).toLowerCase(),
+                new Date(), TypeNotification.EXCHANGE_REQUEST, recipient.getRegistrationTokens());
+        notificationService.saveAndSendNotification(notification);
 
         return exchangeMapper.toExchangeResponse(exchangeRequestRepository.save(request));
     }
