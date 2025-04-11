@@ -361,7 +361,15 @@ public class ExchangeServiceImpl implements ExchangeService {
         } else {
             exchangeHistory.setStatusExchangeHistory(StatusExchangeHistory.PENDING_EVIDENCE);
         }
-        //TODO: add push notification for resident
+
+        // Send notification
+        vn.fptu.reasbe.model.mongodb.User sender = userMService.findByUsername(user.getUserName());
+        vn.fptu.reasbe.model.mongodb.User recipient = userMService.findByUsername(user.equals(exchangeHistory.getExchangeRequest().getSellerItem().getOwner())
+                ? exchangeHistory.getExchangeRequest().getBuyerItem().getOwner().getUserName() : exchangeHistory.getExchangeRequest().getSellerItem().getOwner().getUserName());
+        Notification notification = new Notification(sender.getUserName(), recipient.getUserName(),
+                "Evidence of exchange between " + exchangeHistory.getExchangeRequest().getBuyerItem().getItemName() + " and " + exchangeHistory.getExchangeRequest().getSellerItem().getItemName() + " has been uploaded",
+                new Date(), TypeNotification.EXCHANGE_REQUEST, recipient.getRegistrationTokens());
+        notificationService.saveAndSendNotification(notification);
 
         exchangeHistory = exchangeHistoryRepository.save(exchangeHistory);
         return exchangeMapper.toExchangeResponse(exchangeHistory.getExchangeRequest());
@@ -399,7 +407,15 @@ public class ExchangeServiceImpl implements ExchangeService {
 
     private ExchangeRequest cancelExchangeRequest(ExchangeRequest request) {
         request.setStatusExchangeRequest(StatusExchangeRequest.CANCELLED);
-        //TODO: add push notification for resident
+
+        // Send notification
+        User currentUser = getCurrentUser();
+        vn.fptu.reasbe.model.mongodb.User sender = userMService.findByUsername(currentUser.getUserName());
+        vn.fptu.reasbe.model.mongodb.User recipient = userMService.findByUsername(request.getSellerItem().getOwner().getUserName());
+        Notification notification = new Notification(sender.getUserName(), recipient.getUserName(),
+                "Exchange request with " + request.getSellerItem().getItemName() + " has been cancelled",
+                new Date(), TypeNotification.EXCHANGE_REQUEST, recipient.getRegistrationTokens());
+        notificationService.saveAndSendNotification(notification);
 
         return exchangeRequestRepository.save(request);
     }
@@ -496,7 +512,14 @@ public class ExchangeServiceImpl implements ExchangeService {
         if (item.getExpiredTime().isBefore(DateUtils.getCurrentDateTime())) {
             item.setStatusItem(StatusItem.EXPIRED);
             log.info("Item {} expired. Change status to EXPIRED.", item.getId());
-            //TODO: send noti
+            // Send notification
+            User currentUser = getCurrentUser();
+            vn.fptu.reasbe.model.mongodb.User sender = userMService.findByUsername(currentUser.getUserName());
+            vn.fptu.reasbe.model.mongodb.User recipient = userMService.findByUsername(item.getOwner().getUserName());
+            Notification notification = new Notification(sender.getUserName(), recipient.getUserName(),
+                    "Your item has expired",
+                    new Date(), TypeNotification.ITEM_EXPIRED, recipient.getRegistrationTokens());
+            notificationService.saveAndSendNotification(notification);
         } else {
             item.setStatusItem(StatusItem.AVAILABLE);
             vectorStoreService.addNewItem(List.of(item));
@@ -513,10 +536,20 @@ public class ExchangeServiceImpl implements ExchangeService {
         List<ExchangeRequest> requests = exchangeRequestRepository
                 .findAllByStatusAndSellerItemOrBuyerItem(StatusExchangeRequest.PENDING, sellerItem, buyerItem);
 
+        // Send notification
+        User currentUser = getCurrentUser();
+        vn.fptu.reasbe.model.mongodb.User sender = userMService.findByUsername(currentUser.getUserName());
+
         for (ExchangeRequest relatedRequest : requests) {
             relatedRequest.setStatusExchangeRequest(StatusExchangeRequest.CANCELLED);
+
+            vn.fptu.reasbe.model.mongodb.User recipient = userMService.findByUsername(relatedRequest.getBuyerItem().getOwner().getUserName());
+            Notification notification = new Notification(sender.getUserName(), recipient.getUserName(),
+                    "Your exchange request with " + relatedRequest.getSellerItem().getItemName() + " has been cancelled",
+                    new Date(), TypeNotification.EXCHANGE_REQUEST, recipient.getRegistrationTokens());
+            notificationService.saveAndSendNotification(notification);
         }
-        //TODO: send noti to other cancelled request
+
         exchangeRequestRepository.saveAll(requests);
     }
 }
