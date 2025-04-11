@@ -7,5 +7,6 @@ package vn.fptu.reasbe.model.enums.notification;
 public enum TypeNotification {
     CHAT_MESSAGE,
     UPLOAD_ITEM,
-    EXCHANGE_REQUEST
+    EXCHANGE_REQUEST,
+    ITEM_EXPIRED
 }

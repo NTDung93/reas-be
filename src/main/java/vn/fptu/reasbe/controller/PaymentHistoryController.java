@@ -36,7 +36,8 @@ public class PaymentHistoryController {
     private final PaymentHistoryService paymentHistoryService;
 
     @PostMapping("/search")
-    @PreAuthorize("hasRole(T(vn.fptu.reasbe.model.constant.AppConstants).ROLE_ADMIN)")
+    @PreAuthorize("hasRole(T(vn.fptu.reasbe.model.constant.AppConstants).ROLE_STAFF) or " +
+            "hasRole(T(vn.fptu.reasbe.model.constant.AppConstants).ROLE_ADMIN)")
     public ResponseEntity<BaseSearchPaginationResponse<PaymentHistoryDto>> searchPaymentHistoryPagination(
             @RequestParam(name = "pageNo", defaultValue = AppConstants.DEFAULT_PAGE_NUMBER, required = false) int pageNo,
             @RequestParam(name = "pageSize", defaultValue = AppConstants.DEFAULT_PAGE_SIZE, required = false) int pageSize,
@@ -48,7 +49,8 @@ public class PaymentHistoryController {
     }
 
     @PostMapping("/search/{userId}")
-    @PreAuthorize("hasRole(T(vn.fptu.reasbe.model.constant.AppConstants).ROLE_ADMIN)")
+    @PreAuthorize("hasRole(T(vn.fptu.reasbe.model.constant.AppConstants).ROLE_STAFF) or " +
+            "hasRole(T(vn.fptu.reasbe.model.constant.AppConstants).ROLE_ADMIN)")
     public ResponseEntity<BaseSearchPaginationResponse<PaymentHistoryDto>> searchPaymentHistoryOfUserPagination(
             @RequestParam(name = "pageNo", defaultValue = AppConstants.DEFAULT_PAGE_NUMBER, required = false) int pageNo,
             @RequestParam(name = "pageSize", defaultValue = AppConstants.DEFAULT_PAGE_SIZE, required = false) int pageSize,
@@ -66,14 +68,14 @@ public class PaymentHistoryController {
     }
 
     @GetMapping(value = "/monthly-revenue")
-     @PreAuthorize("hasRole(T(vn.fptu.reasbe.model.constant.AppConstants).ROLE_STAFF) or " +
+    @PreAuthorize("hasRole(T(vn.fptu.reasbe.model.constant.AppConstants).ROLE_STAFF) or " +
             "hasRole(T(vn.fptu.reasbe.model.constant.AppConstants).ROLE_ADMIN)")
     public ResponseEntity<BigDecimal> getMonthlyRevenue(@RequestParam Integer month, @RequestParam Integer year) {
         return ResponseEntity.ok(paymentHistoryService.getMonthlyRevenue(month, year));
     }
 
     @GetMapping(value = "/number-of-successful-transaction")
-     @PreAuthorize("hasRole(T(vn.fptu.reasbe.model.constant.AppConstants).ROLE_STAFF) or " +
+    @PreAuthorize("hasRole(T(vn.fptu.reasbe.model.constant.AppConstants).ROLE_STAFF) or " +
             "hasRole(T(vn.fptu.reasbe.model.constant.AppConstants).ROLE_ADMIN)")
     public ResponseEntity<Integer> getNumberOfSuccessfulTransaction(@RequestParam Integer month, @RequestParam Integer year) {
         return ResponseEntity.ok(paymentHistoryService.getNumberOfSuccessfulTransaction(month, year));
@@ -86,14 +88,14 @@ public class PaymentHistoryController {
     }
 
     @GetMapping(value = "/monthly-revenue-by-subscription-plan")
-      @PreAuthorize("hasRole(T(vn.fptu.reasbe.model.constant.AppConstants).ROLE_STAFF) or " +
+    @PreAuthorize("hasRole(T(vn.fptu.reasbe.model.constant.AppConstants).ROLE_STAFF) or " +
             "hasRole(T(vn.fptu.reasbe.model.constant.AppConstants).ROLE_ADMIN)")
     public ResponseEntity<Map<TypeSubscriptionPlan, BigDecimal>> getMonthlyRevenueBySubscriptionPlan(@RequestParam Integer month, @RequestParam Integer year) {
         return ResponseEntity.ok(paymentHistoryService.getMonthlyRevenueBySubscriptionPlan(month, year));
     }
 
     @GetMapping(value = "/monthly-revenue-by-subscription-plan-in-a-year")
-      @PreAuthorize("hasRole(T(vn.fptu.reasbe.model.constant.AppConstants).ROLE_STAFF) or " +
+    @PreAuthorize("hasRole(T(vn.fptu.reasbe.model.constant.AppConstants).ROLE_STAFF) or " +
             "hasRole(T(vn.fptu.reasbe.model.constant.AppConstants).ROLE_ADMIN)")
     public ResponseEntity<Map<Integer, Map<TypeSubscriptionPlan, BigDecimal>>> getMonthlyRevenueBySubscriptionPlanInAYear(@RequestParam Integer year) {
         return ResponseEntity.ok(paymentHistoryService.getMonthlyRevenueBySubscriptionPlanInAYear(year));
