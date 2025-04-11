@@ -439,7 +439,14 @@ public class ExchangeServiceImpl implements ExchangeService {
         }
         vectorStoreService.addNewItem(items);
 
-        //TODO: add push notification for resident
+        // Send notification
+        User currentUser = getCurrentUser();
+        vn.fptu.reasbe.model.mongodb.User sender = userMService.findByUsername(currentUser.getUserName());
+        vn.fptu.reasbe.model.mongodb.User recipient = userMService.findByUsername(request.getSellerItem().getOwner().getUserName());
+        Notification notification = new Notification(sender.getUserName(), recipient.getUserName(),
+                "Exchange request with " + request.getSellerItem().getItemName() + " has been cancelled",
+                new Date(), TypeNotification.EXCHANGE_REQUEST, recipient.getRegistrationTokens());
+        notificationService.saveAndSendNotification(notification);
 
         return exchangeRequestRepository.save(request);
     }
