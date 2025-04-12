@@ -48,4 +48,8 @@ public class SubscriptionPlanDto {
     @NotNull(message = "Duration cannot be null")
     @Min(value = 0)
     Float duration; // count by month
+
+    @NotNull(message = "Number of free extension cannot be null")
+    @Min(value = 0)
+    Integer numberOfFreeExtension;
 }
