@@ -393,7 +393,7 @@ public class ItemServiceImpl implements ItemService {
     }
 
     @Override
-    public void deleteItem(Integer id) {
+    public Boolean deleteItem(Integer id) {
         User user = authService.getCurrentUser();
 
         Item item = getItemById(id);
@@ -408,6 +408,8 @@ public class ItemServiceImpl implements ItemService {
         item.setStatusEntity(StatusEntity.INACTIVE);
 
         itemRepository.save(item);
+
+        return true;
     }
 
     public DistanceMatrixResponse getDistanceMatrix(double originLat, double originLng, List<Item> items) {

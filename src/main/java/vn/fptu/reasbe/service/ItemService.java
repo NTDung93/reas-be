@@ -51,5 +51,5 @@ public interface ItemService {
 
     BaseSearchPaginationResponse<ItemResponse> findNearbyItems(int pageNo, int pageSize, double latitude, double longitude, double distance);
 
-    void deleteItem(Integer id);
+    Boolean deleteItem(Integer id);
 }
