@@ -41,9 +41,9 @@ public class UserLocationServiceImpl implements UserLocationService {
     }
 
     @Override
-    public UserLocationDto getUserLocationDetailOfCurrentUser(Integer id) {
+    public UserLocation getUserLocationOfCurrentUserById(Integer id) {
         User user = authService.getCurrentUser();
-        return userLocationMapper.toDto(getUserLocationById(id, user));
+        return getUserLocationById(id, user);
     }
 
     @Override

@@ -50,4 +50,6 @@ public interface ItemService {
     void extendItem(Item item, SubscriptionPlan plan);
 
     BaseSearchPaginationResponse<ItemResponse> findNearbyItems(int pageNo, int pageSize, double latitude, double longitude, double distance);
+
+    void deleteItem(Integer id);
 }

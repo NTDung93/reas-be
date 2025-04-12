@@ -55,5 +55,8 @@ public class UpdateItemRequest {
     @NotNull(message = "Brand cannot be blank")
     Integer brandId;
 
+    @NotNull(message = "User location cannot be blank")
+    Integer userLocationId;
+
     DesiredItemDto desiredItem;
 }
