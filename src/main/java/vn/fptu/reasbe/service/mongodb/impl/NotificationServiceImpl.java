@@ -52,7 +52,7 @@ public class NotificationServiceImpl implements NotificationService {
     public BatchResponse sendNotification(Notification notification) {
         List<String> registrationTokens=notification.getRegistrationTokens();
         com.google.firebase.messaging.Notification firebaseNotification = com.google.firebase.messaging.Notification.builder()
-                .setTitle(notification.getContentType())
+                .setTitle(String.valueOf(notification.getNotificationType()))
                 .setBody(notification.getContent())
                 .build();
 
@@ -130,15 +130,19 @@ public class NotificationServiceImpl implements NotificationService {
         return BaseSearchPaginationResponse.of(new PageImpl<>(paginatedList, PageRequest.of(pageNo - 1, pageSize), total));
     }
 
+    @Override
+    public void saveAndSendNotification(Notification notification) {
+        validateNotification(notification);
+        notificationRepository.save(notification);
+        sendNotification(notification);
+    }
+
     private void validateNotification(Notification notification) {
         if (StringUtils.isBlank(notification.getSenderId())) {
             throw new IllegalArgumentException("error.notification.required.recipientId");
         }
         if (StringUtils.isBlank(notification.getContent())) {
             throw new IllegalArgumentException("error.notification.required.content");
-        }
-        if (StringUtils.isBlank(notification.getContentType())) {
-            throw new IllegalArgumentException("error.notification.required.contentType");
         }
         if (notification.getNotificationType() == null) {
             throw new IllegalArgumentException("error.notification.required.notificationType");
