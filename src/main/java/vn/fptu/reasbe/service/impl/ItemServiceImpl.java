@@ -142,9 +142,10 @@ public class ItemServiceImpl implements ItemService {
         newItem.setStatusItem(StatusItem.PENDING);
 
         if (request.getDesiredItem() != null) {
-            newItem.setTypeExchange(TypeExchange.EXCHANGE_WITH_DESIRED_ITEM);
+            validateDesiredItemPrice(request.getDesiredItem());
             DesiredItem newDesiredItem = desiredItemMapper.toDesiredItem(request.getDesiredItem());
             prepareDesiredItem(newDesiredItem, request.getDesiredItem());
+            newItem.setTypeExchange(TypeExchange.EXCHANGE_WITH_DESIRED_ITEM);
             newItem.setDesiredItem(desiredItemRepository.save(newDesiredItem));
         } else {
             newItem.setTypeExchange(TypeExchange.OPEN_EXCHANGE);
@@ -183,7 +184,7 @@ public class ItemServiceImpl implements ItemService {
             }
         } else {
             // desiredItemDto is not null
-            validateDesiredItem(desiredItemDto);
+            validateDesiredItemPrice(desiredItemDto);
 
             if (existedDesiredItem != null) {
                 // Update existing desired item
@@ -192,9 +193,9 @@ public class ItemServiceImpl implements ItemService {
                 desiredItemRepository.save(existedDesiredItem);
             } else {
                 // Create new desired item
-                existedItem.setTypeExchange(TypeExchange.EXCHANGE_WITH_DESIRED_ITEM);
                 DesiredItem newDesiredItem = desiredItemMapper.toDesiredItem(desiredItemDto);
                 prepareDesiredItem(newDesiredItem, desiredItemDto);
+                existedItem.setTypeExchange(TypeExchange.EXCHANGE_WITH_DESIRED_ITEM);
                 existedItem.setDesiredItem(desiredItemRepository.save(newDesiredItem));
             }
         }
@@ -475,8 +476,8 @@ public class ItemServiceImpl implements ItemService {
         desiredItem.setCategory(categoryService.getCategoryById(desiredItemDto.getCategoryId()));
     }
 
-    private void validateDesiredItem(DesiredItemDto dto) {
-        if (dto.getMinPrice().compareTo(dto.getMaxPrice()) > 0) {
+    private void validateDesiredItemPrice(DesiredItemDto dto) {
+        if (dto.getMaxPrice() != null && (dto.getMinPrice().compareTo(dto.getMaxPrice()) > 0)) {
             throw new ReasApiException(HttpStatus.BAD_REQUEST, "error.minPriceGreaterThanMaxPrice");
         }
     }
