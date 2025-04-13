@@ -244,13 +244,13 @@ public class ExchangeServiceImpl implements ExchangeService {
             if (request.getSellerConfirmation().equals(Boolean.FALSE) || request.getBuyerConfirmation().equals(Boolean.FALSE)) {
                 throw new ReasApiException(HttpStatus.BAD_REQUEST, "error.notYetConfirmFinalPrice");
             }
-            request.getSellerItem().setStatusItem(StatusItem.UNAVAILABLE);
+            request.getSellerItem().setStatusItem(StatusItem.IN_EXCHANGE);
 
             List<Item> deletedItemsFromVectorStore = new ArrayList<>();
             deletedItemsFromVectorStore.add(request.getSellerItem());
 
             if (request.getBuyerItem() != null) {
-                request.getBuyerItem().setStatusItem(StatusItem.UNAVAILABLE);
+                request.getBuyerItem().setStatusItem(StatusItem.IN_EXCHANGE);
                 deletedItemsFromVectorStore.add(request.getBuyerItem());
             }
 
@@ -396,10 +396,13 @@ public class ExchangeServiceImpl implements ExchangeService {
         List<ExchangeRequest> pendingEvidenceExchanges = exchangeRequestRepository.findAllExceedingDateExchanges(threeDaysAgo, StatusExchangeHistory.PENDING_EVIDENCE);
         List<ExchangeRequest> pendingExchanges = exchangeRequestRepository.findAllByStatusExchangeRequestAndExchangeDateAfter(StatusExchangeRequest.PENDING, DateUtils.getCurrentDateTime());
 
+        //check if exchange got any report from one of each side -> CANCELLED -> if not then SUCCESSFUL
         notExchangedExchangesCronJob(notExchangedExchanges);
 
+        //check if evidence added, if both sides added then SUCCESSFUL
         pendingEvidenceExchangesCronJob(pendingEvidenceExchanges);
 
+        //After exchangeDate, if no approval then CANCELLED
         pendingExchangeRequestsCronJob(pendingExchanges);
 
         //TODO: add push notification for resident
@@ -468,7 +471,7 @@ public class ExchangeServiceImpl implements ExchangeService {
 
     private void pendingExchangeRequestsCronJob(List<ExchangeRequest> pendingExchanges) {
         if (!pendingExchanges.isEmpty()) {
-            pendingExchanges.forEach(request -> request.setStatusExchangeRequest(StatusExchangeRequest.PENDING));
+            pendingExchanges.forEach(request -> request.setStatusExchangeRequest(StatusExchangeRequest.CANCELLED));
             exchangeRequestRepository.saveAll(pendingExchanges);
             log.info("Updated {} pending exchange request(s) to CANCELLED.", pendingExchanges.size());
             //TODO: send noti

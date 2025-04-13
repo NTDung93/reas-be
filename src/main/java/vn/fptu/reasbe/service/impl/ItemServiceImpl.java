@@ -43,8 +43,8 @@ import vn.fptu.reasbe.service.AuthService;
 import vn.fptu.reasbe.service.BrandService;
 import vn.fptu.reasbe.service.CategoryService;
 import vn.fptu.reasbe.service.ItemService;
+import vn.fptu.reasbe.service.UserLocationService;
 import vn.fptu.reasbe.service.SubscriptionPlanService;
-import vn.fptu.reasbe.service.UserService;
 import vn.fptu.reasbe.service.UserSubscriptionService;
 import vn.fptu.reasbe.service.VectorStoreService;
 import vn.fptu.reasbe.service.mongodb.NotificationService;
@@ -86,7 +86,6 @@ public class ItemServiceImpl implements ItemService {
 
     private final CategoryService categoryService;
     private final BrandService brandService;
-    private final UserService userService;
     private final AuthService authService;
     private final VectorStoreService vectorStoreService;
     private final ItemRepository itemRepository;
@@ -96,6 +95,7 @@ public class ItemServiceImpl implements ItemService {
     private final DesiredItemMapper desiredItemMapper;
     private final NotificationService notificationService;
     private final UserMService userMService;
+    private final UserLocationService userLocationService;
     private final SubscriptionPlanService subscriptionPlanService;
 
     @Override
@@ -138,16 +138,17 @@ public class ItemServiceImpl implements ItemService {
         validateMaxItemUploadedInCurrentMonth(currentUser);
 
         Item newItem = itemMapper.toEntity(request);
+        newItem.setOwner(currentUser);
         newItem.setCategory(categoryService.getCategoryById(request.getCategoryId()));
         newItem.setBrand(brandService.getBrandById(request.getBrandId()));
-        newItem.setOwner(currentUser);
+        newItem.setUserLocation(userLocationService.getUserLocationOfCurrentUserById(request.getUserLocationId()));
         newItem.setStatusItem(StatusItem.PENDING);
-        newItem.setUserLocation(userService.getPrimaryUserLocation(currentUser));
 
         if (request.getDesiredItem() != null) {
-            newItem.setTypeExchange(TypeExchange.EXCHANGE_WITH_DESIRED_ITEM);
+            validateDesiredItemPrice(request.getDesiredItem());
             DesiredItem newDesiredItem = desiredItemMapper.toDesiredItem(request.getDesiredItem());
             prepareDesiredItem(newDesiredItem, request.getDesiredItem());
+            newItem.setTypeExchange(TypeExchange.EXCHANGE_WITH_DESIRED_ITEM);
             newItem.setDesiredItem(desiredItemRepository.save(newDesiredItem));
         } else {
             newItem.setTypeExchange(TypeExchange.OPEN_EXCHANGE);
@@ -159,6 +160,7 @@ public class ItemServiceImpl implements ItemService {
     public ItemResponse updateItem(UpdateItemRequest request) {
         Item existedItem = getItemById(request.getId());
         User currentUser = authService.getCurrentUser();
+
         if (!existedItem.getOwner().equals(currentUser)) {
             throw new ReasApiException(HttpStatus.BAD_REQUEST, "error.invalidOwner");
         }
@@ -168,7 +170,9 @@ public class ItemServiceImpl implements ItemService {
         }
 
         itemMapper.updateItem(existedItem, request);
-
+        existedItem.setCategory(categoryService.getCategoryById(request.getCategoryId()));
+        existedItem.setBrand(brandService.getBrandById(request.getBrandId()));
+        existedItem.setUserLocation(userLocationService.getUserLocationOfCurrentUserById(request.getUserLocationId()));
         existedItem.setStatusItem(StatusItem.PENDING);
 
         DesiredItem existedDesiredItem = existedItem.getDesiredItem();
@@ -183,7 +187,7 @@ public class ItemServiceImpl implements ItemService {
             }
         } else {
             // desiredItemDto is not null
-            validateDesiredItem(desiredItemDto);
+            validateDesiredItemPrice(desiredItemDto);
 
             if (existedDesiredItem != null) {
                 // Update existing desired item
@@ -192,9 +196,9 @@ public class ItemServiceImpl implements ItemService {
                 desiredItemRepository.save(existedDesiredItem);
             } else {
                 // Create new desired item
-                existedItem.setTypeExchange(TypeExchange.EXCHANGE_WITH_DESIRED_ITEM);
                 DesiredItem newDesiredItem = desiredItemMapper.toDesiredItem(desiredItemDto);
                 prepareDesiredItem(newDesiredItem, desiredItemDto);
+                existedItem.setTypeExchange(TypeExchange.EXCHANGE_WITH_DESIRED_ITEM);
                 existedItem.setDesiredItem(desiredItemRepository.save(newDesiredItem));
             }
         }
@@ -223,12 +227,10 @@ public class ItemServiceImpl implements ItemService {
 
         if (status.equals(StatusItem.AVAILABLE)) {
             pendingItem.setStatusItem(StatusItem.AVAILABLE);
-            pendingItem.setApprovedTime(DateUtils.getStartOfCurrentDay());
+            pendingItem.setApprovedTime(DateUtils.getCurrentDateTime());
 
             int expiredTime = userSubscriptionService.getUserCurrentSubscription() != null ? AppConstants.EXPIRED_TIME_WEEKS_PREMIUM : AppConstants.EXPIRED_TIME_WEEKS;
-            pendingItem.setExpiredTime(pendingItem.getApprovedTime().plusWeeks(expiredTime));
-
-            vectorStoreService.addNewItem(List.of(pendingItem));
+            pendingItem.setExpiredTime(DateUtils.toStartOfDay(pendingItem.getApprovedTime().plusWeeks(expiredTime)));
 
             notification = new Notification(sender.getUserName(), recipient.getUserName(),
                     "Your item has been approved",
@@ -241,6 +243,8 @@ public class ItemServiceImpl implements ItemService {
                     "Your item has been rejected",
                     new Date(), TypeNotification.UPLOAD_ITEM, recipient.getRegistrationTokens());
         }
+
+        vectorStoreService.addNewItem(List.of(pendingItem));
 
         // Send notification
         notificationService.saveAndSendNotification(notification);
@@ -325,6 +329,11 @@ public class ItemServiceImpl implements ItemService {
 
         if (!item.getOwner().equals(user)) {
             throw new ReasApiException(HttpStatus.BAD_REQUEST, "error.invalidOwner");
+        }
+
+        if ((status.equals(StatusItem.NO_LONGER_FOR_EXCHANGE) && !item.getStatusItem().equals(StatusItem.AVAILABLE)) ||
+                (status.equals(StatusItem.AVAILABLE) && !item.getStatusItem().equals(StatusItem.NO_LONGER_FOR_EXCHANGE))) {
+            throw new ReasApiException(HttpStatus.BAD_REQUEST, "error.invalidStatus");
         }
 
         item.setStatusItem(status);
@@ -415,6 +424,26 @@ public class ItemServiceImpl implements ItemService {
         return BaseSearchPaginationResponse.of(new PageImpl<>(pagedList, pageable, filteredItems.size()));
     }
 
+    @Override
+    public Boolean deleteItem(Integer id) {
+        User user = authService.getCurrentUser();
+
+        Item item = getItemById(id);
+
+        if (!item.getOwner().equals(user)) {
+            throw new ReasApiException(HttpStatus.BAD_REQUEST, "error.invalidOwner");
+        }
+
+        if (!item.getStatusItem().equals(StatusItem.NO_LONGER_FOR_EXCHANGE)) {
+            throw new ReasApiException(HttpStatus.BAD_REQUEST, "error.invalidStatus");
+        }
+        item.setStatusEntity(StatusEntity.INACTIVE);
+
+        itemRepository.save(item);
+
+        return true;
+    }
+
     public DistanceMatrixResponse getDistanceMatrix(double originLat, double originLng, List<Item> items) {
         String destinations = items.stream()
                 .map(item -> item.getUserLocation().getLatitude() + "," + item.getUserLocation().getLongitude())
@@ -460,7 +489,7 @@ public class ItemServiceImpl implements ItemService {
         LocalDateTime lastDayOfMonth = DateUtils.getLastDayOfCurrentMonth();
 
         int countItem = itemRepository.countByOwnerAndStatusItemInAndCreationDateBetween(
-                currentUser, List.of(StatusItem.UNAVAILABLE, StatusItem.PENDING, StatusItem.AVAILABLE), firstDayOfMonth, lastDayOfMonth);
+                currentUser, List.of(StatusItem.IN_EXCHANGE, StatusItem.PENDING, StatusItem.AVAILABLE), firstDayOfMonth, lastDayOfMonth);
 
         int maximumItem = userSubscriptionService.getUserCurrentSubscription() != null ? AppConstants.MAX_ITEM_UPLOADED_PREMIUM : AppConstants.MAX_ITEM_UPLOADED;
 
@@ -478,8 +507,8 @@ public class ItemServiceImpl implements ItemService {
         desiredItem.setCategory(categoryService.getCategoryById(desiredItemDto.getCategoryId()));
     }
 
-    private void validateDesiredItem(DesiredItemDto dto) {
-        if (dto.getMinPrice().compareTo(dto.getMaxPrice()) > 0) {
+    private void validateDesiredItemPrice(DesiredItemDto dto) {
+        if (dto.getMaxPrice() != null && (dto.getMinPrice().compareTo(dto.getMaxPrice()) > 0)) {
             throw new ReasApiException(HttpStatus.BAD_REQUEST, "error.minPriceGreaterThanMaxPrice");
         }
     }
