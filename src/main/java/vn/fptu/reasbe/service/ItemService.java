@@ -49,6 +49,8 @@ public interface ItemService {
 
     void extendItem(Item item, SubscriptionPlan plan);
 
+    Boolean extendItemForFree(Integer itemId);
+
     BaseSearchPaginationResponse<ItemResponse> findNearbyItems(int pageNo, int pageSize, double latitude, double longitude, double distance);
 
     Boolean deleteItem(Integer id);

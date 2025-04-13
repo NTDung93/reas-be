@@ -3,6 +3,7 @@ package vn.fptu.reasbe.utils.common;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.Month;
+import java.time.YearMonth;
 import java.time.temporal.TemporalAdjusters;
 
 import org.apache.commons.lang3.Validate;
@@ -18,19 +19,9 @@ import com.querydsl.core.types.dsl.NumberExpression;
 public abstract class DateUtils {
     private static LocalDate currentDate = null;
     private static LocalDateTime currentDateTime = null;
-//    static {
-//        YamlPropertiesFactoryBean yaml = new YamlPropertiesFactoryBean();
-//        yaml.setResources(new ClassPathResource("application-common-util.yml"));
-//        String val = yaml.getObject().getProperty("common-util.currentDate");
-//        if (StringUtils.isNotEmpty(val)) {
-//            currentDate = LocalDate.parse(val, DateTimeFormatter.ofPattern("yyyy-MM-dd"));
-//            currentDateTime = LocalDateTime.of(currentDate, LocalTime.MIN);
-//        }
-//    }
 
     private DateUtils() {
     }
-
 
     public static LocalDateTime getCurrentDateTime() {
         // Return simulated value if having, otherwise return system date
@@ -127,5 +118,19 @@ public abstract class DateUtils {
             return null;
         }
         return LocalDateTime.of(year, Month.of(month), 1, 0, 0, 0).with(TemporalAdjusters.lastDayOfMonth());
+    }
+
+    public static LocalDateTime getEndDateByStartDateAndDuration(LocalDateTime startDate, float duration) {
+        long fullMonths = (long) duration;
+        double fractionalMonth = duration - fullMonths;
+
+        LocalDateTime intermediateDate = startDate.plusMonths(fullMonths);
+
+        YearMonth yearMonth = YearMonth.from(intermediateDate);
+        int daysInMonth = yearMonth.lengthOfMonth();
+
+        long extraDays = Math.round(fractionalMonth * daysInMonth);
+
+        return intermediateDate.plusDays(extraDays);
     }
 }

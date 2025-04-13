@@ -40,6 +40,10 @@ public class UserSubscription extends AbstractAuditableEntity {
     @Column(name = "END_DATE")
     private LocalDateTime endDate;
 
+    @NotNull
+    @Column(name = "NUMBER_OF_FREE_EXTENSION_LEFT")
+    private Integer numberOfFreeExtensionLeft;
+
     @ManyToOne
     @JoinColumn(name = "ITEM_ID")
     private Item item;
