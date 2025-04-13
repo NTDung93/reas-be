@@ -30,4 +30,13 @@ public class Notification {
      * FCM registration token
      */
     List<String> registrationTokens;
+
+    public Notification(String senderId, String recipientId, String content, Date timestamp, TypeNotification notificationType, List<String> registrationTokens) {
+        this.senderId = senderId;
+        this.recipientId = recipientId;
+        this.content = content;
+        this.timestamp = timestamp;
+        this.notificationType = notificationType;
+        this.registrationTokens = registrationTokens;
+    }
 }

@@ -25,4 +25,5 @@ public class UserSubscriptionDto {
     LocalDateTime startDate;
     LocalDateTime endDate;
     SubscriptionPlanDto subscriptionPlan;
+    Integer numberOfFreeExtensionLeft;
 }

@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.RestController;
 import lombok.RequiredArgsConstructor;
 import vn.fptu.reasbe.model.dto.usersubscription.UserSubscriptionDto;
 import vn.fptu.reasbe.service.UserSubscriptionService;
+import vn.fptu.reasbe.utils.mapper.UserSubscriptionMapper;
 
 /**
  *
@@ -18,9 +19,10 @@ import vn.fptu.reasbe.service.UserSubscriptionService;
 @RequiredArgsConstructor
 public class UserSubscriptionController {
     private final UserSubscriptionService userSubscriptionService;
+    private final UserSubscriptionMapper userSubscriptionMapper;
 
     @GetMapping("/current-subscription")
     public ResponseEntity<UserSubscriptionDto> getCurrentSubscription() {
-        return ResponseEntity.ok(userSubscriptionService.getUserCurrentSubscription());
+        return ResponseEntity.ok(userSubscriptionMapper.toDto(userSubscriptionService.getUserCurrentSubscription()));
     }
 }
