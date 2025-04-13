@@ -17,4 +17,5 @@ public interface NotificationService {
     BatchResponse sendNotification(Notification notification);
     List<Notification> findAllByUsername(String username);
     BaseSearchPaginationResponse<NotificationDto> getNotificationsOfUserGroupingByType(int pageNo, int pageSize, String username);
+    void saveAndSendNotification(Notification notification);
 }

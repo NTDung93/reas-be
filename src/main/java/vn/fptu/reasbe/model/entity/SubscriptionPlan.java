@@ -57,6 +57,10 @@ public class SubscriptionPlan extends AbstractAuditableEntity {
     @Column(name = "DURATION")
     private Float duration; // count by month
 
+    @NotNull
+    @Column(name = "NUMBER_OF_FREE_EXTENSION")
+    private Integer numberOfFreeExtension;
+
     @OneToMany(mappedBy = "subscriptionPlan", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<UserSubscription> userSubscriptions = new HashSet<>();
 }

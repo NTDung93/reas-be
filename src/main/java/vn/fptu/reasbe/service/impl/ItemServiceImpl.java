@@ -29,20 +29,26 @@ import vn.fptu.reasbe.model.entity.DesiredItem;
 import vn.fptu.reasbe.model.entity.Item;
 import vn.fptu.reasbe.model.entity.SubscriptionPlan;
 import vn.fptu.reasbe.model.entity.User;
+import vn.fptu.reasbe.model.entity.UserSubscription;
 import vn.fptu.reasbe.model.enums.core.StatusEntity;
 import vn.fptu.reasbe.model.enums.item.StatusItem;
 import vn.fptu.reasbe.model.enums.item.TypeExchange;
+import vn.fptu.reasbe.model.enums.notification.TypeNotification;
 import vn.fptu.reasbe.model.exception.ReasApiException;
 import vn.fptu.reasbe.model.exception.ResourceNotFoundException;
+import vn.fptu.reasbe.model.mongodb.Notification;
 import vn.fptu.reasbe.repository.DesiredItemRepository;
 import vn.fptu.reasbe.repository.ItemRepository;
 import vn.fptu.reasbe.service.AuthService;
 import vn.fptu.reasbe.service.BrandService;
 import vn.fptu.reasbe.service.CategoryService;
 import vn.fptu.reasbe.service.ItemService;
+import vn.fptu.reasbe.service.SubscriptionPlanService;
 import vn.fptu.reasbe.service.UserService;
 import vn.fptu.reasbe.service.UserSubscriptionService;
 import vn.fptu.reasbe.service.VectorStoreService;
+import vn.fptu.reasbe.service.mongodb.NotificationService;
+import vn.fptu.reasbe.service.mongodb.UserMService;
 import vn.fptu.reasbe.utils.common.DateUtils;
 import vn.fptu.reasbe.utils.common.GeometryUtils;
 import vn.fptu.reasbe.utils.mapper.DesiredItemMapper;
@@ -50,6 +56,7 @@ import vn.fptu.reasbe.utils.mapper.ItemMapper;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -65,7 +72,7 @@ import static vn.fptu.reasbe.model.dto.core.BaseSearchPaginationResponse.getPage
  */
 @Slf4j
 @Service
-@Transactional
+@Transactional(rollbackFor = Throwable.class)
 @RequiredArgsConstructor
 public class ItemServiceImpl implements ItemService {
 
@@ -87,6 +94,9 @@ public class ItemServiceImpl implements ItemService {
     private final UserSubscriptionService userSubscriptionService;
     private final ItemMapper itemMapper;
     private final DesiredItemMapper desiredItemMapper;
+    private final NotificationService notificationService;
+    private final UserMService userMService;
+    private final SubscriptionPlanService subscriptionPlanService;
 
     @Override
     public BaseSearchPaginationResponse<SearchItemResponse> searchItemPagination(int pageNo, int pageSize, String sortBy, String sortDir, SearchItemRequest request) {
@@ -203,6 +213,10 @@ public class ItemServiceImpl implements ItemService {
     @Override
     public ItemResponse reviewItem(Integer id, StatusItem status) {
         Item pendingItem = getItemById(id);
+        User currentUser = authService.getCurrentUser();
+        vn.fptu.reasbe.model.mongodb.User sender = userMService.findByUsername(currentUser.getUserName());
+        vn.fptu.reasbe.model.mongodb.User recipient = userMService.findByUsername(pendingItem.getOwner().getUserName());
+        Notification notification = null;
 
         if (!pendingItem.getStatusItem().equals(StatusItem.PENDING))
             throw new ReasApiException(HttpStatus.BAD_REQUEST, "error.pendingItemOnly");
@@ -216,11 +230,20 @@ public class ItemServiceImpl implements ItemService {
 
             vectorStoreService.addNewItem(List.of(pendingItem));
 
+            notification = new Notification(sender.getUserName(), recipient.getUserName(),
+                    "Your item has been approved",
+                    new Date(), TypeNotification.UPLOAD_ITEM, recipient.getRegistrationTokens());
+
         } else if (status.equals(StatusItem.REJECTED)) {
             pendingItem.setStatusItem(StatusItem.REJECTED);
-        }
-        //TODO: sendNoti
 
+            notification = new Notification(sender.getUserName(), recipient.getUserName(),
+                    "Your item has been rejected",
+                    new Date(), TypeNotification.UPLOAD_ITEM, recipient.getRegistrationTokens());
+        }
+
+        // Send notification
+        notificationService.saveAndSendNotification(notification);
         return itemMapper.toItemResponse(itemRepository.save(pendingItem));
     }
 
@@ -316,9 +339,37 @@ public class ItemServiceImpl implements ItemService {
 
     @Override
     public void extendItem(Item item, SubscriptionPlan plan) {
+        if (item.getStatusItem() != StatusItem.EXPIRED){
+            throw new ReasApiException(HttpStatus.BAD_REQUEST, "error.itemIsNotExpiredYet");
+        }
         item.setStatusItem(StatusItem.AVAILABLE);
-        item.setExpiredTime(DateUtils.getCurrentDateTime().plusDays((long) (plan.getDuration() * 30)));
+        item.setExpiredTime(DateUtils.getEndDateByStartDateAndDuration(DateUtils.getCurrentDateTime(), plan.getDuration()));
         itemRepository.save(item);
+    }
+
+    @Override
+    public Boolean extendItemForFree(Integer itemId) {
+        UserSubscription userSubscription = userSubscriptionService.getUserCurrentSubscription();
+        if (userSubscription == null) {
+            throw new ReasApiException(HttpStatus.BAD_REQUEST, "error.userSubscriptionNotFound");
+        }
+        if (userSubscription.getNumberOfFreeExtensionLeft() <= 0) {
+            throw new ReasApiException(HttpStatus.BAD_REQUEST, "error.noExtensionLeft");
+        }
+
+        SubscriptionPlan planTypeExtension = subscriptionPlanService.getSubscriptionPlanTypeExtension();
+
+        Item item = getItemById(itemId);
+        if (item.getStatusItem() != StatusItem.EXPIRED){
+            throw new ReasApiException(HttpStatus.BAD_REQUEST, "error.itemIsNotExpiredYet");
+        }
+        item.setStatusItem(StatusItem.AVAILABLE);
+        item.setExpiredTime(DateUtils.getEndDateByStartDateAndDuration(DateUtils.getCurrentDateTime(), planTypeExtension.getDuration()));
+        itemRepository.save(item);
+
+        userSubscriptionService.updateNumberOfExtensionLeft(userSubscription);
+
+        return true;
     }
 
     @Override
@@ -390,7 +441,15 @@ public class ItemServiceImpl implements ItemService {
         List<Item> expiredItems = itemRepository.findAllByExpiredTimeBeforeAndStatusItemAndStatusEntity(DateUtils.getCurrentDateTime(), StatusItem.AVAILABLE, StatusEntity.ACTIVE);
         expiredItems.forEach(expiredItem -> {
             expiredItem.setStatusItem(StatusItem.EXPIRED);
-            //TODO: sendNoti
+
+            // Send notification
+            User currentUser = authService.getCurrentUser();
+            vn.fptu.reasbe.model.mongodb.User sender = userMService.findByUsername(currentUser.getUserName());
+            vn.fptu.reasbe.model.mongodb.User recipient = userMService.findByUsername(expiredItem.getOwner().getUserName());
+            Notification notification = new Notification(sender.getUserName(), recipient.getUserName(),
+                    "Your item has expired",
+                    new Date(), TypeNotification.ITEM_EXPIRED, recipient.getRegistrationTokens());
+            notificationService.saveAndSendNotification(notification);
         });
         itemRepository.saveAll(expiredItems);
         log.info("Updated {} expired items", expiredItems.size());
