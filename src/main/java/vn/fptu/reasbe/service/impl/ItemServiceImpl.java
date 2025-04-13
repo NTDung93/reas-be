@@ -29,6 +29,7 @@ import vn.fptu.reasbe.model.entity.DesiredItem;
 import vn.fptu.reasbe.model.entity.Item;
 import vn.fptu.reasbe.model.entity.SubscriptionPlan;
 import vn.fptu.reasbe.model.entity.User;
+import vn.fptu.reasbe.model.entity.UserSubscription;
 import vn.fptu.reasbe.model.enums.core.StatusEntity;
 import vn.fptu.reasbe.model.enums.item.StatusItem;
 import vn.fptu.reasbe.model.enums.item.TypeExchange;
@@ -42,6 +43,7 @@ import vn.fptu.reasbe.service.AuthService;
 import vn.fptu.reasbe.service.BrandService;
 import vn.fptu.reasbe.service.CategoryService;
 import vn.fptu.reasbe.service.ItemService;
+import vn.fptu.reasbe.service.SubscriptionPlanService;
 import vn.fptu.reasbe.service.UserService;
 import vn.fptu.reasbe.service.UserSubscriptionService;
 import vn.fptu.reasbe.service.VectorStoreService;
@@ -70,7 +72,7 @@ import static vn.fptu.reasbe.model.dto.core.BaseSearchPaginationResponse.getPage
  */
 @Slf4j
 @Service
-@Transactional
+@Transactional(rollbackFor = Throwable.class)
 @RequiredArgsConstructor
 public class ItemServiceImpl implements ItemService {
 
@@ -94,6 +96,7 @@ public class ItemServiceImpl implements ItemService {
     private final DesiredItemMapper desiredItemMapper;
     private final NotificationService notificationService;
     private final UserMService userMService;
+    private final SubscriptionPlanService subscriptionPlanService;
 
     @Override
     public BaseSearchPaginationResponse<SearchItemResponse> searchItemPagination(int pageNo, int pageSize, String sortBy, String sortDir, SearchItemRequest request) {
@@ -336,9 +339,37 @@ public class ItemServiceImpl implements ItemService {
 
     @Override
     public void extendItem(Item item, SubscriptionPlan plan) {
+        if (item.getStatusItem() != StatusItem.EXPIRED){
+            throw new ReasApiException(HttpStatus.BAD_REQUEST, "error.itemIsNotExpiredYet");
+        }
         item.setStatusItem(StatusItem.AVAILABLE);
-        item.setExpiredTime(DateUtils.getCurrentDateTime().plusDays((long) (plan.getDuration() * 30)));
+        item.setExpiredTime(DateUtils.getEndDateByStartDateAndDuration(DateUtils.getCurrentDateTime(), plan.getDuration()));
         itemRepository.save(item);
+    }
+
+    @Override
+    public Boolean extendItemForFree(Integer itemId) {
+        UserSubscription userSubscription = userSubscriptionService.getUserCurrentSubscription();
+        if (userSubscription == null) {
+            throw new ReasApiException(HttpStatus.BAD_REQUEST, "error.userSubscriptionNotFound");
+        }
+        if (userSubscription.getNumberOfFreeExtensionLeft() <= 0) {
+            throw new ReasApiException(HttpStatus.BAD_REQUEST, "error.noExtensionLeft");
+        }
+
+        SubscriptionPlan planTypeExtension = subscriptionPlanService.getSubscriptionPlanTypeExtension();
+
+        Item item = getItemById(itemId);
+        if (item.getStatusItem() != StatusItem.EXPIRED){
+            throw new ReasApiException(HttpStatus.BAD_REQUEST, "error.itemIsNotExpiredYet");
+        }
+        item.setStatusItem(StatusItem.AVAILABLE);
+        item.setExpiredTime(DateUtils.getEndDateByStartDateAndDuration(DateUtils.getCurrentDateTime(), planTypeExtension.getDuration()));
+        itemRepository.save(item);
+
+        userSubscriptionService.updateNumberOfExtensionLeft(userSubscription);
+
+        return true;
     }
 
     @Override

@@ -147,4 +147,10 @@ public class ItemController {
     ) {
         return ResponseEntity.ok(itemService.findNearbyItems(pageNo, pageSize, latitude, longitude, distance));
     }
+
+    @PutMapping("/extend-item-for-free")
+    @PreAuthorize("hasRole(T(vn.fptu.reasbe.model.constant.AppConstants).ROLE_RESIDENT)")
+    public ResponseEntity<Boolean> extendItemForFree(@RequestParam Integer itemId) {
+      return ResponseEntity.ok(itemService.extendItemForFree(itemId));
+    }
 }
