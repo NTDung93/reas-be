@@ -43,6 +43,7 @@ import vn.fptu.reasbe.service.AuthService;
 import vn.fptu.reasbe.service.BrandService;
 import vn.fptu.reasbe.service.CategoryService;
 import vn.fptu.reasbe.service.ItemService;
+import vn.fptu.reasbe.service.SubscriptionPlanService;
 import vn.fptu.reasbe.service.UserService;
 import vn.fptu.reasbe.service.UserSubscriptionService;
 import vn.fptu.reasbe.service.VectorStoreService;
@@ -95,6 +96,7 @@ public class ItemServiceImpl implements ItemService {
     private final DesiredItemMapper desiredItemMapper;
     private final NotificationService notificationService;
     private final UserMService userMService;
+    private final SubscriptionPlanService subscriptionPlanService;
 
     @Override
     public BaseSearchPaginationResponse<SearchItemResponse> searchItemPagination(int pageNo, int pageSize, String sortBy, String sortDir, SearchItemRequest request) {
@@ -355,12 +357,14 @@ public class ItemServiceImpl implements ItemService {
             throw new ReasApiException(HttpStatus.BAD_REQUEST, "error.noExtensionLeft");
         }
 
+        SubscriptionPlan planTypeExtension = subscriptionPlanService.getSubscriptionPlanTypeExtension();
+
         Item item = getItemById(itemId);
         if (item.getStatusItem() != StatusItem.EXPIRED){
             throw new ReasApiException(HttpStatus.BAD_REQUEST, "error.itemIsNotExpiredYet");
         }
         item.setStatusItem(StatusItem.AVAILABLE);
-        item.setExpiredTime(DateUtils.getEndDateByStartDateAndDuration(DateUtils.getCurrentDateTime(), userSubscription.getSubscriptionPlan().getDuration()));
+        item.setExpiredTime(DateUtils.getEndDateByStartDateAndDuration(DateUtils.getCurrentDateTime(), planTypeExtension.getDuration()));
         itemRepository.save(item);
 
         userSubscriptionService.updateNumberOfExtensionLeft(userSubscription);
