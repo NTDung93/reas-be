@@ -37,7 +37,7 @@ public class ChatMessageServiceImpl implements ChatMessageService {
         User recipient = userMService.findByUsername(chatMessage.getRecipientId());
         Notification savedNotification = notificationService.createNotification(prepareNotification(savedMsg, recipient));
         notificationService.sendNotification(savedNotification);
-        messagingTemplate.convertAndSendToUser(chatMessage.getRecipientId(), QUEUE_MESSAGES, savedNotification);
+        messagingTemplate.convertAndSendToUser(chatMessage.getRecipientId(), QUEUE_MESSAGES, savedMsg);
     }
 
     private Notification prepareNotification(ChatMessage savedMsg, User recipient) {
@@ -45,7 +45,7 @@ public class ChatMessageServiceImpl implements ChatMessageService {
                 .id(savedMsg.getId())
                 .senderId(savedMsg.getSenderId())
                 .recipientId(savedMsg.getRecipientId())
-                .content(savedMsg.getContent())
+                .content("New messages from " + savedMsg.getSenderName())
                 .timestamp(savedMsg.getTimestamp())
                 .contentType(savedMsg.getContentType())
                 .notificationType(TypeNotification.CHAT_MESSAGE)
