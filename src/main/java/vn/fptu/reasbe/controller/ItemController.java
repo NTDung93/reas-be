@@ -153,4 +153,10 @@ public class ItemController {
     public ResponseEntity<Boolean> extendItemForFree(@RequestParam Integer itemId) {
       return ResponseEntity.ok(itemService.extendItemForFree(itemId));
     }
+
+    @PreAuthorize("hasRole(T(vn.fptu.reasbe.model.constant.AppConstants).ROLE_RESIDENT)")
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Boolean> deleteItem(@PathVariable Integer id) {
+        return ResponseEntity.ok(itemService.deleteItem(id));
+    }
 }

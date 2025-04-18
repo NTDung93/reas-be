@@ -47,7 +47,9 @@ import vn.fptu.reasbe.repository.UserRepository;
 import vn.fptu.reasbe.service.AuthService;
 import vn.fptu.reasbe.service.BrandService;
 import vn.fptu.reasbe.service.CategoryService;
+import vn.fptu.reasbe.service.UserLocationService;
 import vn.fptu.reasbe.service.UserService;
+import vn.fptu.reasbe.service.UserSubscriptionService;
 import vn.fptu.reasbe.utils.mapper.DesiredItemMapper;
 import vn.fptu.reasbe.utils.mapper.ItemMapper;
 
@@ -82,6 +84,12 @@ class ItemServiceImplTest {
 
     @Mock
     private DesiredItemRepository desiredItemRepository;
+
+    @Mock
+    private UserLocationService userLocationService;
+
+    @Mock
+    private UserSubscriptionService userSubscriptionService;
 
     @InjectMocks
     private ItemServiceImpl itemServiceImpl;
@@ -187,6 +195,7 @@ class ItemServiceImplTest {
         when(authService.getCurrentUser()).thenReturn(mockUser);
         when(userService.getPrimaryUserLocation(mockUser)).thenReturn(new UserLocation());
         when(desiredItemMapper.toDesiredItem(mockUploadRequest.getDesiredItem())).thenReturn(new DesiredItem());
+        when(userSubscriptionService.getUserCurrentSubscription()).thenReturn(null);
         Item response = itemServiceImpl.uploadItem(mockUploadRequest);
 
         assertNotNull(response);
@@ -232,6 +241,7 @@ class ItemServiceImplTest {
         when(itemRepository.save(mockItem)).thenReturn(mockItem);
         when(itemMapper.toItemResponse(mockItem)).thenReturn(mockItemResponse);
         when(authService.getCurrentUser()).thenReturn(mockUser);
+        when(userLocationService.getUserLocationOfCurrentUserById(anyInt())).thenReturn(new UserLocation());
 
         ItemResponse response = itemServiceImpl.updateItem(updateRequest);
 
@@ -267,6 +277,7 @@ class ItemServiceImplTest {
         when(itemRepository.save(mockItem)).thenReturn(mockItem);
         when(itemMapper.toItemResponse(mockItem)).thenReturn(mockItemResponse);
         when(authService.getCurrentUser()).thenReturn(mockUser);
+        when(userLocationService.getUserLocationOfCurrentUserById(anyInt())).thenReturn(new UserLocation());
 
         ItemResponse response = itemServiceImpl.updateItem(updateRequest);
 
@@ -285,6 +296,7 @@ class ItemServiceImplTest {
         when(itemRepository.save(mockItem)).thenReturn(mockItem);
         when(itemMapper.toItemResponse(mockItem)).thenReturn(mockItemResponse);
         when(authService.getCurrentUser()).thenReturn(mockUser);
+        when(userLocationService.getUserLocationOfCurrentUserById(anyInt())).thenReturn(new UserLocation());
 
         ItemResponse response = itemServiceImpl.updateItem(updateRequest);
 
@@ -305,6 +317,7 @@ class ItemServiceImplTest {
         when(itemRepository.save(mockItem)).thenReturn(mockItem);
         when(itemMapper.toItemResponse(mockItem)).thenReturn(mockItemResponse);
         when(authService.getCurrentUser()).thenReturn(mockUser);
+        when(userLocationService.getUserLocationOfCurrentUserById(anyInt())).thenReturn(new UserLocation());
 
         ItemResponse response = itemServiceImpl.updateItem(updateRequest);
 
@@ -329,6 +342,7 @@ class ItemServiceImplTest {
         when(itemRepository.findById(1)).thenReturn(Optional.of(mockItem));
         when(itemMapper.toItemResponse(mockItem)).thenReturn(mockItemResponse);
         when(itemRepository.save(any(Item.class))).thenReturn(mockItem);
+        when(authService.getCurrentUser()).thenReturn(mockUser);
 
         ItemResponse response = itemServiceImpl.reviewItem(1, StatusItem.AVAILABLE);
 
@@ -342,6 +356,7 @@ class ItemServiceImplTest {
         when(itemRepository.findById(1)).thenReturn(Optional.of(mockItem));
         when(itemMapper.toItemResponse(mockItem)).thenReturn(mockItemResponse);
         when(itemRepository.save(any(Item.class))).thenReturn(mockItem);
+        when(authService.getCurrentUser()).thenReturn(mockUser);
 
         ItemResponse response = itemServiceImpl.reviewItem(1, StatusItem.REJECTED);
 
