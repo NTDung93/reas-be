@@ -26,11 +26,13 @@ import vn.fptu.reasbe.model.dto.item.SearchItemResponse;
 import vn.fptu.reasbe.model.dto.item.UpdateItemRequest;
 import vn.fptu.reasbe.model.dto.item.UploadItemRequest;
 import vn.fptu.reasbe.model.entity.DesiredItem;
+import vn.fptu.reasbe.model.entity.ExchangeRequest;
 import vn.fptu.reasbe.model.entity.Item;
 import vn.fptu.reasbe.model.entity.SubscriptionPlan;
 import vn.fptu.reasbe.model.entity.User;
 import vn.fptu.reasbe.model.entity.UserSubscription;
 import vn.fptu.reasbe.model.enums.core.StatusEntity;
+import vn.fptu.reasbe.model.enums.exchange.StatusExchangeRequest;
 import vn.fptu.reasbe.model.enums.item.StatusItem;
 import vn.fptu.reasbe.model.enums.item.TypeExchange;
 import vn.fptu.reasbe.model.enums.notification.TypeNotification;
@@ -38,6 +40,7 @@ import vn.fptu.reasbe.model.exception.ReasApiException;
 import vn.fptu.reasbe.model.exception.ResourceNotFoundException;
 import vn.fptu.reasbe.model.mongodb.Notification;
 import vn.fptu.reasbe.repository.DesiredItemRepository;
+import vn.fptu.reasbe.repository.ExchangeRequestRepository;
 import vn.fptu.reasbe.repository.ItemRepository;
 import vn.fptu.reasbe.service.AuthService;
 import vn.fptu.reasbe.service.BrandService;
@@ -62,8 +65,10 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static vn.fptu.reasbe.model.dto.core.BaseSearchPaginationResponse.getPageable;
 
@@ -97,6 +102,7 @@ public class ItemServiceImpl implements ItemService {
     private final UserMService userMService;
     private final UserLocationService userLocationService;
     private final SubscriptionPlanService subscriptionPlanService;
+    private final ExchangeRequestRepository exchangeRequestRepository;
 
     @Override
     public BaseSearchPaginationResponse<SearchItemResponse> searchItemPagination(int pageNo, int pageSize, String sortBy, String sortDir, SearchItemRequest request) {
@@ -470,18 +476,35 @@ public class ItemServiceImpl implements ItemService {
         List<Item> expiredItems = itemRepository.findAllByExpiredTimeBeforeAndStatusItemAndStatusEntity(DateUtils.getCurrentDateTime(), StatusItem.AVAILABLE, StatusEntity.ACTIVE);
         expiredItems.forEach(expiredItem -> {
             expiredItem.setStatusItem(StatusItem.EXPIRED);
+            setExchangeRequestCancelled(expiredItem);
 
             // Send notification
-            User currentUser = authService.getCurrentUser();
-            vn.fptu.reasbe.model.mongodb.User sender = userMService.findByUsername(currentUser.getUserName());
             vn.fptu.reasbe.model.mongodb.User recipient = userMService.findByUsername(expiredItem.getOwner().getUserName());
-            Notification notification = new Notification(sender.getUserName(), recipient.getUserName(),
+            Notification notification = new Notification(userMService.getAdmin().getUserName(), recipient.getUserName(),
                     "Your item has expired",
                     new Date(), TypeNotification.ITEM_EXPIRED, recipient.getRegistrationTokens());
             notificationService.saveAndSendNotification(notification);
         });
         itemRepository.saveAll(expiredItems);
         log.info("Updated {} expired items", expiredItems.size());
+    }
+
+    private void setExchangeRequestCancelled(Item expiredItem) {
+        List<ExchangeRequest> relatedRequests = Stream.concat(
+                        Optional.ofNullable(expiredItem.getSellerExchangeRequests()).stream()
+                                .flatMap(List::stream),
+                        Optional.ofNullable(expiredItem.getBuyerExchangeRequests()).stream()
+                                .flatMap(List::stream)
+                )
+                .filter(req -> req.getStatusExchangeRequest() == StatusExchangeRequest.PENDING)
+                .toList();
+
+        if (!relatedRequests.isEmpty()) {
+            for (ExchangeRequest request : relatedRequests) {
+                request.setStatusExchangeRequest(StatusExchangeRequest.CANCELLED);
+            }
+            exchangeRequestRepository.saveAll(relatedRequests);
+        }
     }
 
     private void validateMaxItemUploadedInCurrentMonth(User currentUser) {
