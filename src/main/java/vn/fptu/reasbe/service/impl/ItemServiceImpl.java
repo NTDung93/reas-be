@@ -226,7 +226,7 @@ public class ItemServiceImpl implements ItemService {
         User currentUser = authService.getCurrentUser();
         vn.fptu.reasbe.model.mongodb.User sender = userMService.findByUsername(currentUser.getUserName());
         vn.fptu.reasbe.model.mongodb.User recipient = userMService.findByUsername(pendingItem.getOwner().getUserName());
-        Notification notification = null;
+        Notification notification;
 
         if (!pendingItem.getStatusItem().equals(StatusItem.PENDING))
             throw new ReasApiException(HttpStatus.BAD_REQUEST, "error.pendingItemOnly");
@@ -248,6 +248,8 @@ public class ItemServiceImpl implements ItemService {
             notification = new Notification(sender.getUserName(), recipient.getUserName(),
                     "Your item has been rejected",
                     new Date(), TypeNotification.UPLOAD_ITEM, recipient.getRegistrationTokens());
+        } else {
+            throw new ReasApiException(HttpStatus.BAD_REQUEST, "error.invalidStatusItem");
         }
 
         vectorStoreService.addNewItem(List.of(pendingItem));

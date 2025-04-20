@@ -187,6 +187,10 @@ public class ExchangeServiceImpl implements ExchangeService {
 
         checkIfExchangeIsPending(request);
 
+        if (negotiatedPrice.compareTo(BigDecimal.ZERO) < 0) {
+            throw new ReasApiException(HttpStatus.BAD_REQUEST, "error.negativePrice");
+        }
+
         if (request.getNumberOfOffer().equals(0)) {
             throw new ReasApiException(HttpStatus.BAD_REQUEST, "error.noOfferLeft");
         }
@@ -234,8 +238,8 @@ public class ExchangeServiceImpl implements ExchangeService {
 
         checkIfExchangeIsPending(request);
 
-        if (statusExchangeRequest.equals(StatusExchangeRequest.PENDING)) {
-            throw new ReasApiException(HttpStatus.BAD_REQUEST, "error.statusExchangeRequestPendingNotAllowed");
+        if (statusExchangeRequest.equals(StatusExchangeRequest.PENDING) || statusExchangeRequest.equals(StatusExchangeRequest.CANCELLED)) {
+            throw new ReasApiException(HttpStatus.BAD_REQUEST, "error.statusExchangeRequestInvalid");
         }
 
         if (statusExchangeRequest.equals(StatusExchangeRequest.APPROVED)) {
@@ -528,7 +532,7 @@ public class ExchangeServiceImpl implements ExchangeService {
 
     private void checkIfExchangeIsPending(ExchangeRequest request) {
         if (!request.getStatusExchangeRequest().equals(StatusExchangeRequest.PENDING)) {
-            throw new ReasApiException(HttpStatus.BAD_REQUEST, "error.exchangeRequestNotPending");
+                throw new ReasApiException(HttpStatus.BAD_REQUEST, "error.exchangeRequestNotPending");
         }
     }
 
