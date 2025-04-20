@@ -66,7 +66,7 @@ public class ExchangeServiceImpl implements ExchangeService {
     @Override
     public BaseSearchPaginationResponse<ExchangeResponse> getAllExchangeByStatusOfCurrentUser(int pageNo, int pageSize, String sortBy, String sortDir,
                                                                                               StatusExchangeRequest statusRequest, StatusExchangeHistory statusHistory) {
-        User user = authService.getCurrentUser();
+        User user = getCurrentUser();
         Pageable pageable = getPageable(pageNo, pageSize, sortBy, sortDir);
         if (statusRequest.equals(StatusExchangeRequest.APPROVED)) {
             if (statusHistory == null) {
@@ -99,15 +99,14 @@ public class ExchangeServiceImpl implements ExchangeService {
 
     @Override
     public ExchangeResponse getExchangeById(Integer id) {
-        User user = authService.getCurrentUser();
+        User user = getCurrentUser();
         ExchangeRequest request = getExchangeRequestById(id);
 
         if (user.getRole().getName().equals(RoleName.ROLE_RESIDENT)) {
             boolean isSeller = request.getSellerItem().getOwner().equals(user);
-            boolean isBuyer = request.getBuyerItem() != null && request.getBuyerItem().getOwner().equals(user);
-            boolean isPayer = request.getPaidBy().equals(user);
+            boolean isBuyer = getBuyer(request).equals(user);
 
-            if (!(isSeller || isBuyer || isPayer)) {
+            if (!(isSeller || isBuyer)) {
                 throw new ReasApiException(HttpStatus.BAD_REQUEST, "error.userNotAllowed");
             }
         }
@@ -167,7 +166,7 @@ public class ExchangeServiceImpl implements ExchangeService {
         vn.fptu.reasbe.model.mongodb.User sender = userMService.findByUsername(currentUser.getUserName());
         vn.fptu.reasbe.model.mongodb.User recipient = userMService.findByUsername(sellerItem.getOwner().getUserName());
         Notification notification = new Notification(sender.getUserName(), recipient.getUserName(),
-                "There is a new exchange request with your " + sellerItem.getItemName(),
+                "New exchange request #EX" + request.getId() + " with your " + sellerItem.getItemName(),
                 new Date(), TypeNotification.EXCHANGE_REQUEST, recipient.getRegistrationTokens());
         notificationService.saveAndSendNotification(notification);
 
@@ -199,7 +198,7 @@ public class ExchangeServiceImpl implements ExchangeService {
         request.setNumberOfOffer(request.getNumberOfOffer() - 1);
 
         //Checking and changing status for confirmation from both user
-        if (request.getBuyerItem().getOwner().equals(user)) {
+        if (getBuyer(request).equals(user)) {
             if (request.getBuyerConfirmation().equals(Boolean.TRUE)) {
                 throw new ReasApiException(HttpStatus.BAD_REQUEST, "error.waitForOtherUserConfirmation");
             }
@@ -212,7 +211,7 @@ public class ExchangeServiceImpl implements ExchangeService {
             }
             request.setSellerConfirmation(Boolean.TRUE);
             request.setBuyerConfirmation(Boolean.FALSE);
-            recipientName = request.getBuyerItem().getOwner().getUserName();
+            recipientName = getBuyer(request).getUserName();
         } else {
             throw new ReasApiException(HttpStatus.BAD_REQUEST, "error.userNotAllowed");
         }
@@ -221,7 +220,7 @@ public class ExchangeServiceImpl implements ExchangeService {
         vn.fptu.reasbe.model.mongodb.User sender = userMService.findByUsername(user.getUserName());
         vn.fptu.reasbe.model.mongodb.User recipient = userMService.findByUsername(recipientName);
         Notification notification = new Notification(sender.getUserName(), recipient.getUserName(),
-                "There is an update price of exchange between " + request.getBuyerItem().getItemName() + " and " + request.getSellerItem().getItemName(),
+                "New negotiated price offered for exchange #EX" + request.getId(),
                 new Date(), TypeNotification.EXCHANGE_REQUEST, recipient.getRegistrationTokens());
         notificationService.saveAndSendNotification(notification);
 
@@ -232,7 +231,7 @@ public class ExchangeServiceImpl implements ExchangeService {
     public ExchangeResponse reviewExchangeRequest(Integer id, StatusExchangeRequest statusExchangeRequest) {
         ExchangeRequest request = getExchangeRequestById(id);
 
-        if (!request.getSellerItem().getOwner().equals(authService.getCurrentUser())) {
+        if (!request.getSellerItem().getOwner().equals(getCurrentUser())) {
             throw new ReasApiException(HttpStatus.BAD_REQUEST, "error.userNotAllowed");
         }
 
@@ -266,16 +265,16 @@ public class ExchangeServiceImpl implements ExchangeService {
             vectorStoreService.deleteItem(deletedItemsFromVectorStore);
 
             request.setExchangeHistory(exchangeHistoryRepository.save(exchangeHistory));
-        } else {
-            request.setStatusExchangeRequest(statusExchangeRequest);
         }
+
+        request.setStatusExchangeRequest(statusExchangeRequest);
 
         // Send notification
         User currentUser = getCurrentUser();
         vn.fptu.reasbe.model.mongodb.User sender = userMService.findByUsername(currentUser.getUserName());
-        vn.fptu.reasbe.model.mongodb.User recipient = userMService.findByUsername(request.getBuyerItem() != null ? request.getBuyerItem().getOwner().getUserName() : request.getPaidBy().getUserName());
+        vn.fptu.reasbe.model.mongodb.User recipient = userMService.findByUsername(getBuyer(request).getUserName());
         Notification notification = new Notification(sender.getUserName(), recipient.getUserName(),
-                "Your exchange request has been " + String.valueOf(statusExchangeRequest).toLowerCase(),
+                "Your exchange request #EX" + request.getId() + " has been " + String.valueOf(statusExchangeRequest).toLowerCase(),
                 new Date(), TypeNotification.EXCHANGE_REQUEST, recipient.getRegistrationTokens());
         notificationService.saveAndSendNotification(notification);
 
@@ -286,16 +285,10 @@ public class ExchangeServiceImpl implements ExchangeService {
     public ExchangeResponse cancelExchange(Integer id) {
         ExchangeRequest request = getExchangeRequestById(id);
 
-        User currentUser = authService.getCurrentUser();
+        User currentUser = getCurrentUser();
 
-        if (request.getBuyerItem() != null) {
-            if (!request.getBuyerItem().getOwner().equals(currentUser)) {
-                throw new ReasApiException(HttpStatus.BAD_REQUEST, "error.userNotAllowed");
-            }
-        } else {
-            if (!request.getPaidBy().equals(currentUser)) {
-                throw new ReasApiException(HttpStatus.BAD_REQUEST, "error.userNotAllowed");
-            }
+        if (!getBuyer(request).equals(currentUser)) {
+            throw new ReasApiException(HttpStatus.BAD_REQUEST, "error.userNotAllowed");
         }
 
         ExchangeResponse response;
@@ -311,7 +304,7 @@ public class ExchangeServiceImpl implements ExchangeService {
         vn.fptu.reasbe.model.mongodb.User sender = userMService.findByUsername(currentUser.getUserName());
         vn.fptu.reasbe.model.mongodb.User recipient = userMService.findByUsername(request.getSellerItem().getOwner().getUserName());
         Notification notification = new Notification(sender.getUserName(), recipient.getUserName(),
-                "Exchange request with " + request.getSellerItem().getItemName() + " has been cancelled",
+                "Your exchange request #EX" + request.getId() + " has been cancelled",
                 new Date(), TypeNotification.EXCHANGE_REQUEST, recipient.getRegistrationTokens());
         notificationService.saveAndSendNotification(notification);
 
@@ -320,7 +313,7 @@ public class ExchangeServiceImpl implements ExchangeService {
 
     @Override
     public ExchangeResponse confirmNegotiatedPrice(Integer id) {
-        User user = authService.getCurrentUser();
+        User user = getCurrentUser();
 
         ExchangeRequest request = getExchangeRequestById(id);
 
@@ -328,9 +321,7 @@ public class ExchangeServiceImpl implements ExchangeService {
 
         if (request.getSellerItem().getOwner().equals(user)) { //checking if the current user is the seller
             request.setSellerConfirmation(Boolean.TRUE);
-        } else if ((request.getBuyerItem() != null &&  //checking if the current user is the buyer or paid by -> upload on buyer (paid by) side
-                request.getBuyerItem().getOwner().equals(user)) ||
-                (request.getPaidBy().equals(user))) {
+        } else if (getBuyer(request).equals(user)) {
             request.setBuyerConfirmation(Boolean.TRUE);
         } else {
             throw new ReasApiException(HttpStatus.BAD_REQUEST, "error.userNotAllowed");
@@ -342,7 +333,7 @@ public class ExchangeServiceImpl implements ExchangeService {
 
     @Override
     public ExchangeResponse uploadEvidence(EvidenceExchangeRequest request) {
-        User user = authService.getCurrentUser();
+        User user = getCurrentUser();
 
         ExchangeHistory exchangeHistory = exchangeHistoryRepository.findById(request.getExchangeHistoryId())
                 .orElseThrow(() -> new ResourceNotFoundException("ExchangeHistory", "id", request.getExchangeHistoryId()));
@@ -355,9 +346,7 @@ public class ExchangeServiceImpl implements ExchangeService {
             exchangeHistory.setSellerConfirmation(Boolean.TRUE);
             exchangeHistory.setSellerImageUrl(request.getImageUrl());
             exchangeHistory.setSellerAdditionalNotes(request.getAdditionalNotes());
-        } else if ((exchangeHistory.getExchangeRequest().getBuyerItem() != null &&  //checking if the current user is the buyer or paid by -> upload on buyer (paid by) side
-                user.equals(exchangeHistory.getExchangeRequest().getBuyerItem().getOwner())) ||
-                (user.equals(exchangeHistory.getExchangeRequest().getPaidBy()))) {
+        } else if (user.equals(getBuyer(exchangeHistory.getExchangeRequest()))) {
             exchangeHistory.setBuyerConfirmation(Boolean.TRUE);
             exchangeHistory.setBuyerImageUrl(request.getImageUrl());
             exchangeHistory.setBuyerAdditionalNotes(request.getAdditionalNotes());
@@ -379,9 +368,9 @@ public class ExchangeServiceImpl implements ExchangeService {
         // Send notification
         vn.fptu.reasbe.model.mongodb.User sender = userMService.findByUsername(user.getUserName());
         vn.fptu.reasbe.model.mongodb.User recipient = userMService.findByUsername(user.equals(exchangeHistory.getExchangeRequest().getSellerItem().getOwner())
-                ? exchangeHistory.getExchangeRequest().getBuyerItem().getOwner().getUserName() : exchangeHistory.getExchangeRequest().getSellerItem().getOwner().getUserName());
+                ? getBuyer(exchangeHistory.getExchangeRequest()).getUserName() : exchangeHistory.getExchangeRequest().getSellerItem().getOwner().getUserName());
         Notification notification = new Notification(sender.getUserName(), recipient.getUserName(),
-                "Evidence of exchange between " + exchangeHistory.getExchangeRequest().getBuyerItem().getItemName() + " and " + exchangeHistory.getExchangeRequest().getSellerItem().getItemName() + " has been uploaded",
+                "Evidence of exchange #EX" + exchangeHistory.getExchangeRequest().getId() + " has been uploaded",
                 new Date(), TypeNotification.EXCHANGE_REQUEST, recipient.getRegistrationTokens());
         notificationService.saveAndSendNotification(notification);
 
@@ -398,7 +387,7 @@ public class ExchangeServiceImpl implements ExchangeService {
 
     @Override
     public Integer getNumberOfSuccessfulExchangesOfUser(Integer month, Integer year) {
-        User user = authService.getCurrentUser();
+        User user = getCurrentUser();
         return exchangeHistoryRepository.getNumberOfSuccessfulExchangesOfUser(month, year, user.getId());
     }
 
@@ -437,7 +426,9 @@ public class ExchangeServiceImpl implements ExchangeService {
 
         request.getExchangeHistory().setStatusExchangeHistory(StatusExchangeHistory.FAILED);
         request.getSellerItem().setStatusItem(StatusItem.AVAILABLE);
-        request.getBuyerItem().setStatusItem(StatusItem.AVAILABLE);
+        if (request.getBuyerItem() != null) {
+            request.getBuyerItem().setStatusItem(StatusItem.AVAILABLE);
+        }
 
         List<Item> items = new ArrayList<>();
         items.add(request.getSellerItem());
@@ -547,13 +538,17 @@ public class ExchangeServiceImpl implements ExchangeService {
         for (ExchangeRequest relatedRequest : requests) {
             relatedRequest.setStatusExchangeRequest(StatusExchangeRequest.CANCELLED);
 
-            vn.fptu.reasbe.model.mongodb.User recipient = userMService.findByUsername(relatedRequest.getBuyerItem().getOwner().getUserName());
+            vn.fptu.reasbe.model.mongodb.User recipient = userMService.findByUsername(getBuyer(relatedRequest).getUserName());
             Notification notification = new Notification(sender.getUserName(), recipient.getUserName(),
-                    "Your exchange request with " + relatedRequest.getSellerItem().getItemName() + " has been cancelled",
+                    "Your exchange request #EX" + relatedRequest.getId() + " has been cancelled",
                     new Date(), TypeNotification.EXCHANGE_REQUEST, recipient.getRegistrationTokens());
             notificationService.saveAndSendNotification(notification);
         }
 
         exchangeRequestRepository.saveAll(requests);
+    }
+    
+    private User getBuyer(ExchangeRequest request) {
+        return request.getBuyerItem() != null ? request.getBuyerItem().getOwner() : request.getPaidBy();
     }
 }
