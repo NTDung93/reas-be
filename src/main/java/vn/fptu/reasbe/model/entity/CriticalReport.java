@@ -15,6 +15,10 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import vn.fptu.reasbe.model.entity.core.AbstractAuditableEntity;
+import vn.fptu.reasbe.model.enums.criticalreport.StatusCriticalReport;
+import vn.fptu.reasbe.model.enums.criticalreport.TypeCriticalReport;
+
+import java.time.LocalDateTime;
 
 /**
  *
@@ -30,9 +34,8 @@ import vn.fptu.reasbe.model.entity.core.AbstractAuditableEntity;
 @AttributeOverride(name = "id", column = @Column(name = "CRITICAL_REPORT_ID"))
 public class CriticalReport extends AbstractAuditableEntity {
 
-    @NotNull
     @Column(name = "TYPE_REPORT")
-    private String typeReport; // TODO: ntig change to enum TypeReport later
+    private TypeCriticalReport typeReport;
 
     @NotNull
     @Column(name = "CONTENT_REPORT")
@@ -43,6 +46,24 @@ public class CriticalReport extends AbstractAuditableEntity {
 
     @Column(name = "IMAGE_URL", length = Length.LOB_DEFAULT)
     private String imageUrl;
+
+    @Column(name = "APPROVED_TIME")
+    private LocalDateTime approvedTime;
+
+    @Column(name = "STATUS_CRITICAL_REPORT")
+    private StatusCriticalReport statusCriticalReport;
+
+    @ManyToOne
+    @JoinColumn(name = "USER_ID")
+    private User user;
+
+    @ManyToOne
+    @JoinColumn(name = "FEEDBACK_ID")
+    private Feedback feedback;
+
+    @ManyToOne
+    @JoinColumn(name = "EXCHANGE_REQUEST_ID")
+    private ExchangeRequest exchangeRequest;
 
     @ManyToOne
     @JoinColumn(name = "REPORTER_ID")
