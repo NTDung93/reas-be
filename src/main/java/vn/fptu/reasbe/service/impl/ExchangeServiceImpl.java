@@ -44,6 +44,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Objects;
 
 import static vn.fptu.reasbe.model.dto.core.BaseSearchPaginationResponse.getPageable;
 
@@ -103,10 +104,10 @@ public class ExchangeServiceImpl implements ExchangeService {
         ExchangeRequest request = getExchangeRequestById(id);
 
         if (user.getRole().getName().equals(RoleName.ROLE_RESIDENT)) {
-            boolean isSeller = request.getSellerItem().getOwner().equals(user);
-            boolean isBuyer = getBuyer(request).equals(user);
+            boolean isSeller = Objects.equals(request.getSellerItem().getOwner(), user);
+            boolean isBuyer = Objects.equals(getBuyer(request), user);
 
-            if (!(isSeller || isBuyer)) {
+            if (!isSeller && !isBuyer) {
                 throw new ReasApiException(HttpStatus.BAD_REQUEST, "error.userNotAllowed");
             }
         }
@@ -116,9 +117,15 @@ public class ExchangeServiceImpl implements ExchangeService {
 
     @Override
     public ExchangeResponse createExchangeRequest(ExchangeRequestRequest exchangeRequestRequest) {
+        User currentUser = getCurrentUser();
+
         validateExchangeRequest(exchangeRequestRequest);
 
         Item sellerItem = itemService.getItemById(exchangeRequestRequest.getSellerItemId());
+        if (Objects.equals(sellerItem.getOwner(), currentUser)) {
+            throw new ReasApiException(HttpStatus.BAD_REQUEST, "error.invalidSellerItem");
+        }
+
         if (!sellerItem.getStatusItem().equals(StatusItem.AVAILABLE)) {
             throw new ReasApiException(HttpStatus.BAD_REQUEST, "error.sellerItemNotAvailable");
         }
@@ -132,6 +139,9 @@ public class ExchangeServiceImpl implements ExchangeService {
 
         if (exchangeRequestRequest.getBuyerItemId() != null) {
             Item buyerItem = itemService.getItemById(exchangeRequestRequest.getBuyerItemId());
+            if (!Objects.equals(buyerItem.getOwner(), currentUser)) {
+                throw new ReasApiException(HttpStatus.BAD_REQUEST, "error.invalidBuyerItem");
+            }
             if (!buyerItem.getStatusItem().equals(StatusItem.AVAILABLE)) {
                 throw new ReasApiException(HttpStatus.BAD_REQUEST, "error.buyerItemNotAvailable");
             }
@@ -162,7 +172,6 @@ public class ExchangeServiceImpl implements ExchangeService {
         }
 
         // Send notification to seller
-        User currentUser = getCurrentUser();
         vn.fptu.reasbe.model.mongodb.User sender = userMService.findByUsername(currentUser.getUserName());
         vn.fptu.reasbe.model.mongodb.User recipient = userMService.findByUsername(sellerItem.getOwner().getUserName());
         Notification notification = new Notification(sender.getUserName(), recipient.getUserName(),
@@ -198,14 +207,14 @@ public class ExchangeServiceImpl implements ExchangeService {
         request.setNumberOfOffer(request.getNumberOfOffer() - 1);
 
         //Checking and changing status for confirmation from both user
-        if (getBuyer(request).equals(user)) {
+        if (Objects.equals(getBuyer(request), user)) {
             if (request.getBuyerConfirmation().equals(Boolean.TRUE)) {
                 throw new ReasApiException(HttpStatus.BAD_REQUEST, "error.waitForOtherUserConfirmation");
             }
             request.setSellerConfirmation(Boolean.FALSE);
             request.setBuyerConfirmation(Boolean.TRUE);
             recipientName = request.getSellerItem().getOwner().getUserName();
-        } else if (request.getSellerItem().getOwner().equals(user)) {
+        } else if (Objects.equals(request.getSellerItem().getOwner(), user)) {
             if (request.getSellerConfirmation().equals(Boolean.TRUE)) {
                 throw new ReasApiException(HttpStatus.BAD_REQUEST, "error.waitForOtherUserConfirmation");
             }
@@ -231,7 +240,9 @@ public class ExchangeServiceImpl implements ExchangeService {
     public ExchangeResponse reviewExchangeRequest(Integer id, StatusExchangeRequest statusExchangeRequest) {
         ExchangeRequest request = getExchangeRequestById(id);
 
-        if (!request.getSellerItem().getOwner().equals(getCurrentUser())) {
+        User currentUser = getCurrentUser();
+
+        if (!Objects.equals(request.getSellerItem().getOwner(), currentUser)) {
             throw new ReasApiException(HttpStatus.BAD_REQUEST, "error.userNotAllowed");
         }
 
@@ -270,7 +281,6 @@ public class ExchangeServiceImpl implements ExchangeService {
         request.setStatusExchangeRequest(statusExchangeRequest);
 
         // Send notification
-        User currentUser = getCurrentUser();
         vn.fptu.reasbe.model.mongodb.User sender = userMService.findByUsername(currentUser.getUserName());
         vn.fptu.reasbe.model.mongodb.User recipient = userMService.findByUsername(getBuyer(request).getUserName());
         Notification notification = new Notification(sender.getUserName(), recipient.getUserName(),
@@ -287,7 +297,7 @@ public class ExchangeServiceImpl implements ExchangeService {
 
         User currentUser = getCurrentUser();
 
-        if (!getBuyer(request).equals(currentUser)) {
+        if (!Objects.equals(getBuyer(request), currentUser)) {
             throw new ReasApiException(HttpStatus.BAD_REQUEST, "error.userNotAllowed");
         }
 
@@ -319,14 +329,25 @@ public class ExchangeServiceImpl implements ExchangeService {
 
         checkIfExchangeIsPending(request);
 
-        if (request.getSellerItem().getOwner().equals(user)) { //checking if the current user is the seller
+        vn.fptu.reasbe.model.mongodb.User sender;
+        vn.fptu.reasbe.model.mongodb.User recipient;
+
+        if (Objects.equals(request.getSellerItem().getOwner(), user)) { //checking if the current user is the seller
             request.setSellerConfirmation(Boolean.TRUE);
-        } else if (getBuyer(request).equals(user)) {
+            sender = userMService.findByUsername(request.getSellerItem().getOwner().getUserName());
+            recipient = userMService.findByUsername(getBuyer(request).getUserName());
+        } else if (Objects.equals(getBuyer(request), user)) {
             request.setBuyerConfirmation(Boolean.TRUE);
+            sender = userMService.findByUsername(getBuyer(request).getUserName());
+            recipient = userMService.findByUsername(request.getSellerItem().getOwner().getUserName());
         } else {
             throw new ReasApiException(HttpStatus.BAD_REQUEST, "error.userNotAllowed");
         }
-        //TODO: sendNoti
+
+        Notification notification = new Notification(sender.getUserName(), recipient.getUserName(),
+                sender.getFullName() + "confirm the negotiated price offered for exchange #EX" + request.getId(),
+                new Date(), TypeNotification.EXCHANGE_REQUEST, recipient.getRegistrationTokens());
+        notificationService.saveAndSendNotification(notification);
 
         return exchangeMapper.toExchangeResponse(exchangeRequestRepository.save(request));
     }
@@ -354,17 +375,6 @@ public class ExchangeServiceImpl implements ExchangeService {
             throw new ReasApiException(HttpStatus.BAD_REQUEST, "error.userNotAllowed");
         }
 
-        if (Boolean.TRUE.equals(exchangeHistory.getBuyerConfirmation()) &&
-                Boolean.TRUE.equals(exchangeHistory.getSellerConfirmation())) {
-            exchangeHistory.setStatusExchangeHistory(StatusExchangeHistory.SUCCESSFUL);
-            exchangeHistory.getExchangeRequest().getSellerItem().setStatusItem(StatusItem.SOLD);
-            if (exchangeHistory.getExchangeRequest().getBuyerItem() != null) {
-                exchangeHistory.getExchangeRequest().getBuyerItem().setStatusItem(StatusItem.SOLD);
-            }
-        } else {
-            exchangeHistory.setStatusExchangeHistory(StatusExchangeHistory.PENDING_EVIDENCE);
-        }
-
         // Send notification
         vn.fptu.reasbe.model.mongodb.User sender = userMService.findByUsername(user.getUserName());
         vn.fptu.reasbe.model.mongodb.User recipient = userMService.findByUsername(user.equals(exchangeHistory.getExchangeRequest().getSellerItem().getOwner())
@@ -373,6 +383,33 @@ public class ExchangeServiceImpl implements ExchangeService {
                 "Evidence of exchange #EX" + exchangeHistory.getExchangeRequest().getId() + " has been uploaded",
                 new Date(), TypeNotification.EXCHANGE_REQUEST, recipient.getRegistrationTokens());
         notificationService.saveAndSendNotification(notification);
+
+        if (Boolean.TRUE.equals(exchangeHistory.getBuyerConfirmation()) &&
+                Boolean.TRUE.equals(exchangeHistory.getSellerConfirmation())) {
+            exchangeHistory.setStatusExchangeHistory(StatusExchangeHistory.SUCCESSFUL);
+            exchangeHistory.getExchangeRequest().getSellerItem().setStatusItem(StatusItem.SOLD);
+            if (exchangeHistory.getExchangeRequest().getBuyerItem() != null) {
+                exchangeHistory.getExchangeRequest().getBuyerItem().setStatusItem(StatusItem.SOLD);
+            }
+
+            vn.fptu.reasbe.model.mongodb.User senderAdmin = userMService.getAdmin();
+
+            vn.fptu.reasbe.model.mongodb.User recipient1 = userMService.findByUsername(exchangeHistory.getExchangeRequest().getSellerItem().getOwner().getUserName());
+            vn.fptu.reasbe.model.mongodb.User recipient2 = userMService.findByUsername(getBuyer(exchangeHistory.getExchangeRequest()).getUserName());
+
+            Notification notification1 = new Notification(senderAdmin.getUserName(), recipient1.getUserName(),
+                    "Your exchange request #EX" + exchangeHistory.getExchangeRequest().getId() + " is success",
+                    new Date(), TypeNotification.EXCHANGE_REQUEST, recipient1.getRegistrationTokens());
+
+            Notification notification2 = new Notification(senderAdmin.getUserName(), recipient2.getUserName(),
+                    "Your exchange request #EX" + exchangeHistory.getExchangeRequest().getId() + " is success",
+                    new Date(), TypeNotification.EXCHANGE_REQUEST, recipient2.getRegistrationTokens());
+
+            notificationService.saveAndSendNotification(notification1);
+            notificationService.saveAndSendNotification(notification2);
+        } else {
+            exchangeHistory.setStatusExchangeHistory(StatusExchangeHistory.PENDING_EVIDENCE);
+        }
 
         exchangeHistory = exchangeHistoryRepository.save(exchangeHistory);
         return exchangeMapper.toExchangeResponse(exchangeHistory.getExchangeRequest());
@@ -407,8 +444,6 @@ public class ExchangeServiceImpl implements ExchangeService {
 
         //After exchangeDate, if no approval then CANCELLED
         pendingExchangeRequestsCronJob(pendingExchanges);
-
-        //TODO: add push notification for resident
     }
 
     private ExchangeRequest cancelExchangeRequest(ExchangeRequest request) {
@@ -457,10 +492,27 @@ public class ExchangeServiceImpl implements ExchangeService {
 
     private void pendingExchangeRequestsCronJob(List<ExchangeRequest> pendingExchanges) {
         if (!pendingExchanges.isEmpty()) {
-            pendingExchanges.forEach(request -> request.setStatusExchangeRequest(StatusExchangeRequest.CANCELLED));
+            pendingExchanges.forEach(request -> {
+                request.setStatusExchangeRequest(StatusExchangeRequest.CANCELLED);
+
+                vn.fptu.reasbe.model.mongodb.User sender = userMService.getAdmin();
+
+                vn.fptu.reasbe.model.mongodb.User recipient1 = userMService.findByUsername(request.getSellerItem().getOwner().getUserName());
+                vn.fptu.reasbe.model.mongodb.User recipient2 = userMService.findByUsername(getBuyer(request).getUserName());
+
+                Notification notification1 = new Notification(sender.getUserName(), recipient1.getUserName(),
+                        "Your exchange request #EX" + request.getId() + " has been cancelled",
+                        new Date(), TypeNotification.EXCHANGE_REQUEST, recipient1.getRegistrationTokens());
+
+                Notification notification2 = new Notification(sender.getUserName(), recipient2.getUserName(),
+                        "Your exchange request #EX" + request.getId() + " has been cancelled",
+                        new Date(), TypeNotification.EXCHANGE_REQUEST, recipient2.getRegistrationTokens());
+
+                notificationService.saveAndSendNotification(notification1);
+                notificationService.saveAndSendNotification(notification2);
+            });
             exchangeRequestRepository.saveAll(pendingExchanges);
             log.info("Updated {} pending exchange request(s) to CANCELLED.", pendingExchanges.size());
-            //TODO: send noti
         } else {
             log.info("No pending exchanges found.");
         }
@@ -474,10 +526,25 @@ public class ExchangeServiceImpl implements ExchangeService {
                 if (request.getBuyerItem() != null) {
                     request.getBuyerItem().setStatusItem(StatusItem.SOLD);
                 }
+
+                vn.fptu.reasbe.model.mongodb.User sender = userMService.getAdmin();
+
+                vn.fptu.reasbe.model.mongodb.User recipient1 = userMService.findByUsername(request.getSellerItem().getOwner().getUserName());
+                vn.fptu.reasbe.model.mongodb.User recipient2 = userMService.findByUsername(getBuyer(request).getUserName());
+
+                Notification notification1 = new Notification(sender.getUserName(), recipient1.getUserName(),
+                        "Your exchange request #EX" + request.getId() + " is success",
+                        new Date(), TypeNotification.EXCHANGE_REQUEST, recipient1.getRegistrationTokens());
+
+                Notification notification2 = new Notification(sender.getUserName(), recipient2.getUserName(),
+                        "Your exchange request #EX" + request.getId() + " is success",
+                        new Date(), TypeNotification.EXCHANGE_REQUEST, recipient2.getRegistrationTokens());
+
+                notificationService.saveAndSendNotification(notification1);
+                notificationService.saveAndSendNotification(notification2);
             });
             exchangeRequestRepository.saveAll(pendingEvidenceExchanges);
             log.info("Updated {} pending evidence exchange request(s) to SUCCESSFUL.", pendingEvidenceExchanges.size());
-            //TODO: send noti
         } else {
             log.info("No pending evidence exchanges found.");
         }
@@ -486,38 +553,28 @@ public class ExchangeServiceImpl implements ExchangeService {
     private void notExchangedExchangesCronJob(List<ExchangeRequest> notExchangedExchanges) {
         if (!notExchangedExchanges.isEmpty()) {
             notExchangedExchanges.forEach(request -> {
-                //TODO: only SUCC if no report made by one of the resident
-
                 request.getExchangeHistory().setStatusExchangeHistory(StatusExchangeHistory.SUCCESSFUL);
 
-//                Item sellerItem = request.getSellerItem();
-//                Item buyerItem = request.getBuyerItem();
-//                checkExpiredItemAfterFailedExchange(sellerItem);
-//                if (buyerItem != null) {
-//                    checkExpiredItemAfterFailedExchange(buyerItem);
-//                }
+                vn.fptu.reasbe.model.mongodb.User sender = userMService.getAdmin();
+
+                vn.fptu.reasbe.model.mongodb.User recipient1 = userMService.findByUsername(request.getSellerItem().getOwner().getUserName());
+                vn.fptu.reasbe.model.mongodb.User recipient2 = userMService.findByUsername(getBuyer(request).getUserName());
+
+                Notification notification1 = new Notification(sender.getUserName(), recipient1.getUserName(),
+                        "Your exchange request #EX" + request.getId() + " is success",
+                        new Date(), TypeNotification.EXCHANGE_REQUEST, recipient1.getRegistrationTokens());
+
+                Notification notification2 = new Notification(sender.getUserName(), recipient2.getUserName(),
+                        "Your exchange request #EX" + request.getId() + " is success",
+                        new Date(), TypeNotification.EXCHANGE_REQUEST, recipient2.getRegistrationTokens());
+
+                notificationService.saveAndSendNotification(notification1);
+                notificationService.saveAndSendNotification(notification2);
             });
             exchangeRequestRepository.saveAll(notExchangedExchanges);
             log.info("Updated {} not exchanged exchange request(s) to SUCCESSFUL.", notExchangedExchanges.size());
-            //TODO: send noti
         } else {
             log.info("No not exchanged exchanges found.");
-        }
-    }
-
-    private void checkExpiredItemAfterFailedExchange(Item item) {
-        if (item.getExpiredTime().isBefore(DateUtils.getCurrentDateTime())) {
-            item.setStatusItem(StatusItem.EXPIRED);
-            log.info("Item {} expired. Change status to EXPIRED.", item.getId());
-            // Send notification
-            vn.fptu.reasbe.model.mongodb.User recipient = userMService.findByUsername(item.getOwner().getUserName());
-            Notification notification = new Notification(userMService.getAdmin().getUserName(), recipient.getUserName(),
-                    "Your item has expired",
-                    new Date(), TypeNotification.ITEM_EXPIRED, recipient.getRegistrationTokens());
-            notificationService.saveAndSendNotification(notification);
-        } else {
-            item.setStatusItem(StatusItem.AVAILABLE);
-            vectorStoreService.addNewItem(List.of(item));
         }
     }
 
