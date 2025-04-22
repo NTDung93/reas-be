@@ -483,7 +483,7 @@ public class ItemServiceImpl implements ItemService {
             // Send notification
             vn.fptu.reasbe.model.mongodb.User recipient = userMService.findByUsername(expiredItem.getOwner().getUserName());
             Notification notification = new Notification(userMService.getAdmin().getUserName(), recipient.getUserName(),
-                    "Your item has expired",
+                    "Your item " + expiredItem.getItemName() + " has expired",
                     new Date(), TypeNotification.ITEM_EXPIRED, recipient.getRegistrationTokens());
             notificationService.saveAndSendNotification(notification);
         });
@@ -504,6 +504,23 @@ public class ItemServiceImpl implements ItemService {
         if (!relatedRequests.isEmpty()) {
             for (ExchangeRequest request : relatedRequests) {
                 request.setStatusExchangeRequest(StatusExchangeRequest.CANCELLED);
+
+                vn.fptu.reasbe.model.mongodb.User sender = userMService.getAdmin();
+
+                vn.fptu.reasbe.model.mongodb.User recipient1 = userMService.findByUsername(request.getSellerItem().getOwner().getUserName());
+                vn.fptu.reasbe.model.mongodb.User recipient2 = userMService.findByUsername(request.getBuyerItem() != null ?
+                        request.getBuyerItem().getOwner().getUserName() : request.getPaidBy().getUserName());
+
+                Notification notification1 = new Notification(sender.getUserName(), recipient1.getUserName(),
+                        "Your exchange request #EX" + request.getId() + " has been cancelled",
+                        new Date(), TypeNotification.EXCHANGE_REQUEST, recipient1.getRegistrationTokens());
+
+                Notification notification2 = new Notification(sender.getUserName(), recipient2.getUserName(),
+                        "Your exchange request #EX" + request.getId() + " has been cancelled",
+                        new Date(), TypeNotification.EXCHANGE_REQUEST, recipient2.getRegistrationTokens());
+
+                notificationService.saveAndSendNotification(notification1);
+                notificationService.saveAndSendNotification(notification2);
             }
             exchangeRequestRepository.saveAll(relatedRequests);
         }
