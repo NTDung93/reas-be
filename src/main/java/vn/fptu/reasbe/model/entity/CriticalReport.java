@@ -1,5 +1,7 @@
 package vn.fptu.reasbe.model.entity;
 
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import org.hibernate.Length;
 
 import jakarta.persistence.AttributeOverride;
@@ -34,7 +36,9 @@ import java.time.LocalDateTime;
 @AttributeOverride(name = "id", column = @Column(name = "CRITICAL_REPORT_ID"))
 public class CriticalReport extends AbstractAuditableEntity {
 
+    @NotNull
     @Column(name = "TYPE_REPORT")
+    @Enumerated(EnumType.STRING)
     private TypeCriticalReport typeReport;
 
     @NotNull
@@ -47,10 +51,12 @@ public class CriticalReport extends AbstractAuditableEntity {
     @Column(name = "IMAGE_URL", length = Length.LOB_DEFAULT)
     private String imageUrl;
 
-    @Column(name = "APPROVED_TIME")
-    private LocalDateTime approvedTime;
+    @Column(name = "RESOLVED_TIME")
+    private LocalDateTime resolvedTime;
 
+    @NotNull
     @Column(name = "STATUS_CRITICAL_REPORT")
+    @Enumerated(EnumType.STRING)
     private StatusCriticalReport statusCriticalReport;
 
     @ManyToOne

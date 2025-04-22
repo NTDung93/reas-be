@@ -7,7 +7,6 @@ import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
 import org.springframework.data.domain.PageImpl;
@@ -35,7 +34,6 @@ import vn.fptu.reasbe.utils.mapper.NotificationMapper;
  */
 @Service
 @RequiredArgsConstructor
-@Slf4j
 public class NotificationServiceImpl implements NotificationService {
 
     private static final Logger logger = Logger.getLogger(NotificationServiceImpl.class);

@@ -176,9 +176,9 @@ public class CriticalReportServiceImpl implements CriticalReportService {
     void handleAutoApprovalCriticalReportUpdate(CriticalReport report) {
         report.setAnswerer(userRepository.findByUserName("admin")
                 .orElseThrow(() -> new ResourceNotFoundException("User", "username", "admin")));
-        report.setApprovedTime(DateUtils.getCurrentDateTime());
+        report.setResolvedTime(DateUtils.getCurrentDateTime());
         report.setContentResponse("Auto approval due to both reports from both resident");
-        report.setStatusCriticalReport(StatusCriticalReport.APPROVED);
+        report.setStatusCriticalReport(StatusCriticalReport.RESOLVED);
     }
 
     @Override
@@ -197,8 +197,8 @@ public class CriticalReportServiceImpl implements CriticalReportService {
         existedReport.setAnswerer(currentUser);
 
         if (Boolean.TRUE.equals(request.getIsApproved())) {
-            existedReport.setStatusCriticalReport(StatusCriticalReport.APPROVED);
-            existedReport.setApprovedTime(DateUtils.getCurrentDateTime());
+            existedReport.setStatusCriticalReport(StatusCriticalReport.RESOLVED);
+            existedReport.setResolvedTime(DateUtils.getCurrentDateTime());
         } else {
             existedReport.setStatusCriticalReport(StatusCriticalReport.REJECTED);
         }
@@ -212,7 +212,7 @@ public class CriticalReportServiceImpl implements CriticalReportService {
 
         notificationService.saveAndSendNotification(notification);
 
-        if (existedReport.getTypeReport().equals(TypeCriticalReport.EXCHANGE) && existedReport.getStatusCriticalReport().equals(StatusCriticalReport.APPROVED)) {
+        if (existedReport.getTypeReport().equals(TypeCriticalReport.EXCHANGE) && existedReport.getStatusCriticalReport().equals(StatusCriticalReport.RESOLVED)) {
             vn.fptu.reasbe.model.mongodb.User otherRecipient = userMService.findByUsername(getOtherResidentOfExchange(existedReport.getReporter(), existedReport.getExchangeRequest()).getUserName());
             setExchangeRequestFailedAndSendNotification(existedReport.getExchangeRequest(), sender, recipient, otherRecipient);
         }

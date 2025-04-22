@@ -171,15 +171,17 @@ public class ExchangeServiceImpl implements ExchangeService {
             request.setSellerConfirmation(Boolean.FALSE);
         }
 
+        ExchangeRequest savedRequest = exchangeRequestRepository.save(request);
+
         // Send notification to seller
         vn.fptu.reasbe.model.mongodb.User sender = userMService.findByUsername(currentUser.getUserName());
         vn.fptu.reasbe.model.mongodb.User recipient = userMService.findByUsername(sellerItem.getOwner().getUserName());
         Notification notification = new Notification(sender.getUserName(), recipient.getUserName(),
-                "New exchange request #EX" + request.getId() + " with your " + sellerItem.getItemName(),
+                "New exchange request #EX" + savedRequest.getId() + " with your " + sellerItem.getItemName(),
                 new Date(), TypeNotification.EXCHANGE_REQUEST, recipient.getRegistrationTokens());
         notificationService.saveAndSendNotification(notification);
 
-        return exchangeMapper.toExchangeRequestResponse(exchangeRequestRepository.save(request));
+        return exchangeMapper.toExchangeResponse(savedRequest);
     }
 
     private User getCurrentUser() {
@@ -233,7 +235,7 @@ public class ExchangeServiceImpl implements ExchangeService {
                 new Date(), TypeNotification.EXCHANGE_REQUEST, recipient.getRegistrationTokens());
         notificationService.saveAndSendNotification(notification);
 
-        return exchangeMapper.toExchangeRequestResponse(exchangeRequestRepository.save(request));
+        return exchangeMapper.toExchangeResponse(exchangeRequestRepository.save(request));
     }
 
     @Override
@@ -271,7 +273,7 @@ public class ExchangeServiceImpl implements ExchangeService {
             exchangeHistory.setBuyerConfirmation(Boolean.FALSE);
             exchangeHistory.setStatusExchangeHistory(StatusExchangeHistory.NOT_YET_EXCHANGE);
 
-            cancelOtherExchangeRequests(request.getSellerItem(), request.getBuyerItem());
+            cancelOtherExchangeRequests(request.getSellerItem(), request.getBuyerItem(), request.getId());
 
             vectorStoreService.deleteItem(deletedItemsFromVectorStore);
 
@@ -584,7 +586,7 @@ public class ExchangeServiceImpl implements ExchangeService {
         }
     }
 
-    private void cancelOtherExchangeRequests(Item sellerItem, Item buyerItem) {
+    private void cancelOtherExchangeRequests(Item sellerItem, Item buyerItem, Integer currentRequestId) {
         List<ExchangeRequest> requests = exchangeRequestRepository
                 .findAllByStatusAndSellerItemOrBuyerItem(StatusExchangeRequest.PENDING, sellerItem, buyerItem);
 
@@ -593,6 +595,10 @@ public class ExchangeServiceImpl implements ExchangeService {
         vn.fptu.reasbe.model.mongodb.User sender = userMService.findByUsername(currentUser.getUserName());
 
         for (ExchangeRequest relatedRequest : requests) {
+            if (relatedRequest.getId().equals(currentRequestId)) {
+                continue;
+            }
+
             relatedRequest.setStatusExchangeRequest(StatusExchangeRequest.CANCELLED);
 
             vn.fptu.reasbe.model.mongodb.User recipient = userMService.findByUsername(getBuyer(relatedRequest).getUserName());

@@ -28,7 +28,6 @@ public interface CriticalReportMapper {
     @Mapping(target = "id", ignore = true)
     void updateCriticalReport(@MappingTarget CriticalReport report, CriticalReportStaffRequest reportStaff);
 
-    @Mapping(target = "exchangeRequest", source = "exchangeRequest", qualifiedByName = "toExchangeResponse")
     CriticalReportResponse toCriticalReportResponse(CriticalReport report);
 
 }

@@ -113,7 +113,7 @@ public class CriticalReportRepositoryCustomImpl extends AbstractRepositoryCustom
                         direction.isAscending() ? Order.ASC : Order.DESC, criticalReport.statusEntity);
             case "approvedTime":
                 return new OrderSpecifier<>(
-                        direction.isAscending() ? Order.ASC : Order.DESC, criticalReport.approvedTime);
+                        direction.isAscending() ? Order.ASC : Order.DESC, criticalReport.resolvedTime);
             default:
                 logger.warn("Unknown sort property: " + property);
                 return null;
