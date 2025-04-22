@@ -111,7 +111,7 @@ public class CriticalReportRepositoryCustomImpl extends AbstractRepositoryCustom
             case "statusEntity":
                 return new OrderSpecifier<>(
                         direction.isAscending() ? Order.ASC : Order.DESC, criticalReport.statusEntity);
-            case "approvedTime":
+            case "resolvedTime":
                 return new OrderSpecifier<>(
                         direction.isAscending() ? Order.ASC : Order.DESC, criticalReport.resolvedTime);
             default:
