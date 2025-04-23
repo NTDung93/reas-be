@@ -18,6 +18,7 @@ import vn.fptu.reasbe.model.dto.core.BaseSearchPaginationResponse;
 import vn.fptu.reasbe.model.dto.userlocation.UserLocationDto;
 import vn.fptu.reasbe.model.dto.userlocation.UserLocationRequest;
 import vn.fptu.reasbe.service.UserLocationService;
+import vn.fptu.reasbe.utils.mapper.UserLocationMapper;
 
 @RestController
 @RequestMapping("/api/v1/user-location")
@@ -25,6 +26,7 @@ import vn.fptu.reasbe.service.UserLocationService;
 public class UserLocationController {
 
     private final UserLocationService userLocationService;
+    private final UserLocationMapper userLocationMapper;
 
     @PreAuthorize("hasRole(T(vn.fptu.reasbe.model.constant.AppConstants).ROLE_RESIDENT)")
     @GetMapping
@@ -40,7 +42,7 @@ public class UserLocationController {
     @PreAuthorize("hasRole(T(vn.fptu.reasbe.model.constant.AppConstants).ROLE_RESIDENT)")
     @GetMapping("/{id}")
     public ResponseEntity<UserLocationDto> getUserLocationDetailOfCurrentUser(@PathVariable Integer id) {
-        return ResponseEntity.ok(userLocationService.getUserLocationDetailOfCurrentUser(id));
+        return ResponseEntity.ok(userLocationMapper.toDto(userLocationService.getUserLocationOfCurrentUserById(id)));
     }
 
     @PreAuthorize("hasRole(T(vn.fptu.reasbe.model.constant.AppConstants).ROLE_RESIDENT)")

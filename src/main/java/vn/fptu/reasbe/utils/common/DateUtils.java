@@ -70,8 +70,8 @@ public abstract class DateUtils {
         return (dateFirst.isBefore(dateSecond) || dateFirst.equals(dateSecond));
     }
 
-    public static LocalDateTime getStartOfCurrentDay() {
-        return getCurrentDate().atStartOfDay();
+    public static LocalDateTime toStartOfDay(LocalDateTime date) {
+        return date.toLocalDate().atStartOfDay();
     }
 
     public static LocalDateTime getFirstDayOfCurrentMonth() {
