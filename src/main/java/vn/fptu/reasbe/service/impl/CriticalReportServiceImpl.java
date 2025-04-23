@@ -202,7 +202,7 @@ public class CriticalReportServiceImpl implements CriticalReportService {
         criticalReportMapper.updateCriticalReport(existedReport, request);
         existedReport.setAnswerer(currentUser);
 
-        if (Boolean.TRUE.equals(request.getIsApproved())) {
+        if (Boolean.TRUE.equals(request.getIsResolved())) {
             existedReport.setStatusCriticalReport(StatusCriticalReport.RESOLVED);
             existedReport.setResolvedTime(DateUtils.getCurrentDateTime());
         } else {

@@ -22,5 +22,5 @@ public class CriticalReportStaffRequest {
     String contentResponse;
 
     @NotNull(message = "IsApproved must not be blank")
-    Boolean isApproved;
+    Boolean isResolved;
 }
