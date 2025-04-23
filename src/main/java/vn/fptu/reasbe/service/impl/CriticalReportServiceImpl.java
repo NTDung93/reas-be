@@ -60,6 +60,12 @@ public class CriticalReportServiceImpl implements CriticalReportService {
 
     @Override
     public BaseSearchPaginationResponse<CriticalReportResponse> searchCriticalReport(int pageSize, int pageNo, String sortDir, String sortBy, SearchCriticalReportRequest searchRequest) {
+        User currUser = authService.getCurrentUser();
+
+        if (currUser.getRole().getName().equals(RoleName.ROLE_RESIDENT)) {
+            searchRequest.setReporterIds(List.of(currUser.getId()));
+        }
+
         return BaseSearchPaginationResponse.of(criticalReportRepository.searchCriticalReportPagination(searchRequest, getPageable(pageNo, pageSize, sortDir, sortBy))
                 .map(criticalReportMapper::toCriticalReportResponse));
     }
@@ -207,7 +213,7 @@ public class CriticalReportServiceImpl implements CriticalReportService {
         vn.fptu.reasbe.model.mongodb.User recipient = userMService.findByUsername(existedReport.getReporter().getUserName());
         Notification notification = new Notification(sender.getUserName(), recipient.getUserName(),
                 "Report #" + existedReport.getId() + " has been " + existedReport.getStatusCriticalReport().toString().toLowerCase() + ".\n" +
-                "Staff: " + sender.getFullName() + " response: " + existedReport.getContentResponse(),
+                        "Staff: " + sender.getFullName() + " response: " + existedReport.getContentResponse(),
                 new Date(), TypeNotification.REPORT_RESPONSE, recipient.getRegistrationTokens());
 
         notificationService.saveAndSendNotification(notification);
@@ -228,12 +234,12 @@ public class CriticalReportServiceImpl implements CriticalReportService {
         exchangeRequest.getExchangeHistory().setStatusExchangeHistory(StatusExchangeHistory.FAILED);
         //Exchange FAILED notification to recipient 1
         Notification notification1 = new Notification(sender.getUserName(), recipient1.getUserName(),
-                "Exchange #EX:" + exchangeRequest.getId() + " has been failed due to a report toward the exchange",
+                "Exchange #EX" + exchangeRequest.getId() + " has been failed due to a report toward the exchange",
                 new Date(), TypeNotification.EXCHANGE_REQUEST, recipient1.getRegistrationTokens());
 
         //Exchange FAILED notification to recipient 2
         Notification notification2 = new Notification(sender.getUserName(), recipient2.getUserName(),
-                "Exchange #EX:" + exchangeRequest.getId() + " has been failed due to a report toward the exchange",
+                "Exchange #EX" + exchangeRequest.getId() + " has been failed due to a report toward the exchange",
                 new Date(), TypeNotification.EXCHANGE_REQUEST, recipient2.getRegistrationTokens());
 
         notificationService.saveAndSendNotification(notification1);
