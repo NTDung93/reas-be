@@ -234,12 +234,12 @@ public class CriticalReportServiceImpl implements CriticalReportService {
         exchangeRequest.getExchangeHistory().setStatusExchangeHistory(StatusExchangeHistory.FAILED);
         //Exchange FAILED notification to recipient 1
         Notification notification1 = new Notification(sender.getUserName(), recipient1.getUserName(),
-                "Exchange #EX:" + exchangeRequest.getId() + " has been failed due to a report toward the exchange",
+                "Exchange #EX" + exchangeRequest.getId() + " has been failed due to a report toward the exchange",
                 new Date(), TypeNotification.EXCHANGE_REQUEST, recipient1.getRegistrationTokens());
 
         //Exchange FAILED notification to recipient 2
         Notification notification2 = new Notification(sender.getUserName(), recipient2.getUserName(),
-                "Exchange #EX:" + exchangeRequest.getId() + " has been failed due to a report toward the exchange",
+                "Exchange #EX" + exchangeRequest.getId() + " has been failed due to a report toward the exchange",
                 new Date(), TypeNotification.EXCHANGE_REQUEST, recipient2.getRegistrationTokens());
 
         notificationService.saveAndSendNotification(notification1);
