@@ -8,6 +8,7 @@ import vn.fptu.reasbe.model.enums.exchange.StatusExchangeHistory;
 import vn.fptu.reasbe.model.enums.exchange.StatusExchangeRequest;
 
 import java.math.BigDecimal;
+import java.util.Map;
 
 public interface ExchangeService {
     BaseSearchPaginationResponse<ExchangeResponse> getAllExchangeByStatusOfCurrentUser(int pageNo, int pageSize, String sortBy, String sortDir, StatusExchangeRequest statusRequest, StatusExchangeHistory statusHistory);
@@ -31,4 +32,8 @@ public interface ExchangeService {
     Integer getNumberOfSuccessfulExchanges(Integer month, Integer year);
 
     Integer getNumberOfSuccessfulExchangesOfUser(Integer month, Integer year);
+
+    BigDecimal getRevenueOfUserInOneYearFromExchanges(Integer year);
+
+    Map<Integer, BigDecimal> getMonthlyRevenueOfUserInOneYearFromExchanges(Integer year);
 }
