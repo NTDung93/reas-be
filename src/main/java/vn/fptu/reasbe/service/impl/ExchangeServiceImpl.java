@@ -44,6 +44,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 
 import static vn.fptu.reasbe.model.dto.core.BaseSearchPaginationResponse.getPageable;
@@ -428,6 +429,18 @@ public class ExchangeServiceImpl implements ExchangeService {
     public Integer getNumberOfSuccessfulExchangesOfUser(Integer month, Integer year) {
         User user = getCurrentUser();
         return exchangeHistoryRepository.getNumberOfSuccessfulExchangesOfUser(month, year, user.getId());
+    }
+
+    @Override
+    public BigDecimal getRevenueOfUserInOneYearFromExchanges(Integer year) {
+        User user = getCurrentUser();
+        return exchangeHistoryRepository.getRevenueOfUserInOneYearFromExchanges(year, user.getId());
+    }
+
+    @Override
+    public Map<Integer, BigDecimal> getMonthlyRevenueOfUserInOneYearFromExchanges(Integer year) {
+        User user = getCurrentUser();
+        return exchangeHistoryRepository.getMonthlyRevenueOfUserInOneYearFromExchanges(year, user.getId());
     }
 
     @Scheduled(cron = "0 0 0,18 * * *", zone = "Asia/Ho_Chi_Minh")

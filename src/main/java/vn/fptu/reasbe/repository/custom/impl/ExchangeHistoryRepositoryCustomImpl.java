@@ -1,12 +1,17 @@
 package vn.fptu.reasbe.repository.custom.impl;
 
+import java.math.BigDecimal;
+import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import org.springframework.data.domain.Sort;
 
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.types.Expression;
 import com.querydsl.core.types.OrderSpecifier;
+import com.querydsl.core.types.Projections;
+import com.querydsl.core.types.dsl.NumberExpression;
 import com.querydsl.jpa.impl.JPAQuery;
 
 import jakarta.persistence.EntityManager;
@@ -86,5 +91,51 @@ public class ExchangeHistoryRepositoryCustomImpl extends AbstractRepositoryCusto
         return Optional.ofNullable(result)
                 .map(Long::intValue)
                 .orElse(0);
+    }
+
+    @Override
+    public BigDecimal getRevenueOfUserInOneYearFromExchanges(Integer year, Integer userId) {
+        QExchangeHistory exchangeHistory = QExchangeHistory.exchangeHistory;
+        QExchangeRequest exchangeRequest = QExchangeRequest.exchangeRequest;
+
+        BooleanBuilder builder = new BooleanBuilder();
+        builder.and(DateUtils.extractYear(exchangeHistory.lastModificationDate).eq(year))
+                .and(exchangeHistory.statusEntity.eq(StatusEntity.ACTIVE))
+                .and(exchangeHistory.statusExchangeHistory.eq(StatusExchangeHistory.SUCCESSFUL));
+
+        return new JPAQuery<>(em)
+                .from(exchangeHistory)
+                .leftJoin(exchangeHistory.exchangeRequest, exchangeRequest)
+                .where(builder.and(
+                        exchangeRequest.paidBy.id.ne(userId)
+                ))
+                .select(exchangeRequest.finalPrice.sum())
+                .fetchOne();
+    }
+
+    @Override
+    public Map<Integer, BigDecimal> getMonthlyRevenueOfUserInOneYearFromExchanges(Integer year, Integer userId) {
+        QExchangeHistory exchangeHistory = QExchangeHistory.exchangeHistory;
+        QExchangeRequest exchangeRequest = QExchangeRequest.exchangeRequest;
+
+        BooleanBuilder builder = new BooleanBuilder();
+        builder.and(DateUtils.extractYear(exchangeHistory.lastModificationDate).eq(year))
+                .and(exchangeHistory.statusEntity.eq(StatusEntity.ACTIVE))
+                .and(exchangeHistory.statusExchangeHistory.eq(StatusExchangeHistory.SUCCESSFUL));
+
+        NumberExpression<Integer> monthExpression = DateUtils.extractMonth(exchangeHistory.lastModificationDate);
+
+        return new JPAQuery<>(em)
+                .from(exchangeHistory)
+                .leftJoin(exchangeHistory.exchangeRequest, exchangeRequest)
+                .where(builder.and(exchangeRequest.paidBy.id.ne(userId)))
+                .groupBy(monthExpression)
+                .select(Projections.tuple(monthExpression, exchangeRequest.finalPrice.sum()))
+                .fetch()
+                .stream()
+                .collect(Collectors.toMap(
+                        tuple -> tuple.get(monthExpression),
+                        tuple -> Optional.ofNullable(tuple.get(exchangeRequest.finalPrice.sum())).orElse(BigDecimal.ZERO)
+                ));
     }
 }

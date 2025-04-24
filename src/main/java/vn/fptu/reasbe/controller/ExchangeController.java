@@ -24,6 +24,7 @@ import vn.fptu.reasbe.model.enums.exchange.StatusExchangeRequest;
 import vn.fptu.reasbe.service.ExchangeService;
 
 import java.math.BigDecimal;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/v1/exchange")
@@ -112,5 +113,17 @@ public class ExchangeController {
     @PreAuthorize("hasRole(T(vn.fptu.reasbe.model.constant.AppConstants).ROLE_RESIDENT)")
     public ResponseEntity<Integer> getNumberOfSuccessfulExchangesOfUser(@RequestParam Integer month, @RequestParam Integer year) {
         return ResponseEntity.ok(exchangeService.getNumberOfSuccessfulExchangesOfUser(month, year));
+    }
+
+    @GetMapping("/revenue-of-user-in-one-year-from-exchanges")
+    @PreAuthorize("hasRole(T(vn.fptu.reasbe.model.constant.AppConstants).ROLE_RESIDENT)")
+    public ResponseEntity<BigDecimal> getRevenueOfUserInOneYearFromExchanges(@RequestParam Integer year) {
+        return ResponseEntity.ok(exchangeService.getRevenueOfUserInOneYearFromExchanges(year));
+    }
+
+    @GetMapping("/monthly-revenue-of-user-in-one-year-from-exchanges")
+    @PreAuthorize("hasRole(T(vn.fptu.reasbe.model.constant.AppConstants).ROLE_RESIDENT)")
+    public ResponseEntity<Map<Integer, BigDecimal>> getMonthlyRevenueOfUserInOneYearFromExchanges(@RequestParam Integer year) {
+        return ResponseEntity.ok(exchangeService.getMonthlyRevenueOfUserInOneYearFromExchanges(year));
     }
 }
