@@ -59,6 +59,7 @@ import vn.fptu.reasbe.utils.mapper.ItemMapper;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -271,8 +272,8 @@ public class ItemServiceImpl implements ItemService {
 
         DesiredItem desiredItem = item.getDesiredItem();
 
-        if (desiredItem == null) {
-            throw new ReasApiException(HttpStatus.BAD_REQUEST, "error.desiredItemEmpty");
+        if (desiredItem == null || desiredItem.getDescription() == null || desiredItem.getDescription().trim().isEmpty()) {
+            return Collections.emptyList();
         }
 
         String filter = buildFilterForRecommendedItem(desiredItem);
