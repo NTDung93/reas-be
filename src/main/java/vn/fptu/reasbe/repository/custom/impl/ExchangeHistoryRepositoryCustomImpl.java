@@ -2,10 +2,12 @@ package vn.fptu.reasbe.repository.custom.impl;
 
 import java.math.BigDecimal;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.springframework.data.domain.Sort;
+import org.springframework.util.ObjectUtils;
 
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.types.Expression;
@@ -36,6 +38,13 @@ public class ExchangeHistoryRepositoryCustomImpl extends AbstractRepositoryCusto
     @PersistenceContext
     protected EntityManager em;
 
+    private static final QExchangeHistory exchangeHistory = QExchangeHistory.exchangeHistory;
+    private static final QExchangeRequest exchangeRequest = QExchangeRequest.exchangeRequest;
+    private static final QItem sellerItem = QItem.item;
+    private static final QItem buyerItem = new QItem("buyerItem");
+    private static final QUser sellerUser = QUser.user;
+    private static final QUser buyerUser = new QUser("buyerUser");
+
     @Override
     protected QExchangeHistory getEntityPath() {
         return QExchangeHistory.exchangeHistory;
@@ -58,33 +67,11 @@ public class ExchangeHistoryRepositoryCustomImpl extends AbstractRepositoryCusto
 
     @Override
     public Integer getNumberOfSuccessfulExchangesOfUser(Integer month, Integer year, Integer userId) {
-        QExchangeHistory exchangeHistory = QExchangeHistory.exchangeHistory;
-        QExchangeRequest exchangeRequest = QExchangeRequest.exchangeRequest;
+        BooleanBuilder builder = createBaseExchangeFilter(month, year)
+                .and(sellerUser.id.eq(userId).or(buyerUser.id.eq(userId)));
 
-        // Define aliases for seller and buyer items and their owners
-        QItem sellerItem = QItem.item;
-        QUser sellerUser = QUser.user;
-        QItem buyerItem = new QItem("buyerItem");
-        QUser buyerUser = new QUser("buyerUser");
-
-        BooleanBuilder builder = new BooleanBuilder();
-        builder.and(DateUtils.extractMonth(exchangeHistory.creationDate).eq(month))
-                .and(DateUtils.extractYear(exchangeHistory.creationDate).eq(year))
-                .and(exchangeHistory.statusEntity.eq(StatusEntity.ACTIVE))
-                .and(exchangeHistory.statusExchangeHistory.eq(StatusExchangeHistory.SUCCESSFUL));
-
-        Long result = new JPAQuery<>(em)
-                .from(exchangeHistory)
-                .leftJoin(exchangeHistory.exchangeRequest, exchangeRequest)
-                // Join seller item and its owner
-                .leftJoin(exchangeRequest.sellerItem, sellerItem)
-                .leftJoin(sellerItem.owner, sellerUser)
-                // Join buyer item and its owner
-                .leftJoin(exchangeRequest.buyerItem, buyerItem)
-                .leftJoin(buyerItem.owner, buyerUser)
-                .where(builder.and(
-                        sellerUser.id.eq(userId).or(buyerUser.id.eq(userId))
-                ))
+        Long result = createQuery()
+                .where(builder)
                 .select(exchangeHistory.count())
                 .fetchOne();
 
@@ -95,40 +82,29 @@ public class ExchangeHistoryRepositoryCustomImpl extends AbstractRepositoryCusto
 
     @Override
     public BigDecimal getRevenueOfUserInOneYearFromExchanges(Integer year, Integer userId) {
-        QExchangeHistory exchangeHistory = QExchangeHistory.exchangeHistory;
-        QExchangeRequest exchangeRequest = QExchangeRequest.exchangeRequest;
+        BooleanBuilder builder = createBaseExchangeFilter(null, year)
+                .and(exchangeRequest.paidBy.id.ne(userId))
+                .and(sellerItem.owner.id.eq(userId).or(buyerItem.owner.id.eq(userId)));
 
-        BooleanBuilder builder = new BooleanBuilder();
-        builder.and(DateUtils.extractYear(exchangeHistory.lastModificationDate).eq(year))
-                .and(exchangeHistory.statusEntity.eq(StatusEntity.ACTIVE))
-                .and(exchangeHistory.statusExchangeHistory.eq(StatusExchangeHistory.SUCCESSFUL));
-
-        return new JPAQuery<>(em)
-                .from(exchangeHistory)
-                .leftJoin(exchangeHistory.exchangeRequest, exchangeRequest)
-                .where(builder.and(
-                        exchangeRequest.paidBy.id.ne(userId)
-                ))
+        BigDecimal result = createQuery()
+                .where(builder)
                 .select(exchangeRequest.finalPrice.sum())
                 .fetchOne();
+
+        return Optional.ofNullable(result)
+                .orElse(BigDecimal.ZERO);
     }
 
     @Override
     public Map<Integer, BigDecimal> getMonthlyRevenueOfUserInOneYearFromExchanges(Integer year, Integer userId) {
-        QExchangeHistory exchangeHistory = QExchangeHistory.exchangeHistory;
-        QExchangeRequest exchangeRequest = QExchangeRequest.exchangeRequest;
-
-        BooleanBuilder builder = new BooleanBuilder();
-        builder.and(DateUtils.extractYear(exchangeHistory.lastModificationDate).eq(year))
-                .and(exchangeHistory.statusEntity.eq(StatusEntity.ACTIVE))
-                .and(exchangeHistory.statusExchangeHistory.eq(StatusExchangeHistory.SUCCESSFUL));
+        BooleanBuilder builder = createBaseExchangeFilter(null, year)
+                .and(exchangeRequest.paidBy.id.ne(userId))
+                .and(sellerItem.owner.id.eq(userId).or(buyerItem.owner.id.eq(userId)));
 
         NumberExpression<Integer> monthExpression = DateUtils.extractMonth(exchangeHistory.lastModificationDate);
 
-        return new JPAQuery<>(em)
-                .from(exchangeHistory)
-                .leftJoin(exchangeHistory.exchangeRequest, exchangeRequest)
-                .where(builder.and(exchangeRequest.paidBy.id.ne(userId)))
+        return createQuery()
+                .where(builder)
                 .groupBy(monthExpression)
                 .select(Projections.tuple(monthExpression, exchangeRequest.finalPrice.sum()))
                 .fetch()
@@ -137,5 +113,29 @@ public class ExchangeHistoryRepositoryCustomImpl extends AbstractRepositoryCusto
                         tuple -> tuple.get(monthExpression),
                         tuple -> Optional.ofNullable(tuple.get(exchangeRequest.finalPrice.sum())).orElse(BigDecimal.ZERO)
                 ));
+    }
+
+    private BooleanBuilder createBaseExchangeFilter(Integer month, Integer year) {
+        BooleanBuilder builder = new BooleanBuilder()
+                .and(exchangeHistory.statusEntity.eq(StatusEntity.ACTIVE))
+                .and(exchangeHistory.statusExchangeHistory.eq(StatusExchangeHistory.SUCCESSFUL));
+
+        if (Objects.nonNull(month)) {
+            builder.and(DateUtils.extractMonth(exchangeHistory.creationDate).eq(month));
+        }
+        if (Objects.nonNull(year)) {
+            builder.and(DateUtils.extractYear(exchangeHistory.creationDate).eq(year));
+        }
+        return builder;
+    }
+
+    private JPAQuery<?> createQuery() {
+        return new JPAQuery<>(em)
+                .from(exchangeHistory)
+                .leftJoin(exchangeHistory.exchangeRequest, exchangeRequest)
+                .leftJoin(exchangeRequest.sellerItem, sellerItem)
+                .leftJoin(exchangeRequest.buyerItem, buyerItem)
+                .leftJoin(sellerItem.owner, sellerUser)
+                .leftJoin(buyerItem.owner, buyerUser);
     }
 }
