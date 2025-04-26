@@ -1,6 +1,7 @@
 package vn.fptu.reasbe.service.impl;
 
 import lombok.extern.slf4j.Slf4j;
+import org.apache.logging.log4j.util.Strings;
 import org.locationtech.jts.geom.Point;
 import org.springframework.ai.document.Document;
 import org.springframework.beans.factory.annotation.Value;
@@ -272,7 +273,7 @@ public class ItemServiceImpl implements ItemService {
 
         DesiredItem desiredItem = item.getDesiredItem();
 
-        if (desiredItem == null || desiredItem.getDescription() == null || desiredItem.getDescription().trim().isEmpty()) {
+        if (desiredItem == null || Strings.isBlank(desiredItem.getDescription())) {
             return Collections.emptyList();
         }
 
