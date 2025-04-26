@@ -7,7 +7,6 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.springframework.data.domain.Sort;
-import org.springframework.util.ObjectUtils;
 
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.types.Expression;

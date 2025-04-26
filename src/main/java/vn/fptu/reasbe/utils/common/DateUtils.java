@@ -4,6 +4,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.Month;
 import java.time.YearMonth;
+import java.time.ZoneId;
 import java.time.temporal.TemporalAdjusters;
 
 import org.apache.commons.lang3.Validate;
@@ -17,6 +18,8 @@ import com.querydsl.core.types.dsl.NumberExpression;
  * @author ntig
  */
 public abstract class DateUtils {
+
+    private static final ZoneId zoneId = ZoneId.of("Asia/Ho_Chi_Minh");
     private static LocalDate currentDate = null;
     private static LocalDateTime currentDateTime = null;
 
@@ -25,12 +28,12 @@ public abstract class DateUtils {
 
     public static LocalDateTime getCurrentDateTime() {
         // Return simulated value if having, otherwise return system date
-        return currentDateTime != null ? currentDateTime : LocalDateTime.now();
+        return currentDateTime != null ? currentDateTime : LocalDateTime.now(zoneId);
     }
 
     public static LocalDate getCurrentDate() {
         // Return simulated value if having, otherwise return system date
-        return currentDate != null ? currentDate : LocalDate.now();
+        return currentDate != null ? currentDate : LocalDate.now(zoneId);
     }
 
     public static void setCurrentDate(LocalDate value) {

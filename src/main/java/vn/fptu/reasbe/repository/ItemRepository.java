@@ -22,13 +22,13 @@ import java.util.List;
  */
 
 public interface ItemRepository extends JpaRepository<Item, Integer>, QuerydslPredicateExecutor<Item>, ItemRepositoryCustom {
-    Page<Item> findAllByStatusItem(StatusItem statusItem, Pageable pageable);
+    Page<Item> findAllByStatusItemAndStatusEntity(StatusItem statusItem, StatusEntity statusEntity, Pageable pageable);
 
-    Page<Item> findAllByOwnerIdAndStatusItemOrderByCreationDateDesc(Integer ownerId, StatusItem statusItem, Pageable pageable);
+    Page<Item> findAllByOwnerIdAndStatusItemAndStatusEntityOrderByCreationDateDesc(Integer ownerId, StatusItem statusItem, StatusEntity statusEntity, Pageable pageable);
 
     List<Item> findAllByExpiredTimeBeforeAndStatusItemAndStatusEntity(LocalDateTime currDateTime, StatusItem statusItem, StatusEntity statusEntity);
 
-    List<Item> findByStatusItemAndOwnerIdAndIdNotOrderByApprovedTimeDesc(StatusItem statusItem, Integer ownerId, Integer itemId, Pageable pageable);
+    List<Item> findByStatusItemAndStatusEntityAndOwnerIdAndIdNotOrderByApprovedTimeDesc(StatusItem statusItem, StatusEntity statusEntity, Integer ownerId, Integer itemId, Pageable pageable);
 
     boolean existsByIdAndStatusItemEqualsAndStatusEntityEquals(Integer itemId, StatusItem statusItem, StatusEntity statusEntity);
 
@@ -38,11 +38,13 @@ public interface ItemRepository extends JpaRepository<Item, Integer>, QuerydslPr
     LEFT JOIN public."USER_LOCATION" ul ON i."USER_LOCATION_ID" = ul."USER_LOCATION_ID"
     WHERE ST_DWithin(ul."POINT", :referencePoint, :distance, true)
     AND i."STATUS_ITEM" = :statusItem
+    AND i."STATUS_ENTITY" = :statusEntity
     ORDER BY ST_Distance(ul."POINT", :referencePoint) ASC
     """, nativeQuery = true)
     List<Item> findNearbyItems(@Param("referencePoint") Point referencePoint,
                                @Param("distance") double distance,
-                               @Param("statusItem") String statusItem);
+                               @Param("statusItem") String statusItem,
+                               @Param("statusEntity") String statusEntity);
 
-    Integer countByOwnerAndStatusItemInAndCreationDateBetween(User user, List<StatusItem> statusItems, LocalDateTime from, LocalDateTime to);
+    Integer countByOwnerAndStatusItemInAndStatusEntityAndCreationDateBetween(User user, List<StatusItem> statusItems, StatusEntity statusEntity, LocalDateTime from, LocalDateTime to);
 }
