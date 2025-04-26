@@ -218,7 +218,7 @@ public class ItemServiceImpl implements ItemService {
     public BaseSearchPaginationResponse<ItemResponse> getAllPendingItem(int pageNo, int pageSize, String sortBy, String sortDir) {
         Sort sort = sortDir.equalsIgnoreCase(Sort.Direction.ASC.name()) ? Sort.by(sortBy).ascending() : Sort.by(sortBy).descending();
         Pageable pageable = PageRequest.of(pageNo, pageSize, sort);
-        return BaseSearchPaginationResponse.of(itemRepository.findAllByStatusItem(StatusItem.PENDING, pageable).map(itemMapper::toItemResponse));
+        return BaseSearchPaginationResponse.of(itemRepository.findAllByStatusItemAndStatusEntity(StatusItem.PENDING, StatusEntity.ACTIVE, pageable).map(itemMapper::toItemResponse));
     }
 
     @Override
@@ -324,7 +324,7 @@ public class ItemServiceImpl implements ItemService {
     @Override
     public List<ItemResponse> getOtherItemsOfUser(Integer currItemId, Integer userId, int limit) {
         Pageable pageable = PageRequest.of(0, limit);
-        return itemRepository.findByStatusItemAndOwnerIdAndIdNotOrderByApprovedTimeDesc(StatusItem.AVAILABLE, userId, currItemId, pageable)
+        return itemRepository.findByStatusItemAndStatusEntityAndOwnerIdAndIdNotOrderByApprovedTimeDesc(StatusItem.AVAILABLE, StatusEntity.ACTIVE, userId, currItemId, pageable)
                 .stream()
                 .map(itemMapper::toItemResponse)
                 .toList();
@@ -395,7 +395,7 @@ public class ItemServiceImpl implements ItemService {
         Point refPoint = GeometryUtils.createPoint(longitude, latitude);
         double distanceInMeters = distance * 1000;
 
-        List<Item> items = itemRepository.findNearbyItems(refPoint, distanceInMeters, StatusItem.AVAILABLE.getCode());
+        List<Item> items = itemRepository.findNearbyItems(refPoint, distanceInMeters, StatusItem.AVAILABLE.getCode(), StatusEntity.ACTIVE.toString());
 
         DistanceMatrixResponse response = getDistanceMatrix(latitude, longitude, items);
 
@@ -443,7 +443,7 @@ public class ItemServiceImpl implements ItemService {
             throw new ReasApiException(HttpStatus.BAD_REQUEST, "error.invalidOwner");
         }
 
-        if (!item.getStatusItem().equals(StatusItem.NO_LONGER_FOR_EXCHANGE)) {
+        if (!item.getStatusItem().equals(StatusItem.NO_LONGER_FOR_EXCHANGE) && !item.getStatusItem().equals(StatusItem.PENDING)) {
             throw new ReasApiException(HttpStatus.BAD_REQUEST, "error.invalidStatus");
         }
         item.setStatusEntity(StatusEntity.INACTIVE);
@@ -531,8 +531,8 @@ public class ItemServiceImpl implements ItemService {
         LocalDateTime firstDayOfMonth = DateUtils.getFirstDayOfCurrentMonth();
         LocalDateTime lastDayOfMonth = DateUtils.getLastDayOfCurrentMonth();
 
-        int countItem = itemRepository.countByOwnerAndStatusItemInAndCreationDateBetween(
-                currentUser, List.of(StatusItem.IN_EXCHANGE, StatusItem.PENDING, StatusItem.AVAILABLE), firstDayOfMonth, lastDayOfMonth);
+        int countItem = itemRepository.countByOwnerAndStatusItemInAndStatusEntityAndCreationDateBetween(
+                currentUser, List.of(StatusItem.IN_EXCHANGE, StatusItem.PENDING, StatusItem.AVAILABLE), StatusEntity.ACTIVE, firstDayOfMonth, lastDayOfMonth);
 
         int maximumItem = userSubscriptionService.getUserCurrentSubscription() != null ? AppConstants.MAX_ITEM_UPLOADED_PREMIUM : AppConstants.MAX_ITEM_UPLOADED;
 
@@ -542,7 +542,7 @@ public class ItemServiceImpl implements ItemService {
     }
 
     private Page<Item> getAllItemByUserIdAndStatusItem(Integer userId, StatusItem statusItem, Pageable pageable) {
-        return itemRepository.findAllByOwnerIdAndStatusItemOrderByCreationDateDesc(userId, statusItem, pageable);
+        return itemRepository.findAllByOwnerIdAndStatusItemAndStatusEntityOrderByCreationDateDesc(userId, statusItem, StatusEntity.ACTIVE, pageable);
     }
 
     private void prepareDesiredItem(DesiredItem desiredItem, DesiredItemDto desiredItemDto) {
