@@ -114,7 +114,7 @@ public class ItemServiceImpl implements ItemService {
 
     @Override
     public BaseSearchPaginationResponse<ItemResponse> getAllItemOfUserByStatus(int pageNo, int pageSize, String sortBy, String sortDir, Integer userId, StatusItem statusItem) {
-        if (statusItem.equals(StatusItem.AVAILABLE) || statusItem.equals(StatusItem.SOLD)) {
+        if (statusItem.equals(StatusItem.AVAILABLE) || statusItem.equals(StatusItem.EXCHANGED)) {
             return BaseSearchPaginationResponse.of(getAllItemByUserIdAndStatusItem(userId, statusItem, getPageable(pageNo, pageSize, sortBy, sortDir)).map(this::mapToItemResponsesWithFavorite));
         } else {
             throw new ReasApiException(HttpStatus.BAD_REQUEST, "error.invalidStatusItem");
