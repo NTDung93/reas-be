@@ -156,7 +156,7 @@ public class CriticalReportServiceImpl implements CriticalReportService {
         User user = userRepository.findById(residentId)
                 .orElseThrow(() -> new ResourceNotFoundException("Resident", "id", residentId));
 
-        criticalReport.setUser(user);
+        criticalReport.setResident(user);
         criticalReport.setTypeReport(TypeCriticalReport.RESIDENT);
     }
 
