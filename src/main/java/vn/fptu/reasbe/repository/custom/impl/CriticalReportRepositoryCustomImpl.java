@@ -59,8 +59,8 @@ public class CriticalReportRepositoryCustomImpl extends AbstractRepositoryCustom
             if (request.getAnswererIds() != null && !request.getAnswererIds().isEmpty()) {
                 builder.and(criticalReport.answerer.id.in(request.getAnswererIds()));
             }
-            if (request.getUserIds() != null && !request.getUserIds().isEmpty()) {
-                builder.and(criticalReport.resident.id.in(request.getUserIds()));
+            if (request.getReporterIds() != null && !request.getResidentIds().isEmpty()) {
+                builder.and(criticalReport.resident.id.in(request.getResidentIds()));
             }
             if (request.getFeedbackIds() != null && !request.getFeedbackIds().isEmpty()) {
                 builder.and(criticalReport.feedback.id.in(request.getFeedbackIds()));
