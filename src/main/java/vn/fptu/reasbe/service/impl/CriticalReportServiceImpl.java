@@ -63,6 +63,9 @@ public class CriticalReportServiceImpl implements CriticalReportService {
         User currUser = authService.getCurrentUser();
 
         if (currUser.getRole().getName().equals(RoleName.ROLE_RESIDENT)) {
+            if (searchRequest == null) {
+                searchRequest = new SearchCriticalReportRequest();
+            }
             searchRequest.setReporterIds(List.of(currUser.getId()));
         }
 
