@@ -59,7 +59,7 @@ public class CriticalReportRepositoryCustomImpl extends AbstractRepositoryCustom
             if (request.getAnswererIds() != null && !request.getAnswererIds().isEmpty()) {
                 builder.and(criticalReport.answerer.id.in(request.getAnswererIds()));
             }
-            if (request.getReporterIds() != null && !request.getResidentIds().isEmpty()) {
+            if (request.getResidentIds() != null && !request.getResidentIds().isEmpty()) {
                 builder.and(criticalReport.resident.id.in(request.getResidentIds()));
             }
             if (request.getFeedbackIds() != null && !request.getFeedbackIds().isEmpty()) {
@@ -93,7 +93,7 @@ public class CriticalReportRepositoryCustomImpl extends AbstractRepositoryCustom
             case "statusCriticalReport":
                 return new OrderSpecifier<>(
                         direction.isAscending() ? Order.ASC : Order.DESC, criticalReport.statusCriticalReport);
-            case "user":
+            case "resident":
                 return new OrderSpecifier<>(
                         direction.isAscending() ? Order.ASC : Order.DESC, criticalReport.resident.fullName);
             case "feedback":
