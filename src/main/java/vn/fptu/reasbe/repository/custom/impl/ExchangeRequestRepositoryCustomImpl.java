@@ -7,6 +7,7 @@ import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.impl.JPAQuery;
 import org.apache.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -147,6 +148,25 @@ public class ExchangeRequestRepositoryCustomImpl extends AbstractRepositoryCusto
                 .where(builder)
                 .fetch();
     }
+
+    @Override
+    public List<ExchangeRequest> findRelatedCancelledExchangeRequests(Item sellerItem, LocalDateTime cancelDateTime) {
+        QExchangeRequest exchangeRequest = getEntityPath();
+        BooleanBuilder builder = new BooleanBuilder();
+
+        LocalDateTime upperBound = cancelDateTime.plusMinutes(5);
+
+        builder.and(exchangeRequest.sellerItem.eq(sellerItem))
+                .and(exchangeRequest.statusExchangeRequest.eq(StatusExchangeRequest.CANCELLED))
+                .and(exchangeRequest.lastModificationDate.goe(cancelDateTime))
+                .and(exchangeRequest.lastModificationDate.loe(upperBound));
+
+        return new JPAQuery<ExchangeRequest>()
+                .from(exchangeRequest)
+                .where(builder)
+                .fetch();
+    }
+
 
     private BooleanBuilder getFilterForSellerItemBuyerItemAndPaidBy(QExchangeRequest exchangeRequest, User user) {
         BooleanBuilder builder = new BooleanBuilder();

@@ -56,4 +56,6 @@ public interface ItemService {
     Boolean deleteItem(Integer id);
 
     Boolean isReachMaxOfUploadItemThisMonth();
+
+    Boolean isSellerItemStillAvailable(Integer exchangeRequestId);
 }

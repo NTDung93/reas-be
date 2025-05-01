@@ -165,4 +165,10 @@ public class ItemController {
     public ResponseEntity<Boolean> isReachMaxOfUploadItemThisMonth() {
         return ResponseEntity.ok(itemService.isReachMaxOfUploadItemThisMonth());
     }
+
+    @PreAuthorize("hasRole(T(vn.fptu.reasbe.model.constant.AppConstants).ROLE_RESIDENT)")
+    @GetMapping("/check-availability-of-seller-item")
+    public ResponseEntity<Boolean> isSellerItemStillAvailable(Integer exchangeRequestId) {
+        return ResponseEntity.ok(itemService.isSellerItemStillAvailable(exchangeRequestId));
+    }
 }
