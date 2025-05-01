@@ -149,14 +149,14 @@ public class ExchangeRequestRepositoryCustomImpl extends AbstractRepositoryCusto
     }
 
     @Override
-    public boolean existByItemAndStatus(Item item, StatusExchangeRequest status) {
+    public boolean existByItemAndStatus(Integer itemId, StatusExchangeRequest status) {
         QExchangeRequest exchangeRequest = QExchangeRequest.exchangeRequest;
 
         BooleanBuilder builder = new BooleanBuilder();
 
         builder.and(exchangeRequest.statusExchangeRequest.eq(status))
-                .and(exchangeRequest.sellerItem.eq(item)
-                        .or(exchangeRequest.buyerItem.eq(item)));
+                .and(exchangeRequest.sellerItem.id.eq(itemId)
+                        .or(exchangeRequest.buyerItem.id.eq(itemId)));
 
         return new JPAQuery<ExchangeRequest>(em)
                 .from(exchangeRequest)

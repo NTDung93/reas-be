@@ -148,6 +148,11 @@ public class ItemController {
         return ResponseEntity.ok(itemService.findNearbyItems(pageNo, pageSize, latitude, longitude, distance));
     }
 
+    @GetMapping("/updated-item-in-pending-exchange")
+    public ResponseEntity<Boolean> isUpdatedItemInPendingExchange(@RequestParam Integer itemId) {
+        return ResponseEntity.ok(itemService.checkUpdatedItemInPendingExchange(itemId));
+    }
+
     @PutMapping("/extend-item-for-free")
     @PreAuthorize("hasRole(T(vn.fptu.reasbe.model.constant.AppConstants).ROLE_RESIDENT)")
     public ResponseEntity<Boolean> extendItemForFree(@RequestParam Integer itemId) {
