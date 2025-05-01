@@ -176,7 +176,7 @@ public class ExchangeRequestRepositoryCustomImpl extends AbstractRepositoryCusto
                 .and(exchangeRequest.lastModificationDate.goe(cancelDateTime))
                 .and(exchangeRequest.lastModificationDate.loe(upperBound));
 
-        return new JPAQuery<ExchangeRequest>()
+        return new JPAQuery<ExchangeRequest>(em)
                 .from(exchangeRequest)
                 .where(builder)
                 .fetch();
