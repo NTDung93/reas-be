@@ -88,7 +88,6 @@ import static vn.fptu.reasbe.model.dto.core.BaseSearchPaginationResponse.getPage
 @RequiredArgsConstructor
 public class ItemServiceImpl implements ItemService {
 
-    private final ExchangeServiceImpl exchangeServiceImpl;
     @Value("${goongio.config.api-key}")
     private String GOONGIO_API_KEY;
 
@@ -111,7 +110,6 @@ public class ItemServiceImpl implements ItemService {
     private final UserLocationService userLocationService;
     private final SubscriptionPlanService subscriptionPlanService;
     private final ExchangeRequestRepository exchangeRequestRepository;
-    private final ExchangeService exchangeService;
 
     @Override
     public BaseSearchPaginationResponse<SearchItemResponse> searchItemPagination(int pageNo, int pageSize, String sortBy, String sortDir, SearchItemRequest request) {
