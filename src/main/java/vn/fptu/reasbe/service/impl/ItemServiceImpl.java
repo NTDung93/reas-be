@@ -183,11 +183,9 @@ public class ItemServiceImpl implements ItemService {
             throw new ReasApiException(HttpStatus.BAD_REQUEST, "error.cannotUpdateItem");
         }
 
-        if (existedItem.getStatusItem().equals(StatusItem.AVAILABLE)) {
-            boolean isInAvailableExchangeRequest = exchangeRequestRepository.existByItemAndStatus(existedItem, StatusExchangeRequest.PENDING);
-            if (isInAvailableExchangeRequest) {
-                throw new ReasApiException(HttpStatus.BAD_REQUEST, "error.updatedItemExistsInExchangeRequest");
-            }
+        if (existedItem.getStatusItem().equals(StatusItem.AVAILABLE) &&
+                Boolean.TRUE.equals(checkUpdatedItemInPendingExchange(existedItem.getId()))) {
+            throw new ReasApiException(HttpStatus.BAD_REQUEST, "error.updatedItemExistsInExchangeRequest");
         }
 
         itemMapper.updateItem(existedItem, request);
@@ -467,6 +465,11 @@ public class ItemServiceImpl implements ItemService {
         itemRepository.save(item);
 
         return true;
+    }
+
+    @Override
+    public Boolean checkUpdatedItemInPendingExchange(Integer itemId) {
+        return exchangeRequestRepository.existByItemAndStatus(itemId, StatusExchangeRequest.PENDING);
     }
 
     public DistanceMatrixResponse getDistanceMatrix(double originLat, double originLng, List<Item> items) {
