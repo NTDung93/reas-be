@@ -164,6 +164,25 @@ public class ExchangeRequestRepositoryCustomImpl extends AbstractRepositoryCusto
                 .fetchFirst() != null;
     }
 
+    @Override
+    public List<ExchangeRequest> findRelatedCancelledExchangeRequests(Item sellerItem, LocalDateTime cancelDateTime) {
+        QExchangeRequest exchangeRequest = getEntityPath();
+        BooleanBuilder builder = new BooleanBuilder();
+
+        LocalDateTime upperBound = cancelDateTime.plusMinutes(5);
+
+        builder.and(exchangeRequest.sellerItem.eq(sellerItem))
+                .and(exchangeRequest.statusExchangeRequest.eq(StatusExchangeRequest.CANCELLED))
+                .and(exchangeRequest.lastModificationDate.goe(cancelDateTime))
+                .and(exchangeRequest.lastModificationDate.loe(upperBound));
+
+        return new JPAQuery<ExchangeRequest>(em)
+                .from(exchangeRequest)
+                .where(builder)
+                .fetch();
+    }
+
+
     private BooleanBuilder getFilterForSellerItemBuyerItemAndPaidBy(QExchangeRequest exchangeRequest, User user) {
         BooleanBuilder builder = new BooleanBuilder();
 

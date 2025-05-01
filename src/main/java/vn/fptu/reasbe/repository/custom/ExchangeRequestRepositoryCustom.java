@@ -23,4 +23,6 @@ public interface ExchangeRequestRepositoryCustom{
     List<ExchangeRequest> findAllByStatusAndSellerItemOrBuyerItem(StatusExchangeRequest statusExchangeRequest, Item sellerItem, Item buyerItem);
 
     boolean existByItemAndStatus(Integer itemId, StatusExchangeRequest statusExchangeRequest);
+
+    List<ExchangeRequest> findRelatedCancelledExchangeRequests(Item sellerItem, LocalDateTime cancelDateTime);
 }

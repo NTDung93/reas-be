@@ -49,6 +49,7 @@ import vn.fptu.reasbe.repository.ItemRepository;
 import vn.fptu.reasbe.service.AuthService;
 import vn.fptu.reasbe.service.BrandService;
 import vn.fptu.reasbe.service.CategoryService;
+import vn.fptu.reasbe.service.ExchangeService;
 import vn.fptu.reasbe.service.ItemService;
 import vn.fptu.reasbe.service.UserLocationService;
 import vn.fptu.reasbe.service.SubscriptionPlanService;
@@ -608,6 +609,13 @@ public class ItemServiceImpl implements ItemService {
 
         // No subscription this month (or expired before month start)
         return totalUploadedThisMonth >= AppConstants.MAX_ITEM_UPLOADED;
+    }
+
+    @Override
+    public Boolean isSellerItemStillAvailable(Integer exchangeRequestId) {
+        ExchangeRequest exchangeRequest = exchangeRequestRepository.findById(exchangeRequestId)
+                .orElseThrow(() -> new ResourceNotFoundException("ExchangeRequest", "id", exchangeRequestId));
+        return exchangeRequest.getSellerItem().getStatusItem() == StatusItem.AVAILABLE;
     }
 
     private Page<Item> getAllItemByUserIdAndStatusItem(Integer userId, StatusItem statusItem, Pageable pageable) {
