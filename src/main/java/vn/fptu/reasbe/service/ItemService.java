@@ -57,5 +57,7 @@ public interface ItemService {
 
     Boolean isReachMaxOfUploadItemThisMonth();
 
+    Boolean checkUpdatedItemInPendingExchange(Integer itemId);
+
     Boolean isSellerItemStillAvailable(Integer exchangeRequestId);
 }

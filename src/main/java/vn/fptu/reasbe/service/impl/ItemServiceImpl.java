@@ -186,6 +186,11 @@ public class ItemServiceImpl implements ItemService {
             throw new ReasApiException(HttpStatus.BAD_REQUEST, "error.cannotUpdateItem");
         }
 
+        if (existedItem.getStatusItem().equals(StatusItem.AVAILABLE) &&
+                Boolean.TRUE.equals(checkUpdatedItemInPendingExchange(existedItem.getId()))) {
+            throw new ReasApiException(HttpStatus.BAD_REQUEST, "error.updatedItemExistsInExchangeRequest");
+        }
+
         itemMapper.updateItem(existedItem, request);
         existedItem.setCategory(categoryService.getCategoryById(request.getCategoryId()));
         existedItem.setBrand(brandService.getBrandById(request.getBrandId()));
@@ -244,10 +249,12 @@ public class ItemServiceImpl implements ItemService {
 
         if (status.equals(StatusItem.AVAILABLE)) {
             pendingItem.setStatusItem(StatusItem.AVAILABLE);
-            pendingItem.setApprovedTime(DateUtils.getCurrentDateTime());
 
-            int expiredTime = userSubscriptionService.getUserCurrentSubscription() != null ? AppConstants.EXPIRED_TIME_WEEKS_PREMIUM : AppConstants.EXPIRED_TIME_WEEKS;
-            pendingItem.setExpiredTime(DateUtils.toStartOfDay(pendingItem.getApprovedTime().plusWeeks(expiredTime)));
+            if (pendingItem.getExpiredTime() == null) {
+                int expiredTime = userSubscriptionService.getUserCurrentSubscription() != null ? AppConstants.EXPIRED_TIME_WEEKS_PREMIUM : AppConstants.EXPIRED_TIME_WEEKS;
+                pendingItem.setApprovedTime(DateUtils.getCurrentDateTime());
+                pendingItem.setExpiredTime(DateUtils.toStartOfDay(pendingItem.getApprovedTime().plusWeeks(expiredTime)));
+            }
 
             notification = new Notification(sender.getUserName(), recipient.getUserName(),
                     "Your item has been approved",
@@ -461,6 +468,11 @@ public class ItemServiceImpl implements ItemService {
         itemRepository.save(item);
 
         return true;
+    }
+
+    @Override
+    public Boolean checkUpdatedItemInPendingExchange(Integer itemId) {
+        return exchangeRequestRepository.existByItemAndStatus(itemId, StatusExchangeRequest.PENDING);
     }
 
     public DistanceMatrixResponse getDistanceMatrix(double originLat, double originLng, List<Item> items) {

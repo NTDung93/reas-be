@@ -7,7 +7,6 @@ import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.impl.JPAQuery;
 import org.apache.log4j.Logger;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -150,6 +149,22 @@ public class ExchangeRequestRepositoryCustomImpl extends AbstractRepositoryCusto
     }
 
     @Override
+    public boolean existByItemAndStatus(Integer itemId, StatusExchangeRequest status) {
+        QExchangeRequest exchangeRequest = QExchangeRequest.exchangeRequest;
+
+        BooleanBuilder builder = new BooleanBuilder();
+
+        builder.and(exchangeRequest.statusExchangeRequest.eq(status))
+                .and(exchangeRequest.sellerItem.id.eq(itemId)
+                        .or(exchangeRequest.buyerItem.id.eq(itemId)));
+
+        return new JPAQuery<ExchangeRequest>(em)
+                .from(exchangeRequest)
+                .where(builder)
+                .fetchFirst() != null;
+    }
+
+    @Override
     public List<ExchangeRequest> findRelatedCancelledExchangeRequests(Item sellerItem, LocalDateTime cancelDateTime) {
         QExchangeRequest exchangeRequest = getEntityPath();
         BooleanBuilder builder = new BooleanBuilder();
@@ -186,7 +201,6 @@ public class ExchangeRequestRepositoryCustomImpl extends AbstractRepositoryCusto
 
         return builder;
     }
-
 
     private Page<ExchangeRequest> getPage(JPAQuery<ExchangeRequest> query, Pageable pageable) {
         if (query == null || pageable == null) {
