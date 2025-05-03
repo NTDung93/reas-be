@@ -14,6 +14,7 @@ import vn.fptu.reasbe.model.entity.ExchangeRequest;
 import vn.fptu.reasbe.model.entity.Feedback;
 import vn.fptu.reasbe.model.entity.Item;
 import vn.fptu.reasbe.model.entity.User;
+import vn.fptu.reasbe.model.enums.core.StatusEntity;
 import vn.fptu.reasbe.model.enums.criticalreport.StatusCriticalReport;
 import vn.fptu.reasbe.model.enums.criticalreport.TypeCriticalReport;
 import vn.fptu.reasbe.model.enums.exchange.StatusExchangeHistory;
@@ -221,12 +222,30 @@ public class CriticalReportServiceImpl implements CriticalReportService {
 
         notificationService.saveAndSendNotification(notification);
 
-        if (existedReport.getTypeReport().equals(TypeCriticalReport.EXCHANGE) && existedReport.getStatusCriticalReport().equals(StatusCriticalReport.RESOLVED)) {
-            vn.fptu.reasbe.model.mongodb.User otherRecipient = userMService.findByUsername(getOtherResidentOfExchange(existedReport.getReporter(), existedReport.getExchangeRequest()).getUserName());
-            setExchangeRequestFailedAndSendNotification(existedReport.getExchangeRequest(), sender, recipient, otherRecipient);
+        if (existedReport.getStatusCriticalReport().equals(StatusCriticalReport.RESOLVED)) {
+            if (existedReport.getTypeReport().equals(TypeCriticalReport.EXCHANGE)) {
+                vn.fptu.reasbe.model.mongodb.User otherRecipient = userMService.findByUsername(getOtherResidentOfExchange(existedReport.getReporter(), existedReport.getExchangeRequest()).getUserName());
+                setExchangeRequestFailedAndSendNotification(existedReport.getExchangeRequest(), sender, recipient, otherRecipient);
+            }
+            if (existedReport.getTypeReport().equals(TypeCriticalReport.FEEDBACK)) {
+                vn.fptu.reasbe.model.mongodb.User otherRecipient = userMService.findByUsername(existedReport.getFeedback().getUser().getUserName());
+                setFeedbackInactiveAndSendNotification(existedReport.getFeedback(), sender, otherRecipient);
+            }
         }
 
         return criticalReportMapper.toCriticalReportResponse(criticalReportRepository.save(existedReport));
+    }
+
+    private void setFeedbackInactiveAndSendNotification(Feedback feedback, vn.fptu.reasbe.model.mongodb.User sender, vn.fptu.reasbe.model.mongodb.User recipient) {
+        feedback.setStatusEntity(StatusEntity.INACTIVE);
+        feedbackRepository.save(feedback);
+
+        //Feedback deleted notification to recipient
+        Notification notification1 = new Notification(sender.getUserName(), recipient.getUserName(),
+                "Feedback for item " + feedback.getItem().getItemName() + " has been deleted due to a report toward the feedback",
+                new Date(), TypeNotification.EXCHANGE_REQUEST, recipient.getRegistrationTokens());
+
+        notificationService.saveAndSendNotification(notification1);
     }
 
     private CriticalReport getCriticalReportById(Integer id) {
