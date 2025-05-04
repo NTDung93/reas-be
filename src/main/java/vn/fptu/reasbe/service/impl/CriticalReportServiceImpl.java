@@ -243,8 +243,8 @@ public class CriticalReportServiceImpl implements CriticalReportService {
 
         //Feedback deleted notification to recipient
         Notification notification1 = new Notification(sender.getUserName(), recipient.getUserName(),
-                "Feedback for item " + feedback.getItem().getItemName() + " has been deleted due to a report toward the feedback",
-                new Date(), TypeNotification.FEEDBACK_REPORTED, recipient.getRegistrationTokens());
+                "Feedback for item " + feedback.getItem().getItemName() + " has been removed due to a report toward the feedback",
+                new Date(), TypeNotification.REPORT_HANDLED, recipient.getRegistrationTokens());
 
         notificationService.saveAndSendNotification(notification1);
     }
@@ -258,12 +258,12 @@ public class CriticalReportServiceImpl implements CriticalReportService {
         //Exchange FAILED notification to recipient 1
         Notification notification1 = new Notification(sender.getUserName(), recipient1.getUserName(),
                 "Exchange #EX" + exchangeRequest.getId() + " has been failed due to a report toward the exchange",
-                new Date(), TypeNotification.EXCHANGE_REQUEST, recipient1.getRegistrationTokens());
+                new Date(), TypeNotification.REPORT_HANDLED, recipient1.getRegistrationTokens());
 
         //Exchange FAILED notification to recipient 2
         Notification notification2 = new Notification(sender.getUserName(), recipient2.getUserName(),
                 "Exchange #EX" + exchangeRequest.getId() + " has been failed due to a report toward the exchange",
-                new Date(), TypeNotification.EXCHANGE_REQUEST, recipient2.getRegistrationTokens());
+                new Date(), TypeNotification.REPORT_HANDLED, recipient2.getRegistrationTokens());
 
         notificationService.saveAndSendNotification(notification1);
         notificationService.saveAndSendNotification(notification2);

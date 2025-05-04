@@ -10,5 +10,5 @@ public enum TypeNotification {
     EXCHANGE_REQUEST,
     ITEM_EXPIRED,
     REPORT_RESPONSE,
-    FEEDBACK_REPORTED,
+    REPORT_HANDLED,
 }
