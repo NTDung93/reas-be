@@ -254,14 +254,14 @@ public class ItemServiceImpl implements ItemService {
             }
 
             notification = new Notification(sender.getUserName(), recipient.getUserName(),
-                    "Your item has been approved",
+                    "Your item: " + pendingItem.getItemName() + " has been approved",
                     new Date(), TypeNotification.UPLOAD_ITEM, recipient.getRegistrationTokens());
 
         } else if (status.equals(StatusItem.REJECTED)) {
             pendingItem.setStatusItem(StatusItem.REJECTED);
 
             notification = new Notification(sender.getUserName(), recipient.getUserName(),
-                    "Your item has been rejected",
+                    "Your item: " + pendingItem.getItemName() + " has been rejected",
                     new Date(), TypeNotification.UPLOAD_ITEM, recipient.getRegistrationTokens());
         } else {
             throw new ReasApiException(HttpStatus.BAD_REQUEST, "error.invalidStatusItem");
@@ -567,13 +567,20 @@ public class ItemServiceImpl implements ItemService {
         );
 
         int totalUploadedThisMonth = itemRepository
-                .countByOwnerAndStatusItemInAndStatusEntityAndCreationDateBetween(
+                .countByOwnerAndStatusItemInAndStatusEntityAndLastModificationDateBetween(
                         currentUser,
                         countedStatuses,
                         StatusEntity.ACTIVE,
                         monthStart,
                         now
                 );
+
+        // case current subscription is premium
+        UserSubscription currentSub = userSubscriptionService.getUserCurrentSubscription();
+
+        if (Objects.nonNull(currentSub)) {
+            return totalUploadedThisMonth >= AppConstants.MAX_ITEM_UPLOADED_PREMIUM;
+        }
 
         // Get user’s most recent subscription in current month
         UserSubscription lastSub = userSubscriptionService.getUserSubscriptionInCurrentMonth();
@@ -589,7 +596,7 @@ public class ItemServiceImpl implements ItemService {
             if (!endDate.isBefore(monthStart) && endDate.isBefore(now)) {
                 // Count how many were uploaded before subscription expired
                 int usedBeforeExpiry = itemRepository
-                        .countByOwnerAndStatusItemInAndStatusEntityAndCreationDateBetween(
+                        .countByOwnerAndStatusItemInAndStatusEntityAndLastModificationDateBetween(
                                 currentUser,
                                 countedStatuses,
                                 StatusEntity.ACTIVE,
@@ -603,14 +610,16 @@ public class ItemServiceImpl implements ItemService {
                 int allowedAfterExpiry = Math.min(premiumLeft, fallbackFreeCap);
 
                 // If they’ve already hit the combined allowance, block
-                if (totalUploadedThisMonth >= usedBeforeExpiry + allowedAfterExpiry) {
+                if (totalUploadedThisMonth >= (usedBeforeExpiry + allowedAfterExpiry)) {
                     return true;
                 }
             }
+        } else {
+            // No subscription this month (or expired before month start)
+            return totalUploadedThisMonth >= AppConstants.MAX_ITEM_UPLOADED;
         }
 
-        // No subscription this month (or expired before month start)
-        return totalUploadedThisMonth >= AppConstants.MAX_ITEM_UPLOADED;
+        return false;
     }
 
     @Override

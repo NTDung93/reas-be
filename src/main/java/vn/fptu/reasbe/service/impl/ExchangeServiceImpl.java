@@ -502,8 +502,8 @@ public class ExchangeServiceImpl implements ExchangeService {
         Item sellerItem = exchangeRequest.getSellerItem();
 
         for (ExchangeRequest oldRequest : oldExchangeRequests) {
-            if (oldRequest.getBuyerItem().getStatusItem().equals(StatusItem.AVAILABLE)) {
-                vn.fptu.reasbe.model.mongodb.User recipient = userMService.findByUsername(oldRequest.getBuyerItem().getOwner().getUserName());
+            if (Objects.isNull(oldRequest.getBuyerItem()) || oldRequest.getBuyerItem().getStatusItem().equals(StatusItem.AVAILABLE)) {
+                vn.fptu.reasbe.model.mongodb.User recipient = userMService.findByUsername(getBuyer(oldRequest).getUserName());
                 Notification notification = new Notification(sender.getUserName(), recipient.getUserName(),
                         sellerItem.getItemName() + " is now available for exchange. Click here to re-create the exchange request #EX" + oldRequest.getId(),
                         new Date(), TypeNotification.EXCHANGE_REQUEST, recipient.getRegistrationTokens());
@@ -591,6 +591,10 @@ public class ExchangeServiceImpl implements ExchangeService {
         if (!notExchangedExchanges.isEmpty()) {
             notExchangedExchanges.forEach(request -> {
                 request.getExchangeHistory().setStatusExchangeHistory(StatusExchangeHistory.SUCCESSFUL);
+                request.getSellerItem().setStatusItem(StatusItem.EXCHANGED);
+                if (request.getBuyerItem() != null) {
+                    request.getBuyerItem().setStatusItem(StatusItem.EXCHANGED);
+                }
 
                 vn.fptu.reasbe.model.mongodb.User sender = userMService.getAdmin();
 
