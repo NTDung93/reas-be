@@ -243,7 +243,7 @@ public class CriticalReportServiceImpl implements CriticalReportService {
         //Feedback deleted notification to recipient
         Notification notification1 = new Notification(sender.getUserName(), recipient.getUserName(),
                 "Feedback for item " + feedback.getItem().getItemName() + " has been deleted due to a report toward the feedback",
-                new Date(), TypeNotification.EXCHANGE_REQUEST, recipient.getRegistrationTokens());
+                new Date(), TypeNotification.FEEDBACK_REPORTED, recipient.getRegistrationTokens());
 
         notificationService.saveAndSendNotification(notification1);
     }
