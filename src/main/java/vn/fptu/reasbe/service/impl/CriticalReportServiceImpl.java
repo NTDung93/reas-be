@@ -227,8 +227,7 @@ public class CriticalReportServiceImpl implements CriticalReportService {
             if (existedReport.getTypeReport().equals(TypeCriticalReport.EXCHANGE)) {
                 vn.fptu.reasbe.model.mongodb.User otherRecipient = userMService.findByUsername(getOtherResidentOfExchange(existedReport.getReporter(), existedReport.getExchangeRequest()).getUserName());
                 setExchangeRequestFailedAndSendNotification(existedReport.getExchangeRequest(), sender, recipient, otherRecipient);
-            }
-            if (existedReport.getTypeReport().equals(TypeCriticalReport.FEEDBACK)) {
+            } else if (existedReport.getTypeReport().equals(TypeCriticalReport.FEEDBACK)) {
                 vn.fptu.reasbe.model.mongodb.User otherRecipient = userMService.findByUsername(existedReport.getFeedback().getUser().getUserName());
                 setFeedbackInactiveAndSendNotification(existedReport.getFeedback(), sender, otherRecipient);
             }
