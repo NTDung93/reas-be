@@ -19,7 +19,8 @@ VALUES
     ('ACTIVE', 'admin', NOW(), NULL, NULL, 0, 'Panasonic', 'Sportswear and footwear brand.', 'abc'),
     ('ACTIVE', 'admin', NOW(), NULL, NULL, 0, 'TOTO', 'Affordable clothing and accessories brand.', 'abc'),
     ('ACTIVE', 'admin', NOW(), NULL, NULL, 0, 'Bosch', 'Brand known for reliable home appliances.', 'abc'),
-    ('ACTIVE', 'admin', NOW(), NULL, NULL, 0, 'Sony', 'Electronics and entertainment products leader.', 'abc');
+    ('ACTIVE', 'admin', NOW(), NULL, NULL, 0, 'Sony', 'Electronics and entertainment products leader.', 'abc'),
+    ('ACTIVE', 'admin', NOW(), NULL, NULL, 0, 'Others', 'Other brands', 'abc');
 
 -- Insert data into the CATEGORY table
 INSERT INTO public."CATEGORY"
@@ -188,7 +189,8 @@ VALUES
     ('ACTIVE', 'admin', '2025-04-02 08:31:14.329', '2025-04-02 08:31:14.329', NULL, 0, 'Bosch Kitchen Mixer', 'Stand mixer with multiple speed settings.', '2025-04-08 12:00:00', '2025-05-11 00:00:00','LNEW', 'AVAI', 7, 9, 'https://i.ytimg.com/vi/6_uLJQ14LKg/sddefault.jpg', 6, 10, 'DESI', 3500000, 3, FALSE),
     ('ACTIVE', 'admin', '2025-04-02 08:31:14.329', '2025-04-02 08:31:14.329', NULL, 0, 'Eufy Video Doorbell', 'Smart doorbell with 2K resolution and motion detection.', '2025-04-18 12:00:00', '2025-05-15 00:00:00','EXCE', 'AVAI', 49, 5, 'https://shopdocla.vn/wp-content/uploads/2023/10/z4797756818217_42bf1646bfebde0bf05707ddaec05c2a.jpg', 7, 12, 'DESI', 2500000, 4, FALSE),
     ('ACTIVE', 'minhquan','2025-04-02 08:31:14.329','2025-04-02 08:31:14.329','ducson',1, 'Xiaomi rice cooker DBF201', 'Auto adjusts cooking parameters based on the type of rice', '2025-04-13 12:00:00', '2025-04-27 00:00:00','GOOD', 'EXPI', 2, 4, 'https://res.cloudinary.com/dpysbryyk/image/upload/v1746244379/gffju32c19fk9n5nrr2a.webp', 6, 10, 'OPEN', 800000.00, NULL, TRUE),
-    ('ACTIVE', 'tiendung','2025-04-02 08:31:14.329','2025-04-02 08:31:14.329','ducson',1, 'Panasonic microwave GM34', 'combines microwave and grill function, making it suitable for a variety of cooking needs', '2025-04-13 12:00:00', '2025-05-17 00:00:00','LNEW', 'AVAI', 4, 7, 'https://res.cloudinary.com/dpysbryyk/image/upload/v1746244262/kw6qzjdlg2hfb5z5n74k.jpg', 3, 4, 'OPEN', 2200000.00, NULL, TRUE);
+    ('ACTIVE', 'tiendung','2025-04-02 08:31:14.329','2025-04-02 08:31:14.329','ducson',1, 'Panasonic microwave GM34', 'combines microwave and grill function, making it suitable for a variety of cooking needs', '2025-04-13 12:00:00', '2025-05-17 00:00:00','LNEW', 'AVAI', 4, 7, 'https://res.cloudinary.com/dpysbryyk/image/upload/v1746244262/kw6qzjdlg2hfb5z5n74k.jpg', 3, 4, 'OPEN', 2200000.00, NULL, TRUE),
+    ('ACTIVE', 'admin', '2025-04-02 08:31:14.329', '2025-04-02 08:31:14.329', NULL, 0, 'Kuchenzimmer Stand Mixer ', '6 litres mixer from Germany mixer with three speed settings.', '2025-04-12 12:00:00', '2025-05-28 12:00:00','LNEW', 'AVAI', 7, 11, 'https://kingshop.vn/data/images/May-tron-da-nang-kuchenzimer-stand-mixer-red-002790-4%281%29.jpg', 6, 10, 'DESI', 3500000, NULL, TRUE);
 
 INSERT INTO public."ITEM_METHODEXCHANGES" ("ITEM_ITEM_ID", "METHOD_EXCHANGE") VALUES
                                                                                   (1, 'PICK'),
@@ -228,4 +230,4 @@ VALUES
 INSERT INTO public."EXCHANGE_REQUEST"
 ("STATUS_ENTITY","USR_LOG_I","DTE_LOG_I","DTE_LOG_U","USR_LOG_U","VERSION","ADDITIONAL_NOTES","BUYER_CONFIRMATION","ESTIMATE_PRICE","EXCHANGE_DATE","EXCHANGE_LOCATION","FINAL_PRICE","METHOD_EXCHANGE","NUM_OF_OFFER","SELLER_CONFIRMATION","STATUS_REQUEST","BUYER_ITEM_ID","EXCHANGE_HISTORY_ID","PAID_BY_ID","SELLER_ITEM_ID")
 VALUES
-    ('ACTIVE','minhquan','2025-05-03 10:01:18.601727','2025-05-03 10:01:46.303765','tiendung',3,NULL,true,2500000.00,'2025-05-02 10:00:00','10.8077894,106.7071645//119 Bùi Đình Tuý, Phường 24, Bình Thạnh, Hồ Chí Minh 84800',2500000.00,'DELI',3,true,'APPROVED',8,1,6,2);
+    ('ACTIVE','minhquan','2025-05-03 10:01:18.601727','2025-05-03 10:01:46.303765','tiendung',3,NULL,true,2500000.00,'2025-05-06 15:00:00','10.8077894,106.7071645//119 Bùi Đình Tuý, Phường 24, Bình Thạnh, Hồ Chí Minh 84800',2500000.00,'DELI',3,true,'APPROVED',8,1,6,2);
